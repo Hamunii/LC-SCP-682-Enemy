@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using SCP682.SCPEnemy;
+using UnityEngine;
 using UnityEngine.AI;
 
 namespace SCP682;
@@ -27,16 +28,17 @@ static class AddEnemyScript
         ai.syncMovementSpeed = 0.22f;
         ai.enemyHP = 18;
 
-        ai.turnCompass = pref.transform.Find("TurnCompass").GetComponent<Transform>();
-        ai.attackArea = pref.transform.Find("AttackArea").GetComponent<Transform>();
+        // ai.turnCompass = pref.transform.Find("TurnCompass").GetComponent<Transform>();
+        // ai.attackArea = pref.transform.Find("AttackArea").GetComponent<Transform>();
 
         // Other
         pref.GetComponentInChildren<EnemyAICollisionDetect>().mainScript = ai;
     }
 
-    internal static void ClearScript<T>(GameObject gameObject) where T : Component
+    internal static void ClearScript<T>(this GameObject gameObject)
+        where T : Component
     {
-        var ai = gameObject.GetComponent<T>();
-        Object.Destroy(ai);
+        var script = gameObject.GetComponent<T>();
+        Object.Destroy(script);
     }
 }

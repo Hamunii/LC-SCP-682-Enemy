@@ -78,6 +78,18 @@
         <PackageReference Include="LethalCompany.GameLibs.Steam" Version="*-*" Publicize="true" PrivateAssets="all"/>
     </ItemGroup>
 
+    <!-- References - HookGen Assemblies -->
+    <ItemGroup>
+        <Reference Include="$(MSBuildProjectDirectory)/lib/MMHOOK_Assembly-CSharp.dll"/>
+    </ItemGroup>
+
+    <Target Name="CopyMMHOOKFiles" AfterTargets="PreBuildEvent" Condition="$(CI) != 'true'">
+        <ItemGroup>
+            <MMHOOKFiles Include="$(MMHOOK)/**/MMHOOK_Assembly-CSharp.dll"/>
+        </ItemGroup>
+        <Copy SourceFiles="@(MMHOOKFiles)" DestinationFolder="$(MSBuildProjectDirectory)/lib" SkipUnchangedFiles="true"/>
+    </Target>
+
     <!-- Allows us to use Rpc methods. See https://github.com/EvaisaDev/UnityNetcodePatcher -->
     <!-- This MSBuild option does not work in Visual Studio, using cli option for now
     <ItemGroup>

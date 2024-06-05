@@ -8,16 +8,18 @@ using UnityEngine.AI;
 namespace SCP682.SCPEnemy;
 
 // Heavily based on WelcomeToOoblterra's WTOEnemy class
-public class ModEnemyAI<T> : EnemyAI
+public class ModEnemyAI<T> : EnemyAI where T : EnemyAI
 {
     public abstract class AIBehaviorState
     {
         public Vector2 RandomRange = new Vector2(0, 0);
         public int MyRandomInt = 0;
         public T self = default!;
+        public NavMeshAgent agent = null!;
         public System.Random enemyRandom = null!;
         public abstract void OnStateEntered(Animator creatureAnimator);
-        public abstract void UpdateBehavior(Animator creatureAnimator);
+        public virtual void UpdateBehavior(Animator creatureAnimator) { }
+        public virtual void AIInterval(Animator creatureAnimator) { }
         public abstract void OnStateExit(Animator creatureAnimator);
 
         public abstract List<AIStateTransition> Transitions { get; set; }
@@ -54,7 +56,7 @@ public class ModEnemyAI<T> : EnemyAI
     public override void DoAIInterval()
     {
         base.DoAIInterval();
-        _ = StartOfRound.Instance.livingPlayers;
+        ActiveState.AIInterval(creatureAnimator);
     }
     public override void Start()
     {
@@ -78,6 +80,7 @@ public class ModEnemyAI<T> : EnemyAI
         //Fix for the animator sometimes deciding to just not work
         creatureAnimator.Rebind();
         ActiveState.self = self;
+        ActiveState.agent = agent;
         ActiveState.enemyRandom = enemyRandom;
         ActiveState.OnStateEntered(creatureAnimator);
 
@@ -163,6 +166,7 @@ public class ModEnemyAI<T> : EnemyAI
             return;
         }
         ActiveState = state;
+        ActiveState.agent = agent;
         ActiveState.enemyRandom = enemyRandom;
         ActiveState.OnStateEntered(creatureAnimator);
         return;
@@ -376,6 +380,7 @@ public class ModEnemyAI<T> : EnemyAI
         ActiveState = LocalNextTransition.NextState();
         ActiveState.MyRandomInt = RandomInt;
         ActiveState.self = self;
+        ActiveState.agent = agent;
         ActiveState.enemyRandom = enemyRandom;
         LogDebug($"{__getTypeName()} #{self} is Entering:  {ActiveState}");
         ActiveState.OnStateEntered(creatureAnimator);

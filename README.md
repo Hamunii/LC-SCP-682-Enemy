@@ -1,5 +1,8 @@
 # SCP-682
 
+> [!NOTE]  
+> This readme is for developers.
+
 An enemy mod for Lethal Company.
 
 ## Contributing
@@ -12,6 +15,8 @@ This is a readme modified from the LC-ExampleEnemy project and adjusted for this
 - With the *DEBUG* build configuration, networking functionality is disabled from *our scripts* to avoid possible issues due to live reloading. For testing multiplayer, make builds using the *RELEASE* configuration.
 - Due to how ScriptEngine works, we can't add the AI script in Unity, we must add it programmatically.
 - When the mod is reloaded with ScriptEngine, it will spawn the enemy in front of you automatically. Unloading it will remove all game objects with the *now old* AI script. The asset bundle is also reloaded when a reload happens, so you can also work in Unity without having to restart the game.
+
+Also, this project is made on Unity 2022.3.20f1 because I had issues with getting Unity working at all. Anyways, everything should still work if you change the Unity version upon boot.
 
 ## Setting Up The Project For Development
 
@@ -67,5 +72,7 @@ We have configured [SCP682.csproj](/Plugin/SCP682.csproj) to build a Thunderstor
 ## Credits
 
 This project is based off of the [LC-ExampleEnemy](https://github.com/Hamunii/LC-ExampleEnemy) template by [Hamunii](https://github.com/Hamunii), which is MIT licensed. Also see the [LC-ExampleEnemy Credits](https://github.com/Hamunii/LC-ExampleEnemy?tab=readme-ov-file#credits).
+
+- JoeJoe - Project leader
 - [Hamunii](https://github.com/Hamunii) - Programming
-- s1ckboy - Sounds
+- s1ckboy - Sounds (coming soon(tm))

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using GameNetcodeStuff;
+using SCP682.Hooks;
+using Unity.Netcode;
 using UnityEngine;
 
 namespace SCP682.SCPEnemy;
@@ -19,6 +21,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     TravelingTo currentTravelDirection = TravelingTo.Facility;
     const float defaultBoredOfWanderingFacilityTimer = 120f;
     float boredOfWanderingFacilityTimer = defaultBoredOfWanderingFacilityTimer;
+    bool readyToMakeTransitionFromAmbush = true;
+    Vector3 posOnTopOfShip = StartOfRound.Instance.insideShipPositions[0].position; // temporary
 
     static class Anim
     {
@@ -94,7 +98,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             OverrideState(new AttackPlayerState());
     }
 
-    #region States
+    #region Outside States
 
     private class WanderToShipState : AIBehaviorState
     {
@@ -106,7 +110,10 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             creatureAnimator.SetBool(Anim.isMoving, true);
         }
 
-        public override void UpdateBehavior(Animator creatureAnimator) { }
+        public override void AIInterval(Animator creatureAnimator)
+        {
+            self.SetDestinationToPosition(self.posOnTopOfShip);
+        }
 
         public override void OnStateExit(Animator creatureAnimator) { }
     }
@@ -120,28 +127,45 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         {
             creatureAnimator.SetBool(Anim.isMoving, false);
             creatureAnimator.SetBool(Anim.isOnShip, true);
-        }
 
-        public override void UpdateBehavior(Animator creatureAnimator) { }
+            agent.enabled = false;
+            // TODO: Jump animation
+            self.gameObject.transform.position = self.posOnTopOfShip;
+            self.readyToMakeTransitionFromAmbush = false;
+        }
 
         public override void OnStateExit(Animator creatureAnimator)
         {
             creatureAnimator.SetBool(Anim.isMoving, true);
             creatureAnimator.SetBool(Anim.isOnShip, false);
 
+            agent.enabled = true;
+
             self.currentTravelDirection = TravelingTo.Facility;
+            self.readyToMakeTransitionFromAmbush = true;
         }
 
         internal class ArrivedAtShipTransition : AIStateTransition
         {
-            public override bool CanTransitionBeTaken() => throw new NotImplementedException();
+            public override bool CanTransitionBeTaken()
+            {
+                if (Vector3.Distance(self.posOnTopOfShip, self.gameObject.transform.position) < 20)
+                    return true;
+                return false;
+            }
 
             public override AIBehaviorState NextState() => new OnShipAmbushState();
         }
 
         private class AmbushPlayerFromShipTransition : AIStateTransition
         {
-            public override bool CanTransitionBeTaken() => throw new NotImplementedException();
+            public override bool CanTransitionBeTaken()
+            {
+                // TODO: make it better
+                if (self.PlayerWithinRange(15) && self.readyToMakeTransitionFromAmbush)
+                    return true;
+                return false;
+            }
 
             public override AIBehaviorState NextState() => new AttackPlayerState();
         }
@@ -153,10 +177,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             public override bool CanTransitionBeTaken()
             {
                 boredOfAmbushTimer -= Time.deltaTime;
-                if (boredOfAmbushTimer <= 0)
+                if (boredOfAmbushTimer <= 0 && self.readyToMakeTransitionFromAmbush)
                     return true;
-                else
-                    return false;
+                return false;
             }
 
             public override AIBehaviorState NextState() => new WanderToFacilityState();
@@ -165,32 +188,71 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
     private class WanderToFacilityState : AIBehaviorState
     {
+        // Note: We add one more transition to this afterwards!
         public override List<AIStateTransition> Transitions { get; set; } =
             [new InvestigatePlayerTransition()];
+        EntranceTeleport facilityEntrance = null!;
 
         public override void OnStateEntered(Animator creatureAnimator)
         {
             creatureAnimator.SetBool(Anim.isMoving, true);
+
+            facilityEntrance = self.GetCurrentEntrance(self.MyValidState);
+            Transitions.Add(new EnterFacilityTransition(facilityEntrance));
         }
 
-        public override void UpdateBehavior(Animator creatureAnimator) { }
+        public override void AIInterval(Animator creatureAnimator)
+        {
+            // TODO: More interesting pathing
+            self.SetDestinationToPosition(facilityEntrance.entrancePoint.position);
+        }
 
         public override void OnStateExit(Animator creatureAnimator) { }
+
+        private class EnterFacilityTransition(EntranceTeleport entranceTeleport) : AIStateTransition
+        {
+            public override bool CanTransitionBeTaken()
+            {
+                if (
+                    Vector3.Distance(
+                        entranceTeleport.entrancePoint.position,
+                        self.gameObject.transform.position
+                    ) < 5
+                )
+                    return true;
+                return false;
+            }
+
+            public override AIBehaviorState NextState() => new AtFacilityWanderingState();
+        }
     }
+
+    #endregion
+    #region Inside States
 
     private class AtFacilityWanderingState : AIBehaviorState
     {
         public override List<AIStateTransition> Transitions { get; set; } =
-            [new BoredOfFacilityTransition(), new InvestigatePlayerTransition()];
+            [
+                new BoredOfFacilityTransition(),
+                new AtFacilityEatNoisyJesterState.FindNoisyJesterTransition(),
+                new InvestigatePlayerTransition()
+            ];
 
         public override void OnStateEntered(Animator creatureAnimator)
         {
             creatureAnimator.SetBool(Anim.isMoving, true);
+
+            if (self.MyValidState == PlayerState.Outside)
+                self.TeleportSelfToOtherEntranceClientRpc(wasInside: false);
+
+            self.StartSearch(self.transform.position);
         }
 
-        public override void UpdateBehavior(Animator creatureAnimator) { }
-
-        public override void OnStateExit(Animator creatureAnimator) { }
+        public override void OnStateExit(Animator creatureAnimator)
+        {
+            self.StopSearch(self.currentSearch);
+        }
 
         private class BoredOfFacilityTransition : AIStateTransition
         {
@@ -214,34 +276,77 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         }
     }
 
-    private class AtFacilityEatNoisyJesterState : AIBehaviorState
+    #endregion
+    #region Feature: Eat Jester
+
+    private class AtFacilityEatNoisyJesterState(JesterAI targetJester) : AIBehaviorState
     {
         public override List<AIStateTransition> Transitions { get; set; } =
-            [new AtFacilityNoisyJesterEaten()];
+            [new NoisyJesterEatenTransition(targetJester)];
 
         public override void OnStateEntered(Animator creatureAnimator)
         {
             creatureAnimator.SetBool(Anim.isMoving, true);
+            creatureAnimator.SetBool(Anim.isRunning, true);
         }
 
-        public override void UpdateBehavior(Animator creatureAnimator) { }
-
-        public override void OnStateExit(Animator creatureAnimator) { }
-
-        private class AtFacilityFindNoisyJester : AIStateTransition
+        public override void AIInterval(Animator creatureAnimator)
         {
-            public override bool CanTransitionBeTaken() => throw new NotImplementedException();
+            if (targetJester is null)
+                return;
 
-            public override AIBehaviorState NextState() => new AtFacilityEatNoisyJesterState();
+            var jesterPos = targetJester.agent.transform.position;
+
+            if (Vector3.Distance(jesterPos, self.transform.position) < 3)
+                targetJester.KillEnemy(true);
+
+            self.SetDestinationToPosition(jesterPos);
         }
 
-        private class AtFacilityNoisyJesterEaten : AIStateTransition
+        public override void OnStateExit(Animator creatureAnimator)
         {
-            public override bool CanTransitionBeTaken() => throw new NotImplementedException();
+            creatureAnimator.SetBool(Anim.isRunning, false);
+        }
+
+        internal class FindNoisyJesterTransition : AIStateTransition
+        {
+            JesterAI targetJester = null!;
+
+            public override bool CanTransitionBeTaken()
+            {
+                for (int i = 0; i < JesterListHook.jesterEnemies.Count; i++)
+                {
+                    var jester = JesterListHook.jesterEnemies[i];
+                    if (jester is null)
+                    {
+                        JesterListHook.jesterEnemies.RemoveAt(i);
+                        i--;
+                        continue;
+                    }
+                    if (jester.farAudio.isPlaying)
+                    {
+                        targetJester = jester;
+                        JesterListHook.jesterEnemies.RemoveAt(i);
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            public override AIBehaviorState NextState() =>
+                new AtFacilityEatNoisyJesterState(targetJester);
+        }
+
+        private class NoisyJesterEatenTransition(JesterAI targetJester) : AIStateTransition
+        {
+            public override bool CanTransitionBeTaken() => targetJester is null;
 
             public override AIBehaviorState NextState() => new AtFacilityWanderingState();
         }
     }
+
+    #endregion
+    #region Player States
 
     private class InvestigatePlayerState : AIBehaviorState
     {
@@ -252,8 +357,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         {
             creatureAnimator.SetBool(Anim.isMoving, true);
         }
-
-        public override void UpdateBehavior(Animator creatureAnimator) { }
 
         public override void OnStateExit(Animator creatureAnimator) { }
     }
@@ -304,7 +407,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     }
 
     #endregion
-    #region Generic Transitions
+    #region Player Transitions
 
     private class InvestigatePlayerTransition : AIStateTransition
     {
@@ -313,7 +416,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             if (self.ActiveState is AttackPlayerState)
                 return false;
 
-            throw new NotImplementedException();
+            if (self.CheckLineOfSightForPlayer())
+                return true;
+            return false;
         }
 
         public override AIBehaviorState NextState() => new InvestigatePlayerState();
@@ -321,22 +426,114 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
     private class AttackPlayerTransition : AIStateTransition
     {
-        public override bool CanTransitionBeTaken() => throw new NotImplementedException();
+        float aggressionTimer = 10f;
+
+        public override bool CanTransitionBeTaken()
+        {
+            aggressionTimer -= Time.deltaTime;
+            if (aggressionTimer <= 0)
+                return true;
+            return false;
+        }
 
         public override AIBehaviorState NextState() => new AttackPlayerState();
     }
 
     private class LostPlayerTransition : AIStateTransition
     {
-        public override bool CanTransitionBeTaken() => throw new NotImplementedException();
+        const float defaultPlayerLostTimer = 5;
+        float playerLostTimer = defaultPlayerLostTimer;
+
+        public override bool CanTransitionBeTaken()
+        {
+            var playerInSight = self.CheckLineOfSightForPlayer();
+            if (playerInSight is not null)
+            {
+                playerLostTimer = defaultPlayerLostTimer;
+                return false;
+            }
+
+            playerLostTimer -= Time.deltaTime;
+            if (playerLostTimer <= 0)
+                return true;
+            return false;
+        }
 
         public override AIBehaviorState NextState()
         {
-            if (self.currentTravelDirection == TravelingTo.Ship)
-                return new WanderToShipState();
-            else
+            if (self.MyValidState == PlayerState.Outside)
                 return new WanderToFacilityState();
+            else
+                return new AtFacilityWanderingState();
         }
+    }
+
+    #endregion
+    #region Utility Methods
+
+    public void SetLocationState(bool toOutside)
+    {
+        if (toOutside)
+        {
+            // Maybe using MyValidState was a mistake?
+            // Just results in writing more code without really advantages.
+            MyValidState = PlayerState.Outside;
+            SetEnemyOutside(toOutside);
+        }
+        else
+        {
+            MyValidState = PlayerState.Inside;
+            SetEnemyOutside(!toOutside);
+        }
+    }
+
+    public EntranceTeleport GetCurrentEntrance(PlayerState enemyLocation)
+    {
+        var shouldFindOutsideEntrance = enemyLocation == PlayerState.Outside;
+        return RoundManager.FindMainEntranceScript(shouldFindOutsideEntrance);
+    }
+
+    public EntranceTeleport GetOtherEntrance(PlayerState enemyLocation)
+    {
+        var shouldFindOutsideEntrance = enemyLocation == PlayerState.Inside;
+        return RoundManager.FindMainEntranceScript(shouldFindOutsideEntrance);
+    }
+
+    [ClientRpc]
+    public void TeleportSelfToOtherEntranceClientRpc(bool wasInside)
+    {
+        var enemyLocation = wasInside ? PlayerState.Inside : PlayerState.Outside;
+        TeleportSelfToOtherEntrance(enemyLocation);
+    }
+
+    private void TeleportSelfToOtherEntrance(PlayerState enemyLocation)
+    {
+        bool isOutside = enemyLocation == PlayerState.Outside;
+        var targetEntrance = GetOtherEntrance(enemyLocation);
+        Vector3 navMeshPosition = RoundManager.Instance.GetNavMeshPosition(
+            targetEntrance.entrancePoint.position
+        );
+        if (IsOwner)
+        {
+            agent.enabled = false;
+            transform.position = navMeshPosition;
+            agent.enabled = true;
+        }
+        else
+            transform.position = navMeshPosition;
+
+        serverPosition = navMeshPosition;
+        SetLocationState(!isOutside);
+
+        PlayEntranceOpeningSound(targetEntrance);
+    }
+
+    public void PlayEntranceOpeningSound(EntranceTeleport entrance)
+    {
+        if (entrance.doorAudios == null || entrance.doorAudios.Length == 0)
+            return;
+        entrance.entrancePointAudio.PlayOneShot(entrance.doorAudios[0]);
+        WalkieTalkie.TransmitOneShotAudio(entrance.entrancePointAudio, entrance.doorAudios[0]);
     }
 
     #endregion

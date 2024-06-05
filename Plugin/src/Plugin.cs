@@ -4,7 +4,9 @@ using System.Reflection;
 using BepInEx;
 using BepInEx.Logging;
 using LethalLib.Modules;
+using MonoMod.RuntimeDetour.HookGen;
 using SCP682.Configuration;
+using SCP682.Hooks;
 using SCP682.SCPEnemy;
 using UnityEngine;
 
@@ -79,6 +81,8 @@ public class Plugin : BaseUnityPlugin
             RoundManager.Instance.SpawnEnemyGameObject(spawnPosition, 0f, -1, SCP682ET);
         }
 #endif
+        JesterListHook.Init();
+
         Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
     }
 
@@ -90,6 +94,8 @@ public class Plugin : BaseUnityPlugin
 
         SCP682AI.SCP682Objects.ForEach(Destroy);
         SCP682AI.SCP682Objects.Clear();
+
+        HookEndpointManager.RemoveAllOwnedBy(Assembly.GetExecutingAssembly());
 
         Logger.LogInfo("Cleaned all resources!");
     }

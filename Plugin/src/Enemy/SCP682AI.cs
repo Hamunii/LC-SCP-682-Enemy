@@ -277,7 +277,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     }
 
     #endregion
-    #region Feature: Eat Jester
+    #region Inside (Eat Jester)
 
     private class AtFacilityEatNoisyJesterState(JesterAI targetJester) : AIBehaviorState
     {
@@ -364,7 +364,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     private class AttackPlayerState : AIBehaviorState
     {
         public override List<AIStateTransition> Transitions { get; set; } =
-            [new LostPlayerTransition(), new InvestigatePlayerTransition()];
+            [new LostPlayerTransition()];
 
         const float defaultCooldown = 0.5f;
         float attackCooldown = defaultCooldown;

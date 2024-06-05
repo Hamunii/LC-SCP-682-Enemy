@@ -75,4 +75,40 @@ This project is based off of the [LC-ExampleEnemy](https://github.com/Hamunii/LC
 
 - JoeJoe - Project leader
 - [Hamunii](https://github.com/Hamunii) - Programming
+- [SkullCrusher/Skull220](https://github.com/Skull220) - Creator of the WTOEnemy class which is for their project [Welcome To Ooblterra](https://thunderstore.io/c/lethal-company/p/Skeleton_Studios/Welcome_To_Ooblterra/), and is the base of this project's [ModEnemyAI](/Plugin/src/Enemy/ModEnemyAI.cs) class
+- DBJ - Voice of SCP-682
 - s1ckboy - Sounds (coming soon(tm))
+
+## Enemy States Graph
+
+This graph was made 2024-6-6.
+
+```mermaid
+graph TD;
+
+EntryPoint --> 
+
+WanderToShipState --> InvestigatePlayerState
+WanderToShipState --> OnShipAmbushState
+
+OnShipAmbushState --> WanderToFacilityState
+OnShipAmbushState --> AttackPlayerState
+
+WanderToFacilityState --> InvestigatePlayerState
+WanderToFacilityState --> AtFacilityWanderingState
+
+AtFacilityWanderingState --> InvestigatePlayerState
+AtFacilityWanderingState --> WanderToShipState
+AtFacilityWanderingState --> AtFacilityEatNoisyJesterState
+
+AtFacilityEatNoisyJesterState --> AtFacilityWanderingState
+
+InvestigatePlayerState --> LostPlayerTransition
+InvestigatePlayerState --> AttackPlayerState
+
+LostPlayerTransition --> WanderToFacilityState
+LostPlayerTransition --> AtFacilityWanderingState
+
+AttackPlayerState --> LostPlayerTransition
+
+```

@@ -35,7 +35,7 @@ static class AddEnemyScript
         pref.GetComponentInChildren<EnemyAICollisionDetect>().mainScript = ai;
     }
 
-    internal static void ClearScript<T>(this GameObject gameObject)
+    internal static void RemoveComponent<T>(this GameObject gameObject)
         where T : Component
     {
         var script = gameObject.GetComponent<T>();

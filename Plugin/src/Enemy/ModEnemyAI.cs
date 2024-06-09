@@ -1,6 +1,6 @@
-using GameNetcodeStuff;
 using System;
 using System.Collections.Generic;
+using GameNetcodeStuff;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
@@ -8,7 +8,8 @@ using UnityEngine.AI;
 namespace SCP682.SCPEnemy;
 
 // Heavily based on WelcomeToOoblterra's WTOEnemy class
-public class ModEnemyAI<T> : EnemyAI where T : EnemyAI
+public class ModEnemyAI<T> : EnemyAI
+    where T : EnemyAI
 {
     public abstract class AIBehaviorState
     {
@@ -18,12 +19,16 @@ public class ModEnemyAI<T> : EnemyAI where T : EnemyAI
         public NavMeshAgent agent = null!;
         public System.Random enemyRandom = null!;
         public abstract void OnStateEntered(Animator creatureAnimator);
+
         public virtual void UpdateBehavior(Animator creatureAnimator) { }
+
         public virtual void AIInterval(Animator creatureAnimator) { }
+
         public abstract void OnStateExit(Animator creatureAnimator);
 
         public abstract List<AIStateTransition> Transitions { get; set; }
     }
+
     public abstract class AIStateTransition
     {
         //public int enemyIndex { get; set; }
@@ -31,6 +36,7 @@ public class ModEnemyAI<T> : EnemyAI where T : EnemyAI
         public abstract bool CanTransitionBeTaken();
         public abstract AIBehaviorState NextState();
     }
+
     public enum PlayerState
     {
         Dead,
@@ -38,6 +44,7 @@ public class ModEnemyAI<T> : EnemyAI where T : EnemyAI
         Inside,
         Ship
     }
+
     internal AIBehaviorState InitialState = null!;
     internal AIBehaviorState ActiveState = null!;
     internal System.Random enemyRandom = null!;
@@ -53,28 +60,34 @@ public class ModEnemyAI<T> : EnemyAI where T : EnemyAI
     {
         return GetType().Name;
     }
+
     public override void DoAIInterval()
     {
         base.DoAIInterval();
         ActiveState.AIInterval(creatureAnimator);
     }
+
     public override void Start()
     {
         base.Start();
-            
+
         //Initializers
         ActiveState = InitialState;
         enemyRandom = new System.Random(StartOfRound.Instance.randomMapSeed + thisEnemyIndex);
         if (enemyType.isOutsideEnemy)
         {
             MyValidState = PlayerState.Outside;
-        } else {
+        }
+        else
+        {
             MyValidState = PlayerState.Inside;
         }
         //Debug to make sure that the agent is actually on the NavMesh
         if (!agent.isOnNavMesh && base.IsOwner)
         {
-            LogDebug("CREATURE " + this.__getTypeName() + " WAS NOT PLACED ON NAVMESH, DESTROYING...");
+            LogDebug(
+                "CREATURE " + this.__getTypeName() + " WAS NOT PLACED ON NAVMESH, DESTROYING..."
+            );
             KillEnemyOnOwnerClient();
         }
         //Fix for the animator sometimes deciding to just not work
@@ -83,8 +96,8 @@ public class ModEnemyAI<T> : EnemyAI where T : EnemyAI
         ActiveState.agent = agent;
         ActiveState.enemyRandom = enemyRandom;
         ActiveState.OnStateEntered(creatureAnimator);
-
     }
+
     public override void Update()
     {
         if (isEnemyDead)
@@ -105,10 +118,14 @@ public class ModEnemyAI<T> : EnemyAI where T : EnemyAI
         foreach (AIStateTransition TransitionToCheck in AllTransitions)
         {
             TransitionToCheck.self = self;
-            if (TransitionToCheck.CanTransitionBeTaken() && base.IsOwner){
+            if (TransitionToCheck.CanTransitionBeTaken() && base.IsOwner)
+            {
                 RunUpdate = false;
                 nextTransition = TransitionToCheck;
-                TransitionStateServerRpc(nextTransition.ToString(), GenerateNextRandomInt(nextTransition.NextState().RandomRange));
+                TransitionStateServerRpc(
+                    nextTransition.ToString(),
+                    GenerateNextRandomInt(nextTransition.NextState().RandomRange)
+                );
                 return;
             }
         }
@@ -119,17 +136,19 @@ public class ModEnemyAI<T> : EnemyAI where T : EnemyAI
         }
     }
 
-    internal void LogDebug(string message)
+    internal void LogDebug(object data)
     {
         if (PrintDebugs)
         {
-            P.Log(message);
+            P.Log(data);
         }
     }
+
     internal bool PlayerCanBeTargeted(PlayerControllerB myPlayer)
     {
         return GetPlayerState(myPlayer) == MyValidState;
     }
+
     internal PlayerState GetPlayerState(PlayerControllerB myPlayer)
     {
         if (myPlayer.isPlayerDead)
@@ -146,6 +165,7 @@ public class ModEnemyAI<T> : EnemyAI where T : EnemyAI
         }
         return PlayerState.Outside;
     }
+
     internal void MoveTimerValue(ref float Timer, bool ShouldRaise = false)
     {
         if (ShouldRaise)
@@ -159,6 +179,7 @@ public class ModEnemyAI<T> : EnemyAI where T : EnemyAI
         }
         Timer -= Time.deltaTime;
     }
+
     internal void OverrideState(AIBehaviorState state)
     {
         if (isEnemyDead)
@@ -166,12 +187,21 @@ public class ModEnemyAI<T> : EnemyAI where T : EnemyAI
             return;
         }
         ActiveState = state;
+        ActiveState.self = self;
         ActiveState.agent = agent;
         ActiveState.enemyRandom = enemyRandom;
         ActiveState.OnStateEntered(creatureAnimator);
         return;
     }
-    public PlayerControllerB? IsAnyPlayerWithinLOS(int range = 45, float width = 60, int proximityAwareness = -1, bool DoLinecast = true, bool PrintResults = false, bool SortByDistance = false)
+
+    public PlayerControllerB? IsAnyPlayerWithinLOS(
+        int range = 45,
+        float width = 60,
+        int proximityAwareness = -1,
+        bool DoLinecast = true,
+        bool PrintResults = false,
+        bool SortByDistance = false
+    )
     {
         float ShortestDistance = range;
         float NextDistance;
@@ -182,47 +212,97 @@ public class ModEnemyAI<T> : EnemyAI where T : EnemyAI
             {
                 continue;
             }
-            if(IsTargetPlayerWithinLOS(Player, range, width, proximityAwareness, DoLinecast, PrintResults))
+            if (
+                IsTargetPlayerWithinLOS(
+                    Player,
+                    range,
+                    width,
+                    proximityAwareness,
+                    DoLinecast,
+                    PrintResults
+                )
+            )
             {
                 if (!SortByDistance)
-                { 
+                {
                     return Player;
                 }
                 NextDistance = Vector3.Distance(Player.transform.position, this.transform.position);
-                if(NextDistance < ShortestDistance)
+                if (NextDistance < ShortestDistance)
                 {
                     ShortestDistance = NextDistance;
-                    ClosestPlayer = Player; 
+                    ClosestPlayer = Player;
                 }
             }
         }
         return ClosestPlayer;
     }
-    public bool IsTargetPlayerWithinLOS(PlayerControllerB player, int range = 45, float width = 60, int proximityAwareness = -1, bool DoLinecast = true, bool PrintResults = false)
+
+    public bool IsTargetPlayerWithinLOS(
+        PlayerControllerB player,
+        int range = 45,
+        float width = 60,
+        int proximityAwareness = -1,
+        bool DoLinecast = true,
+        bool PrintResults = false
+    )
     {
-        float DistanceToTarget = Vector3.Distance(transform.position, player.gameplayCamera.transform.position);
+        float DistanceToTarget = Vector3.Distance(
+            transform.position,
+            player.gameplayCamera.transform.position
+        );
         bool TargetInDistance = DistanceToTarget < (float)range;
-        float AngleToTarget = Vector3.Angle(eye.transform.forward, player.gameplayCamera.transform.position - eye.transform.position);
+        float AngleToTarget = Vector3.Angle(
+            eye.transform.forward,
+            player.gameplayCamera.transform.position - eye.transform.position
+        );
         bool TargetWithinViewCone = AngleToTarget < width;
         bool TargetWithinProxAwareness = DistanceToTarget < proximityAwareness;
-        bool LOSBlocked = DoLinecast && Physics.Linecast(eye.transform.position, player.transform.position, StartOfRound.Instance.collidersRoomDefaultAndFoliage, QueryTriggerInteraction.Ignore);
+        bool LOSBlocked =
+            DoLinecast
+            && Physics.Linecast(
+                eye.transform.position,
+                player.transform.position,
+                StartOfRound.Instance.collidersRoomDefaultAndFoliage,
+                QueryTriggerInteraction.Ignore
+            );
         if (PrintResults)
         {
-            LogDebug($"Target in Distance: {TargetInDistance} ({DistanceToTarget})" +
-                $"Target within view cone: {TargetWithinViewCone} ({AngleToTarget})" +
-                $"LOSBlocked: {LOSBlocked}");
+            LogDebug(
+                $"Target in Distance: {TargetInDistance} ({DistanceToTarget})"
+                    + $"Target within view cone: {TargetWithinViewCone} ({AngleToTarget})"
+                    + $"LOSBlocked: {LOSBlocked}"
+            );
         }
-        return (TargetInDistance && TargetWithinViewCone) || TargetWithinProxAwareness && !LOSBlocked;
+        return (TargetInDistance && TargetWithinViewCone)
+            || TargetWithinProxAwareness && !LOSBlocked;
     }
-    public bool IsTargetPlayerWithinLOS(int range = 45, float width = 60, int proximityAwareness = -1, bool DoLinecast = true, bool PrintResults = false)
+
+    public bool IsTargetPlayerWithinLOS(
+        int range = 45,
+        float width = 60,
+        int proximityAwareness = -1,
+        bool DoLinecast = true,
+        bool PrintResults = false
+    )
     {
-        if(targetPlayer == null)
+        if (targetPlayer == null)
         {
-            LogDebug($"{this.__getTypeName()} called Target Player LOS check called with null target player; returning false!");
+            LogDebug(
+                $"{this.__getTypeName()} called Target Player LOS check called with null target player; returning false!"
+            );
             return false;
         }
-        return IsTargetPlayerWithinLOS(targetPlayer, range, width, proximityAwareness, DoLinecast, PrintResults);
+        return IsTargetPlayerWithinLOS(
+            targetPlayer,
+            range,
+            width,
+            proximityAwareness,
+            DoLinecast,
+            PrintResults
+        );
     }
+
     public PlayerControllerB FindNearestPlayer(bool ValidateNav = false)
     {
         PlayerControllerB? Result = null;
@@ -234,15 +314,18 @@ public class ModEnemyAI<T> : EnemyAI where T : EnemyAI
             {
                 continue;
             }
-            float PlayerToMonster = Vector3.Distance(this.transform.position, NextPlayer.transform.position);
+            float PlayerToMonster = Vector3.Distance(
+                this.transform.position,
+                NextPlayer.transform.position
+            );
             if (PlayerToMonster < BestDistance)
             {
                 Result = NextPlayer;
                 BestDistance = PlayerToMonster;
             }
         }
-        
-        if(Result == null)
+
+        if (Result == null)
         {
             LogDebug($"There is somehow no closest player. get fucked");
             return null!;
@@ -250,6 +333,7 @@ public class ModEnemyAI<T> : EnemyAI where T : EnemyAI
 
         return Result;
     }
+
     internal bool IsPlayerReachable()
     {
         if (targetPlayer == null)
@@ -259,77 +343,106 @@ public class ModEnemyAI<T> : EnemyAI where T : EnemyAI
         }
         return IsPlayerReachable(targetPlayer);
     }
+
     internal bool IsPlayerReachable(PlayerControllerB PlayerToCheck)
     {
-        Vector3 Position = RoundManager.Instance.GetNavMeshPosition(targetPlayer.transform.position, RoundManager.Instance.navHit, 2.7f);
+        Vector3 Position = RoundManager.Instance.GetNavMeshPosition(
+            targetPlayer.transform.position,
+            RoundManager.Instance.navHit,
+            2.7f
+        );
         if (!RoundManager.Instance.GotNavMeshPositionResult)
         {
             LogDebug("Player Reach Test: No NavMesh position");
-            return false; 
+            return false;
         }
         agent.CalculatePath(Position, agent.path);
         bool HasPath = agent.path.status == NavMeshPathStatus.PathComplete;
         LogDebug($"Player Reach Test: {HasPath}");
         return HasPath;
     }
+
     internal float PlayerDistanceFromShip(PlayerControllerB? PlayerToCheck = null)
     {
-        if(PlayerToCheck == null)
+        if (PlayerToCheck == null)
         {
-            if(targetPlayer == null)
+            if (targetPlayer == null)
             {
                 P.LogError("PlayerNearShip check has no target player or passed in argument!");
                 return -1;
             }
             PlayerToCheck = targetPlayer;
         }
-        float DistanceFromShip = Vector3.Distance(targetPlayer.transform.position, StartOfRound.Instance.shipBounds.transform.position);
+        float DistanceFromShip = Vector3.Distance(
+            targetPlayer.transform.position,
+            StartOfRound.Instance.shipBounds.transform.position
+        );
         LogDebug($"PlayerNearShip check: {DistanceFromShip}");
         return DistanceFromShip;
     }
+
     internal bool PlayerWithinRange(float Range, bool IncludeYAxis = true)
     {
         LogDebug($"Distance from target player: {DistanceFromTargetPlayer(IncludeYAxis)}");
         return DistanceFromTargetPlayer(IncludeYAxis) <= Range;
     }
+
     internal bool PlayerWithinRange(PlayerControllerB player, float Range, bool IncludeYAxis = true)
     {
         return DistanceFromTargetPlayer(player, IncludeYAxis) <= Range;
     }
+
     private float DistanceFromTargetPlayer(bool IncludeYAxis)
     {
         if (targetPlayer == null)
         {
-            P.LogError($"{this} attempted DistanceFromTargetPlayer with null target; returning -1!");
+            P.LogError(
+                $"{this} attempted DistanceFromTargetPlayer with null target; returning -1!"
+            );
             return -1f;
         }
         if (IncludeYAxis)
         {
             return Vector3.Distance(targetPlayer.transform.position, this.transform.position);
         }
-        Vector2 PlayerFlatLocation = new Vector2(targetPlayer.transform.position.x, targetPlayer.transform.position.z);
+        Vector2 PlayerFlatLocation = new Vector2(
+            targetPlayer.transform.position.x,
+            targetPlayer.transform.position.z
+        );
         Vector2 EnemyFlatLocation = new Vector2(transform.position.x, transform.position.z);
         return Vector2.Distance(PlayerFlatLocation, EnemyFlatLocation);
     }
+
     private float DistanceFromTargetPlayer(PlayerControllerB player, bool IncludeYAxis)
     {
         if (IncludeYAxis)
-        { 
+        {
             return Vector3.Distance(player.transform.position, this.transform.position);
         }
-        Vector2 PlayerFlatLocation = new Vector2(targetPlayer.transform.position.x, targetPlayer.transform.position.z);
+        Vector2 PlayerFlatLocation = new Vector2(
+            targetPlayer.transform.position.x,
+            targetPlayer.transform.position.z
+        );
         Vector2 EnemyFlatLocation = new Vector2(transform.position.x, transform.position.z);
         return Vector2.Distance(PlayerFlatLocation, EnemyFlatLocation);
     }
+
     internal bool AnimationIsFinished(string AnimName)
     {
         if (!creatureAnimator.GetCurrentAnimatorStateInfo(0).IsName(AnimName))
         {
-            LogDebug(__getTypeName() + ": Checking for animation " + AnimName + ", but current animation is " + creatureAnimator.GetCurrentAnimatorClipInfo(0)[0].clip.name);
+            LogDebug(
+                __getTypeName()
+                    + ": Checking for animation "
+                    + AnimName
+                    + ", but current animation is "
+                    + creatureAnimator.GetCurrentAnimatorClipInfo(0)[0].clip.name
+            );
             return true;
         }
         return creatureAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f;
     }
+
     internal int GenerateNextRandomInt(Vector2 Range)
     {
         Range = nextTransition.NextState().RandomRange;
@@ -343,7 +456,8 @@ public class ModEnemyAI<T> : EnemyAI where T : EnemyAI
         {
             creatureAnimator.SetTrigger(name);
         }
-    }      
+    }
+
     [ServerRpc(RequireOwnership = false)]
     internal void SetAnimBoolOnServerRpc(string name, bool state)
     {
@@ -358,11 +472,13 @@ public class ModEnemyAI<T> : EnemyAI where T : EnemyAI
     {
         TransitionStateClientRpc(StateName, RandomInt);
     }
+
     [ClientRpc]
     internal void TransitionStateClientRpc(string StateName, int RandomInt)
     {
         TransitionState(StateName, RandomInt);
     }
+
     internal void TransitionState(string StateName, int RandomInt)
     {
         //Jesus fuck I can't believe I have to do this
@@ -385,9 +501,14 @@ public class ModEnemyAI<T> : EnemyAI where T : EnemyAI
         LogDebug($"{__getTypeName()} #{self} is Entering:  {ActiveState}");
         ActiveState.OnStateEntered(creatureAnimator);
 
-        //Debug Prints 
-        StartOfRound.Instance.ClientPlayerList.TryGetValue(NetworkManager.Singleton.LocalClientId, out var value);
-        LogDebug($"CREATURE: {enemyType.name} #{self} STATE: {ActiveState} ON PLAYER: #{value} ({StartOfRound.Instance.allPlayerScripts[value].playerUsername})");
+        //Debug Prints
+        StartOfRound.Instance.ClientPlayerList.TryGetValue(
+            NetworkManager.Singleton.LocalClientId,
+            out var value
+        );
+        LogDebug(
+            $"CREATURE: {enemyType.name} #{self} STATE: {ActiveState} ON PLAYER: #{value} ({StartOfRound.Instance.allPlayerScripts[value].playerUsername})"
+        );
     }
 
     [ServerRpc]
@@ -395,10 +516,11 @@ public class ModEnemyAI<T> : EnemyAI where T : EnemyAI
     {
         SetTargetClientRpc(PlayerID);
     }
+
     [ClientRpc]
     internal void SetTargetClientRpc(int PlayerID)
     {
-        if(PlayerID == -1)
+        if (PlayerID == -1)
         {
             targetPlayer = null;
             LogDebug($"Clearing target on {this}");

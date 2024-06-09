@@ -56,10 +56,11 @@ This is the [SCP682.template.csproj.user](/Plugin/SCP682.template.csproj.user) t
 
 ### Dependencies
 
-You need to install the following dependencies for this mod to work in the game (these are not installed by the setup script):
+You need to install the following mods for BepInEx for this mod to work in the game (these are not installed by the setup script):
 
 - [LethalLib](https://thunderstore.io/c/lethal-company/p/Evaisa/LethalLib/) for registering and adding our enemy.
     - LethalLib depends on [HookGenPatcher](https://thunderstore.io/c/lethal-company/p/Evaisa/HookGenPatcher/).
+- [ModMenuAPI](https://github.com/Hamunii/ModMenuAPI/releases) which is used with the `DEBUG` configuration for debug functionality like setting the state of the enemy. (This is not on Thunderstore quite yet)
 
 If you didn't run the setup script you will also need to, in the `Plugin` directory where our plugin code is, run `dotnet tool restore` on the command-line to install the rest of the dependencies.
 
@@ -81,32 +82,34 @@ This project is based off of the [LC-ExampleEnemy](https://github.com/Hamunii/LC
 
 ## Enemy States Graph
 
-This graph was made 2024-6-6.
+Here's a basic graph of the enemy's states to help understand it better:
+> This graph was last updated 2024-6-9.
 
 ```mermaid
 graph TD;
 
-EntryPoint --> 
+EntryPoint -->
 
 WanderToShipState --> InvestigatePlayerState
 WanderToShipState --> OnShipAmbushState
 
-OnShipAmbushState --> WanderToFacilityState
+AtFacilityWanderingState --> AtFacilityEatNoisyJesterState
+AtFacilityWanderingState --> WanderThroughEntranceState
+AtFacilityWanderingState --> InvestigatePlayerState
+
+OnShipAmbushState --> WanderThroughEntranceState
 OnShipAmbushState --> AttackPlayerState
 
-WanderToFacilityState --> InvestigatePlayerState
-WanderToFacilityState --> AtFacilityWanderingState
-
-AtFacilityWanderingState --> InvestigatePlayerState
-AtFacilityWanderingState --> WanderToShipState
-AtFacilityWanderingState --> AtFacilityEatNoisyJesterState
+WanderThroughEntranceState --> InvestigatePlayerState
+WanderThroughEntranceState --> AtFacilityWanderingState
+WanderThroughEntranceState --> WanderToShipState
 
 AtFacilityEatNoisyJesterState --> AtFacilityWanderingState
 
-InvestigatePlayerState --> LostPlayerTransition
 InvestigatePlayerState --> AttackPlayerState
+InvestigatePlayerState --> LostPlayerTransition
 
-LostPlayerTransition --> WanderToFacilityState
+LostPlayerTransition --> WanderThroughEntranceState
 LostPlayerTransition --> AtFacilityWanderingState
 
 AttackPlayerState --> LostPlayerTransition

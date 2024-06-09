@@ -1,9 +1,12 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using GameNetcodeStuff;
+using ModMenuAPI.ModMenuItems;
 using SCP682.Hooks;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace SCP682.SCPEnemy;
 
@@ -19,10 +22,31 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     }
 
     TravelingTo currentTravelDirection = TravelingTo.Facility;
+
+    public enum Speed
+    {
+        Walking = 3,
+        Running = 7
+    }
+
+    public void SetAgentSpeed(Speed speed)
+    {
+        agent.speed = (int)speed;
+
+        bool newIsRunning = speed == Speed.Running;
+        if (creatureAnimator.GetBool(Anim.isRunning) != newIsRunning)
+            creatureAnimator.SetBool(Anim.isRunning, newIsRunning);
+    }
+
     const float defaultBoredOfWanderingFacilityTimer = 120f;
     float boredOfWanderingFacilityTimer = defaultBoredOfWanderingFacilityTimer;
     bool readyToMakeTransitionFromAmbush = true;
-    Vector3 posOnTopOfShip = StartOfRound.Instance.insideShipPositions[0].position; // temporary
+    Vector3 posOnTopOfShip;
+
+    // targetJester is a variable of SCP682 AI because I don't know what the fuck this is:
+    // MissingMethodException: Default constructor not found for type SCP682.SCPEnemy.SCP682AI+AtFacilityEatNoisyJesterState+NoisyJesterEatenTransition
+    JesterAI? targetJester = null!;
+    LineRenderer lineRenderer = null!;
 
     static class Anim
     {
@@ -44,6 +68,10 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
     public override void Start()
     {
+        posOnTopOfShip =
+            StartOfRound.Instance.insideShipPositions[0].position + new Vector3(0, 5, 0); // temporary
+        lineRenderer = gameObject.AddComponent<LineRenderer>();
+
         self = this;
         SCP682Objects.Add(gameObject);
         InitialState = new WanderToShipState();
@@ -61,8 +89,19 @@ class SCP682AI : ModEnemyAI<SCP682AI>
                 .isInsideFactory;
             MyValidState = GetPlayerState(GameNetworkManager.Instance.localPlayerController);
         }
+        // agent.radius = 0.5f;
         base.Start();
+
+        InitDebug();
     }
+
+#if DEBUG
+    public override void DoAIInterval()
+    {
+        base.DoAIInterval();
+        StartCoroutine(DrawPath(lineRenderer, agent));
+    }
+#endif
 
     public override void OnCollideWithPlayer(Collider other)
     {
@@ -161,6 +200,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         {
             public override bool CanTransitionBeTaken()
             {
+                self.targetPlayer = self.FindNearestPlayer();
                 // TODO: make it better
                 if (self.PlayerWithinRange(15) && self.readyToMakeTransitionFromAmbush)
                     return true;
@@ -182,11 +222,11 @@ class SCP682AI : ModEnemyAI<SCP682AI>
                 return false;
             }
 
-            public override AIBehaviorState NextState() => new WanderToFacilityState();
+            public override AIBehaviorState NextState() => new WanderThroughEntranceState();
         }
     }
 
-    private class WanderToFacilityState : AIBehaviorState
+    private class WanderThroughEntranceState : AIBehaviorState
     {
         // Note: We add one more transition to this afterwards!
         public override List<AIStateTransition> Transitions { get; set; } =
@@ -197,8 +237,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         {
             creatureAnimator.SetBool(Anim.isMoving, true);
 
-            facilityEntrance = self.GetCurrentEntrance(self.MyValidState);
-            Transitions.Add(new EnterFacilityTransition(facilityEntrance));
+            facilityEntrance = RoundManager.FindMainEntranceScript(self.isOutside);
+            Transitions.Add(new EnterEntranceTransition());
         }
 
         public override void AIInterval(Animator creatureAnimator)
@@ -207,23 +247,33 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             self.SetDestinationToPosition(facilityEntrance.entrancePoint.position);
         }
 
-        public override void OnStateExit(Animator creatureAnimator) { }
-
-        private class EnterFacilityTransition(EntranceTeleport entranceTeleport) : AIStateTransition
+        public override void OnStateExit(Animator creatureAnimator)
         {
+            self.TeleportSelfToOtherEntranceClientRpc(!self.isOutside);
+        }
+
+        public class EnterEntranceTransition : AIStateTransition
+        {
+            EntranceTeleport? _et;
+
             public override bool CanTransitionBeTaken()
             {
+                _et ??= RoundManager.FindMainEntranceScript(self.isOutside);
                 if (
-                    Vector3.Distance(
-                        entranceTeleport.entrancePoint.position,
-                        self.gameObject.transform.position
-                    ) < 5
+                    Vector3.Distance(_et.entrancePoint.position, self.gameObject.transform.position)
+                    < 3
                 )
                     return true;
                 return false;
             }
 
-            public override AIBehaviorState NextState() => new AtFacilityWanderingState();
+            public override AIBehaviorState NextState()
+            {
+                if (self.isOutside)
+                    return new WanderToShipState();
+                else
+                    return new AtFacilityWanderingState();
+            }
         }
     }
 
@@ -243,9 +293,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         {
             creatureAnimator.SetBool(Anim.isMoving, true);
 
-            if (self.MyValidState == PlayerState.Outside)
-                self.TeleportSelfToOtherEntranceClientRpc(wasInside: false);
-
             self.StartSearch(self.transform.position);
         }
 
@@ -256,9 +303,18 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
         private class BoredOfFacilityTransition : AIStateTransition
         {
+            float debugMSGTimer = defaultBoredOfWanderingFacilityTimer;
+
             public override bool CanTransitionBeTaken()
             {
                 self.boredOfWanderingFacilityTimer -= Time.deltaTime;
+                if (debugMSGTimer - self.boredOfWanderingFacilityTimer > 1)
+                {
+                    debugMSGTimer = self.boredOfWanderingFacilityTimer;
+                    self.LogDebug(
+                        $"[{nameof(BoredOfFacilityTransition)}] Time until bored: {self.boredOfWanderingFacilityTimer}"
+                    );
+                }
                 if (self.boredOfWanderingFacilityTimer <= 0)
                 {
                     return true;
@@ -271,7 +327,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             {
                 self.boredOfWanderingFacilityTimer = defaultBoredOfWanderingFacilityTimer;
                 self.currentTravelDirection = TravelingTo.Ship;
-                return new WanderToShipState();
+                return new WanderThroughEntranceState();
             }
         }
     }
@@ -279,41 +335,42 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     #endregion
     #region Inside (Eat Jester)
 
-    private class AtFacilityEatNoisyJesterState(JesterAI targetJester) : AIBehaviorState
+    private class AtFacilityEatNoisyJesterState : AIBehaviorState
     {
         public override List<AIStateTransition> Transitions { get; set; } =
-            [new NoisyJesterEatenTransition(targetJester)];
+            [new NoisyJesterEatenTransition()];
 
         public override void OnStateEntered(Animator creatureAnimator)
         {
             creatureAnimator.SetBool(Anim.isMoving, true);
-            creatureAnimator.SetBool(Anim.isRunning, true);
+            self.SetAgentSpeed(Speed.Running);
         }
 
         public override void AIInterval(Animator creatureAnimator)
         {
-            if (targetJester is null)
+            if (self.targetJester is null)
                 return;
 
-            var jesterPos = targetJester.agent.transform.position;
+            var jesterPos = self.targetJester.agent.transform.position;
 
             if (Vector3.Distance(jesterPos, self.transform.position) < 3)
-                targetJester.KillEnemy(true);
+                self.targetJester.KillEnemy(true);
 
             self.SetDestinationToPosition(jesterPos);
         }
 
         public override void OnStateExit(Animator creatureAnimator)
         {
-            creatureAnimator.SetBool(Anim.isRunning, false);
+            self.SetAgentSpeed(Speed.Walking);
         }
 
         internal class FindNoisyJesterTransition : AIStateTransition
         {
-            JesterAI targetJester = null!;
-
             public override bool CanTransitionBeTaken()
             {
+                if (self.isOutside)
+                    return false;
+
                 for (int i = 0; i < JesterListHook.jesterEnemies.Count; i++)
                 {
                     var jester = JesterListHook.jesterEnemies[i];
@@ -325,7 +382,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
                     }
                     if (jester.farAudio.isPlaying)
                     {
-                        targetJester = jester;
+                        self.targetJester = jester;
                         JesterListHook.jesterEnemies.RemoveAt(i);
                         return true;
                     }
@@ -333,13 +390,12 @@ class SCP682AI : ModEnemyAI<SCP682AI>
                 return false;
             }
 
-            public override AIBehaviorState NextState() =>
-                new AtFacilityEatNoisyJesterState(targetJester);
+            public override AIBehaviorState NextState() => new AtFacilityEatNoisyJesterState();
         }
 
-        private class NoisyJesterEatenTransition(JesterAI targetJester) : AIStateTransition
+        private class NoisyJesterEatenTransition : AIStateTransition
         {
-            public override bool CanTransitionBeTaken() => targetJester is null;
+            public override bool CanTransitionBeTaken() => self.targetJester is null;
 
             public override AIBehaviorState NextState() => new AtFacilityWanderingState();
         }
@@ -358,6 +414,12 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             creatureAnimator.SetBool(Anim.isMoving, true);
         }
 
+        public override void AIInterval(Animator creatureAnimator)
+        {
+            self.targetPlayer = self.FindNearestPlayer();
+            self.SetDestinationToPosition(self.targetPlayer.transform.position);
+        }
+
         public override void OnStateExit(Animator creatureAnimator) { }
     }
 
@@ -372,7 +434,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         public override void OnStateEntered(Animator creatureAnimator)
         {
             creatureAnimator.SetBool(Anim.isMoving, true);
-            creatureAnimator.SetBool(Anim.isRunning, true);
+            self.SetAgentSpeed(Speed.Running);
         }
 
         public override void UpdateBehavior(Animator creatureAnimator)
@@ -380,9 +442,15 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             attackCooldown -= Time.deltaTime;
         }
 
+        public override void AIInterval(Animator creatureAnimator)
+        {
+            self.targetPlayer = self.FindNearestPlayer();
+            self.SetDestinationToPosition(self.targetPlayer.transform.position);
+        }
+
         public override void OnStateExit(Animator creatureAnimator)
         {
-            creatureAnimator.SetBool(Anim.isRunning, false);
+            self.SetAgentSpeed(Speed.Walking);
         }
 
         internal void AttackCollideWithPlayer(Collider other)
@@ -462,7 +530,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         public override AIBehaviorState NextState()
         {
             if (self.MyValidState == PlayerState.Outside)
-                return new WanderToFacilityState();
+                return new WanderThroughEntranceState();
             else
                 return new AtFacilityWanderingState();
         }
@@ -473,43 +541,31 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
     public void SetLocationState(bool toOutside)
     {
+        LogDebug("Set location state to OUTSIDE?: " + toOutside);
         if (toOutside)
         {
             // Maybe using MyValidState was a mistake?
             // Just results in writing more code without really advantages.
             MyValidState = PlayerState.Outside;
-            SetEnemyOutside(toOutside);
+            SetEnemyOutside(true);
         }
         else
         {
             MyValidState = PlayerState.Inside;
-            SetEnemyOutside(!toOutside);
+            SetEnemyOutside(false);
         }
-    }
-
-    public EntranceTeleport GetCurrentEntrance(PlayerState enemyLocation)
-    {
-        var shouldFindOutsideEntrance = enemyLocation == PlayerState.Outside;
-        return RoundManager.FindMainEntranceScript(shouldFindOutsideEntrance);
-    }
-
-    public EntranceTeleport GetOtherEntrance(PlayerState enemyLocation)
-    {
-        var shouldFindOutsideEntrance = enemyLocation == PlayerState.Inside;
-        return RoundManager.FindMainEntranceScript(shouldFindOutsideEntrance);
     }
 
     [ClientRpc]
     public void TeleportSelfToOtherEntranceClientRpc(bool wasInside)
     {
-        var enemyLocation = wasInside ? PlayerState.Inside : PlayerState.Outside;
-        TeleportSelfToOtherEntrance(enemyLocation);
+        TeleportSelfToOtherEntrance(!wasInside);
     }
 
-    private void TeleportSelfToOtherEntrance(PlayerState enemyLocation)
+    private void TeleportSelfToOtherEntrance(bool isOutside)
     {
-        bool isOutside = enemyLocation == PlayerState.Outside;
-        var targetEntrance = GetOtherEntrance(enemyLocation);
+        var targetEntrance = RoundManager.FindMainEntranceScript(!isOutside);
+
         Vector3 navMeshPosition = RoundManager.Instance.GetNavMeshPosition(
             targetEntrance.entrancePoint.position
         );
@@ -536,5 +592,55 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         WalkieTalkie.TransmitOneShotAudio(entrance.entrancePointAudio, entrance.doorAudios[0]);
     }
 
+    #endregion
+    #region Debug Stuff
+#if DEBUG
+    public static IEnumerator DrawPath(LineRenderer line, NavMeshAgent agent)
+    {
+        if (!agent.enabled)
+            yield break;
+        yield return new WaitForEndOfFrame();
+        line.SetPosition(0, agent.transform.position); //set the line's origin
+
+        line.positionCount = agent.path.corners.Length; //set the array of positions to the amount of corners
+        for (var i = 1; i < agent.path.corners.Length; i++)
+        {
+            line.SetPosition(i, agent.path.corners[i]); //go through each corner and set that to the line renderer's position
+        }
+    }
+
+    MMButtonMenuInstantiable mmMenu = new("Override State >");
+
+    public void InitDebug()
+    {
+        new ModMenu("SCP-682 Debug")
+            .RegisterItem(new DebugNewSearchRoutineAction(this))
+            .RegisterItem(mmMenu);
+
+        mmMenu.MenuItems.Add(new DebugOverrideState(this, typeof(WanderToShipState)));
+        mmMenu.MenuItems.Add(new DebugOverrideState(this, typeof(OnShipAmbushState)));
+        mmMenu.MenuItems.Add(new DebugOverrideState(this, typeof(WanderThroughEntranceState)));
+        mmMenu.MenuItems.Add(new DebugOverrideState(this, typeof(AtFacilityWanderingState)));
+    }
+
+    class DebugNewSearchRoutineAction(SCP682AI self) : MMButtonAction("New Search Routine")
+    {
+        protected override void OnClick()
+        {
+            self.StopSearch(self.currentSearch);
+            self.StartSearch(self.transform.position);
+        }
+    }
+
+    class DebugOverrideState(SCP682AI self, Type state) : MMButtonAction($"To {state.Name}")
+    {
+        protected override void OnClick()
+        {
+            var stateInstance = (AIBehaviorState)Activator.CreateInstance(state);
+            self.OverrideState(stateInstance);
+        }
+    }
+
+#endif
     #endregion
 }

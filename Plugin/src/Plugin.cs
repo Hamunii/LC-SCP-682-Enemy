@@ -89,14 +89,16 @@ public class Plugin : BaseUnityPlugin
     // We should clean up our resources when reloading the plugin.
     private void OnDestroy()
     {
-        SCP682ET.enemyPrefab.ClearScript<SCP682AI>();
+        SCP682ET.enemyPrefab.RemoveComponent<SCP682AI>();
         ModAssets?.Unload(true);
 
         SCP682AI.SCP682Objects.ForEach(Destroy);
         SCP682AI.SCP682Objects.Clear();
 
         HookEndpointManager.RemoveAllOwnedBy(Assembly.GetExecutingAssembly());
-
+#if DEBUG
+        ModMenuAPI.ModMenuItems.ModMenu.RemoveAllOwnedBy(Assembly.GetExecutingAssembly());
+#endif
         Logger.LogInfo("Cleaned all resources!");
     }
 

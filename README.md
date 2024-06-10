@@ -80,6 +80,11 @@ This project is based off of the [LC-ExampleEnemy](https://github.com/Hamunii/LC
 - DBJ - Voice of SCP-682
 - s1ckboy - Sounds (coming soon(tm))
 
+## License
+
+All assets located at [/UnityProject/Assets/ModAssets/](/UnityProject/Assets/ModAssets/) are all rights reserved, and are owned by JoeJoe.  
+The code for this project, located in [/Plugin/](/Plugin/) is licensed under the [MIT License](/Plugin/LICENSE).
+
 ## Enemy States Graph
 
 Here's a basic graph of the enemy's states to help understand it better:

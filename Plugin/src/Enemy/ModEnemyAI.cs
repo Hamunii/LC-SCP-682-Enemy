@@ -1,3 +1,10 @@
+/*
+ * https://github.com/Skull220/Welcome_To_Ooblterra/blob/master/Enemies/WTOEnemy.cs
+ * Copyright (c) 2023 Skull
+ * Skull has given the permission to use this file for the base of our Mod AI class
+ * This class has been modified, and is licensed under the MIT license
+*/
+
 using System;
 using System.Collections.Generic;
 using GameNetcodeStuff;

@@ -123,7 +123,7 @@ public partial class ModEnemyAI<T> : EnemyAI
             );
         if (PrintResults)
         {
-            LogDebug(
+            DebugLog(
                 $"Target in Distance: {TargetInDistance} ({DistanceToTarget})"
                     + $"Target within view cone: {TargetWithinViewCone} ({AngleToTarget})"
                     + $"LOSBlocked: {LOSBlocked}"
@@ -143,7 +143,7 @@ public partial class ModEnemyAI<T> : EnemyAI
     {
         if (targetPlayer == null)
         {
-            LogDebug(
+            DebugLog(
                 $"{this.__getTypeName()} called Target Player LOS check called with null target player; returning false!"
             );
             return false;
@@ -182,7 +182,7 @@ public partial class ModEnemyAI<T> : EnemyAI
 
         if (Result == null)
         {
-            LogDebug($"There is somehow no closest player. get fucked");
+            DebugLog($"There is somehow no closest player. get fucked");
             return null!;
         }
 
@@ -211,12 +211,12 @@ public partial class ModEnemyAI<T> : EnemyAI
         );
         if (!RoundManager.Instance.GotNavMeshPositionResult)
         {
-            LogDebug("Player Reach Test: No NavMesh position");
+            DebugLog("Player Reach Test: No NavMesh position");
             return false;
         }
         agent.CalculatePath(Position, agent.path);
         bool HasPath = agent.path.status == NavMeshPathStatus.PathComplete;
-        LogDebug($"Player Reach Test: {HasPath}");
+        DebugLog($"Player Reach Test: {HasPath}");
         return HasPath;
     }
 
@@ -231,13 +231,13 @@ public partial class ModEnemyAI<T> : EnemyAI
             PlayerToCheck.transform.position,
             StartOfRound.Instance.shipBounds.transform.position
         );
-        LogDebug($"PlayerNearShip check: {DistanceFromShip}");
+        DebugLog($"PlayerNearShip check: {DistanceFromShip}");
         return DistanceFromShip;
     }
 
     internal bool PlayerWithinRange(float Range, bool IncludeYAxis = true)
     {
-        LogDebug($"Distance from target player: {DistanceFromTargetPlayer(IncludeYAxis)}");
+        DebugLog($"Distance from target player: {DistanceFromTargetPlayer(IncludeYAxis)}");
         return DistanceFromTargetPlayer(IncludeYAxis) <= Range;
     }
 

@@ -311,7 +311,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
                 if (debugMSGTimer - self.boredOfWanderingFacilityTimer > 1)
                 {
                     debugMSGTimer = self.boredOfWanderingFacilityTimer;
-                    self.LogDebug(
+                    self.DebugLog(
                         $"[{nameof(BoredOfFacilityTransition)}] Time until bored: {self.boredOfWanderingFacilityTimer}"
                     );
                 }

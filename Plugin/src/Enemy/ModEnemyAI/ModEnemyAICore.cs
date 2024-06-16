@@ -26,12 +26,15 @@ public partial class ModEnemyAI<T> : EnemyAI
         public Animator creatureAnimator = null!;
         public abstract void OnStateEntered();
 
+        /// <summary>Runs every frame.</summary>
         public virtual void UpdateBehavior() { }
 
+        /// <summary>Runs at <c>DoAIInterval</c>, which the interval depends on EnemyAI's <c>AIIntervalTime</c>.</summary>
         public virtual void AIInterval() { }
 
         public abstract void OnStateExit();
 
+        /// <summary>All the transitions that can be made from current State, excluding global transitions.</summary>
         public abstract List<AIStateTransition> Transitions { get; set; }
     }
 
@@ -113,7 +116,7 @@ public partial class ModEnemyAI<T> : EnemyAI
         //Debug to make sure that the agent is actually on the NavMesh
         if (!agent.isOnNavMesh && base.IsOwner)
         {
-            LogDebug("CREATURE " + __getTypeName() + " WAS NOT PLACED ON NAVMESH, DESTROYING...");
+            DebugLog("CREATURE " + __getTypeName() + " WAS NOT PLACED ON NAVMESH, DESTROYING...");
             KillEnemyOnOwnerClient();
         }
         //Fix for the animator sometimes deciding to just not work
@@ -173,19 +176,17 @@ public partial class ModEnemyAI<T> : EnemyAI
         }
     }
 
-    internal void LogDebug(object data)
+    internal void DebugLog(object data)
     {
         if (PrintDebugs)
-        {
             P.Log(data);
-        }
     }
 
     internal bool AnimationIsFinished(string AnimName)
     {
         if (!creatureAnimator.GetCurrentAnimatorStateInfo(0).IsName(AnimName))
         {
-            LogDebug(
+            DebugLog(
                 __getTypeName()
                     + ": Checking for animation "
                     + AnimName
@@ -242,13 +243,13 @@ public partial class ModEnemyAI<T> : EnemyAI
             return;
 
         //LogMessage(stateName);
-        LogDebug($"{__getTypeName()} #{self.thisEnemyIndex} is Exiting:  {ActiveState}");
+        DebugLog($"{__getTypeName()} #{self.thisEnemyIndex} is Exiting:  {ActiveState}");
         ActiveState.OnStateExit();
-        LogDebug(
+        DebugLog(
             $"{__getTypeName()} #{self.thisEnemyIndex} is Transitioning via:  {localNextTransition}"
         );
         ActiveState = localNextTransition.NextState();
-        LogDebug($"{__getTypeName()} #{self.thisEnemyIndex} is Entering:  {ActiveState}");
+        DebugLog($"{__getTypeName()} #{self.thisEnemyIndex} is Entering:  {ActiveState}");
         InitializeState(ActiveState, self, new(randomSeed));
 
         //Debug Prints
@@ -256,7 +257,7 @@ public partial class ModEnemyAI<T> : EnemyAI
             NetworkManager.Singleton.LocalClientId,
             out var value
         );
-        LogDebug(
+        DebugLog(
             $"CREATURE: {enemyType.name} #{self.thisEnemyIndex} STATE: {ActiveState} ON PLAYER: #{value} ({StartOfRound.Instance.allPlayerScripts[value].playerUsername})"
         );
     }
@@ -274,16 +275,16 @@ public partial class ModEnemyAI<T> : EnemyAI
         {
             targetPlayer = null;
             _targetPlayerForOwner = null;
-            LogDebug($"Clearing target on {this}");
+            DebugLog($"Clearing target on {this}");
             return;
         }
         if (StartOfRound.Instance.allPlayerScripts[PlayerID] == null)
         {
-            LogDebug($"Index invalid! {this}");
+            DebugLog($"Index invalid! {this}");
             return;
         }
         targetPlayer = StartOfRound.Instance.allPlayerScripts[PlayerID];
         _targetPlayerForOwner = targetPlayer;
-        LogDebug($"{this} setting target to: {targetPlayer.playerUsername}");
+        DebugLog($"{this} setting target to: {targetPlayer.playerUsername}");
     }
 }

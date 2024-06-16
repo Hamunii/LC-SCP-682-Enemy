@@ -529,67 +529,11 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
         public override AIBehaviorState NextState()
         {
-            if (self.MyValidState == PlayerState.Outside)
+            if (self.isOutside)
                 return new WanderThroughEntranceState();
             else
                 return new AtFacilityWanderingState();
         }
-    }
-
-    #endregion
-    #region Utility Methods
-
-    public void SetLocationState(bool toOutside)
-    {
-        LogDebug("Set location state to OUTSIDE?: " + toOutside);
-        if (toOutside)
-        {
-            // Maybe using MyValidState was a mistake?
-            // Just results in writing more code without really advantages.
-            MyValidState = PlayerState.Outside;
-            SetEnemyOutside(true);
-        }
-        else
-        {
-            MyValidState = PlayerState.Inside;
-            SetEnemyOutside(false);
-        }
-    }
-
-    [ClientRpc]
-    public void TeleportSelfToOtherEntranceClientRpc(bool wasInside)
-    {
-        TeleportSelfToOtherEntrance(!wasInside);
-    }
-
-    private void TeleportSelfToOtherEntrance(bool isOutside)
-    {
-        var targetEntrance = RoundManager.FindMainEntranceScript(!isOutside);
-
-        Vector3 navMeshPosition = RoundManager.Instance.GetNavMeshPosition(
-            targetEntrance.entrancePoint.position
-        );
-        if (IsOwner)
-        {
-            agent.enabled = false;
-            transform.position = navMeshPosition;
-            agent.enabled = true;
-        }
-        else
-            transform.position = navMeshPosition;
-
-        serverPosition = navMeshPosition;
-        SetLocationState(!isOutside);
-
-        PlayEntranceOpeningSound(targetEntrance);
-    }
-
-    public void PlayEntranceOpeningSound(EntranceTeleport entrance)
-    {
-        if (entrance.doorAudios == null || entrance.doorAudios.Length == 0)
-            return;
-        entrance.entrancePointAudio.PlayOneShot(entrance.doorAudios[0]);
-        WalkieTalkie.TransmitOneShotAudio(entrance.entrancePointAudio, entrance.doorAudios[0]);
     }
 
     #endregion

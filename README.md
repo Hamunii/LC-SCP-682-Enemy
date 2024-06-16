@@ -43,6 +43,11 @@ This is the [SCP682.template.csproj.user](/Plugin/SCP682.template.csproj.user) t
     <PropertyGroup>
         <ManagedDirectory>$(GameDirectory)Lethal Company_Data/Managed/</ManagedDirectory>
     </PropertyGroup>
+
+    <!-- MMHOOK Directories - Do Not Modify -->
+    <PropertyGroup>
+        <MMHOOK>$(PluginsDirectory)MMHOOK/</MMHOOK>
+    </PropertyGroup>
     
     <!-- Our mod files get copied over after NetcodePatcher has processed our DLL -->
     <Target Name="CopyToTestProfile" DependsOnTargets="NetcodePatch" AfterTargets="PostBuildEvent">

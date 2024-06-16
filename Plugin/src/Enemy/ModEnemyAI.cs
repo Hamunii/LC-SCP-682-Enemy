@@ -62,6 +62,28 @@ public class ModEnemyAI<T> : EnemyAI
     internal List<AIStateTransition> GlobalTransitions = new List<AIStateTransition>();
     internal List<AIStateTransition> AllTransitions = new List<AIStateTransition>();
     internal T self = default!;
+    private PlayerControllerB? _targetPlayerForOwner;
+    public new PlayerControllerB? targetPlayer
+    {
+        get
+        {
+            if (IsOwner && base.targetPlayer != _targetPlayerForOwner)
+            {
+                if (base.targetPlayer is not null)
+                    SetTargetServerRpc((int)base.targetPlayer.actualClientId);
+                else
+                    SetTargetServerRpc(-1);
+            }
+            return base.targetPlayer;
+        }
+        set
+        {
+            if (value is not null)
+                SetTargetServerRpc((int)value.actualClientId);
+            else
+                SetTargetServerRpc(-1);
+        }
+    }
 
     public override string __getTypeName()
     {
@@ -351,10 +373,13 @@ public class ModEnemyAI<T> : EnemyAI
         return IsPlayerReachable(targetPlayer);
     }
 
-    internal bool IsPlayerReachable(PlayerControllerB PlayerToCheck)
+    internal bool IsPlayerReachable(PlayerControllerB? PlayerToCheck)
     {
+        if (PlayerToCheck is null)
+            return false;
+
         Vector3 Position = RoundManager.Instance.GetNavMeshPosition(
-            targetPlayer.transform.position,
+            PlayerToCheck.transform.position,
             RoundManager.Instance.navHit,
             2.7f
         );
@@ -369,19 +394,15 @@ public class ModEnemyAI<T> : EnemyAI
         return HasPath;
     }
 
-    internal float PlayerDistanceFromShip(PlayerControllerB? PlayerToCheck = null)
+    internal float PlayerDistanceFromShip(PlayerControllerB PlayerToCheck)
     {
-        if (PlayerToCheck == null)
+        if (PlayerToCheck is null)
         {
-            if (targetPlayer == null)
-            {
-                P.LogError("PlayerNearShip check has no target player or passed in argument!");
-                return -1;
-            }
-            PlayerToCheck = targetPlayer;
+            P.LogError("PlayerNearShip check has no target player or passed in argument!");
+            return -1;
         }
         float DistanceFromShip = Vector3.Distance(
-            targetPlayer.transform.position,
+            PlayerToCheck.transform.position,
             StartOfRound.Instance.shipBounds.transform.position
         );
         LogDebug($"PlayerNearShip check: {DistanceFromShip}");
@@ -396,7 +417,7 @@ public class ModEnemyAI<T> : EnemyAI
 
     internal bool PlayerWithinRange(PlayerControllerB player, float Range, bool IncludeYAxis = true)
     {
-        return DistanceFromTargetPlayer(player, IncludeYAxis) <= Range;
+        return DistanceFromPlayer(player, IncludeYAxis) <= Range;
     }
 
     private float DistanceFromTargetPlayer(bool IncludeYAxis)
@@ -420,15 +441,15 @@ public class ModEnemyAI<T> : EnemyAI
         return Vector2.Distance(PlayerFlatLocation, EnemyFlatLocation);
     }
 
-    private float DistanceFromTargetPlayer(PlayerControllerB player, bool IncludeYAxis)
+    private float DistanceFromPlayer(PlayerControllerB player, bool IncludeYAxis)
     {
         if (IncludeYAxis)
         {
             return Vector3.Distance(player.transform.position, this.transform.position);
         }
         Vector2 PlayerFlatLocation = new Vector2(
-            targetPlayer.transform.position.x,
-            targetPlayer.transform.position.z
+            player.transform.position.x,
+            player.transform.position.z
         );
         Vector2 EnemyFlatLocation = new Vector2(transform.position.x, transform.position.z);
         return Vector2.Distance(PlayerFlatLocation, EnemyFlatLocation);
@@ -519,17 +540,18 @@ public class ModEnemyAI<T> : EnemyAI
     }
 
     [ServerRpc]
-    internal void SetTargetServerRpc(int PlayerID)
+    private void SetTargetServerRpc(int PlayerID)
     {
         SetTargetClientRpc(PlayerID);
     }
 
     [ClientRpc]
-    internal void SetTargetClientRpc(int PlayerID)
+    private void SetTargetClientRpc(int PlayerID)
     {
         if (PlayerID == -1)
         {
             targetPlayer = null;
+            _targetPlayerForOwner = null;
             LogDebug($"Clearing target on {this}");
             return;
         }
@@ -539,6 +561,7 @@ public class ModEnemyAI<T> : EnemyAI
             return;
         }
         targetPlayer = StartOfRound.Instance.allPlayerScripts[PlayerID];
+        _targetPlayerForOwner = targetPlayer;
         LogDebug($"{this} setting target to: {targetPlayer.playerUsername}");
     }
 }

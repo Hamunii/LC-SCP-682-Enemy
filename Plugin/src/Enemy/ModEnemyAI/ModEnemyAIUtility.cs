@@ -14,7 +14,7 @@ namespace SCP682.SCPEnemy;
 
 // Heavily based on WelcomeToOoblterra's WTOEnemy class
 public partial class ModEnemyAI<T> : EnemyAI
-    where T : EnemyAI
+    where T : ModEnemyAI<T>
 {
     internal bool PlayerCanBeTargeted(PlayerControllerB myPlayer)
     {
@@ -24,17 +24,14 @@ public partial class ModEnemyAI<T> : EnemyAI
     internal PlayerState GetPlayerState(PlayerControllerB myPlayer)
     {
         if (myPlayer.isPlayerDead)
-        {
             return PlayerState.Dead;
-        }
+
         if (myPlayer.isInsideFactory)
-        {
             return PlayerState.Inside;
-        }
+
         if (myPlayer.isInHangarShipRoom)
-        {
             return PlayerState.Ship;
-        }
+
         return PlayerState.Outside;
     }
 
@@ -50,20 +47,6 @@ public partial class ModEnemyAI<T> : EnemyAI
             return;
         }
         Timer -= Time.deltaTime;
-    }
-
-    internal void OverrideState(AIBehaviorState state)
-    {
-        if (isEnemyDead)
-        {
-            return;
-        }
-        ActiveState = state;
-        ActiveState.self = self;
-        ActiveState.agent = agent;
-        ActiveState.enemyRandom = enemyRandom;
-        ActiveState.OnStateEntered(creatureAnimator);
-        return;
     }
 
     public PlayerControllerB? IsAnyPlayerWithinLOS(
@@ -123,7 +106,7 @@ public partial class ModEnemyAI<T> : EnemyAI
             transform.position,
             player.gameplayCamera.transform.position
         );
-        bool TargetInDistance = DistanceToTarget < (float)range;
+        bool TargetInDistance = DistanceToTarget < range;
         float AngleToTarget = Vector3.Angle(
             eye.transform.forward,
             player.gameplayCamera.transform.position - eye.transform.position

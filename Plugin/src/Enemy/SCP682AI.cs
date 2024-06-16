@@ -144,17 +144,17 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         public override List<AIStateTransition> Transitions { get; set; } =
             [new OnShipAmbushState.ArrivedAtShipTransition(), new InvestigatePlayerTransition()];
 
-        public override void OnStateEntered(Animator creatureAnimator)
+        public override void OnStateEntered()
         {
             creatureAnimator.SetBool(Anim.isMoving, true);
         }
 
-        public override void AIInterval(Animator creatureAnimator)
+        public override void AIInterval()
         {
             self.SetDestinationToPosition(self.posOnTopOfShip);
         }
 
-        public override void OnStateExit(Animator creatureAnimator) { }
+        public override void OnStateExit() { }
     }
 
     private class OnShipAmbushState : AIBehaviorState
@@ -162,7 +162,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         public override List<AIStateTransition> Transitions { get; set; } =
             [new AmbushPlayerFromShipTransition(), new BoredOfAmbushTransition()];
 
-        public override void OnStateEntered(Animator creatureAnimator)
+        public override void OnStateEntered()
         {
             creatureAnimator.SetBool(Anim.isMoving, false);
             creatureAnimator.SetBool(Anim.isOnShip, true);
@@ -173,7 +173,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             self.readyToMakeTransitionFromAmbush = false;
         }
 
-        public override void OnStateExit(Animator creatureAnimator)
+        public override void OnStateExit()
         {
             creatureAnimator.SetBool(Anim.isMoving, true);
             creatureAnimator.SetBool(Anim.isOnShip, false);
@@ -233,7 +233,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             [new InvestigatePlayerTransition()];
         EntranceTeleport facilityEntrance = null!;
 
-        public override void OnStateEntered(Animator creatureAnimator)
+        public override void OnStateEntered()
         {
             creatureAnimator.SetBool(Anim.isMoving, true);
 
@@ -241,13 +241,13 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             Transitions.Add(new EnterEntranceTransition());
         }
 
-        public override void AIInterval(Animator creatureAnimator)
+        public override void AIInterval()
         {
             // TODO: More interesting pathing
             self.SetDestinationToPosition(facilityEntrance.entrancePoint.position);
         }
 
-        public override void OnStateExit(Animator creatureAnimator)
+        public override void OnStateExit()
         {
             self.TeleportSelfToOtherEntranceClientRpc(!self.isOutside);
         }
@@ -289,14 +289,14 @@ class SCP682AI : ModEnemyAI<SCP682AI>
                 new InvestigatePlayerTransition()
             ];
 
-        public override void OnStateEntered(Animator creatureAnimator)
+        public override void OnStateEntered()
         {
             creatureAnimator.SetBool(Anim.isMoving, true);
 
             self.StartSearch(self.transform.position);
         }
 
-        public override void OnStateExit(Animator creatureAnimator)
+        public override void OnStateExit()
         {
             self.StopSearch(self.currentSearch);
         }
@@ -340,13 +340,13 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         public override List<AIStateTransition> Transitions { get; set; } =
             [new NoisyJesterEatenTransition()];
 
-        public override void OnStateEntered(Animator creatureAnimator)
+        public override void OnStateEntered()
         {
             creatureAnimator.SetBool(Anim.isMoving, true);
             self.SetAgentSpeed(Speed.Running);
         }
 
-        public override void AIInterval(Animator creatureAnimator)
+        public override void AIInterval()
         {
             if (self.targetJester is null)
                 return;
@@ -359,7 +359,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             self.SetDestinationToPosition(jesterPos);
         }
 
-        public override void OnStateExit(Animator creatureAnimator)
+        public override void OnStateExit()
         {
             self.SetAgentSpeed(Speed.Walking);
         }
@@ -409,18 +409,18 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         public override List<AIStateTransition> Transitions { get; set; } =
             [new AttackPlayerTransition(), new LostPlayerTransition()];
 
-        public override void OnStateEntered(Animator creatureAnimator)
+        public override void OnStateEntered()
         {
             creatureAnimator.SetBool(Anim.isMoving, true);
         }
 
-        public override void AIInterval(Animator creatureAnimator)
+        public override void AIInterval()
         {
             self.targetPlayer = self.FindNearestPlayer();
             self.SetDestinationToPosition(self.targetPlayer.transform.position);
         }
 
-        public override void OnStateExit(Animator creatureAnimator) { }
+        public override void OnStateExit() { }
     }
 
     private class AttackPlayerState : AIBehaviorState
@@ -431,24 +431,24 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         const float defaultCooldown = 0.5f;
         float attackCooldown = defaultCooldown;
 
-        public override void OnStateEntered(Animator creatureAnimator)
+        public override void OnStateEntered()
         {
             creatureAnimator.SetBool(Anim.isMoving, true);
             self.SetAgentSpeed(Speed.Running);
         }
 
-        public override void UpdateBehavior(Animator creatureAnimator)
+        public override void UpdateBehavior()
         {
             attackCooldown -= Time.deltaTime;
         }
 
-        public override void AIInterval(Animator creatureAnimator)
+        public override void AIInterval()
         {
             self.targetPlayer = self.FindNearestPlayer();
             self.SetDestinationToPosition(self.targetPlayer.transform.position);
         }
 
-        public override void OnStateExit(Animator creatureAnimator)
+        public override void OnStateExit()
         {
             self.SetAgentSpeed(Speed.Walking);
         }

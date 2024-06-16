@@ -16,30 +16,31 @@ namespace SCP682.SCPEnemy;
 
 // Heavily based on WelcomeToOoblterra's WTOEnemy class
 public partial class ModEnemyAI<T> : EnemyAI
-    where T : EnemyAI
+    where T : ModEnemyAI<T>
 {
     public abstract class AIBehaviorState
     {
-        public Vector2 RandomRange = new Vector2(0, 0);
-        public int MyRandomInt = 0;
         public T self = default!;
         public NavMeshAgent agent = null!;
         public System.Random enemyRandom = null!;
-        public abstract void OnStateEntered(Animator creatureAnimator);
+        public Animator creatureAnimator = null!;
+        public abstract void OnStateEntered();
 
-        public virtual void UpdateBehavior(Animator creatureAnimator) { }
+        public virtual void UpdateBehavior() { }
 
-        public virtual void AIInterval(Animator creatureAnimator) { }
+        public virtual void AIInterval() { }
 
-        public abstract void OnStateExit(Animator creatureAnimator);
+        public abstract void OnStateExit();
 
         public abstract List<AIStateTransition> Transitions { get; set; }
     }
 
     public abstract class AIStateTransition
     {
-        //public int enemyIndex { get; set; }
         public T self = default!;
+        public NavMeshAgent agent = null!;
+        public System.Random enemyRandom = null!;
+        public Animator creatureAnimator = null!;
         public abstract bool CanTransitionBeTaken();
         public abstract AIBehaviorState NextState();
     }
@@ -93,7 +94,7 @@ public partial class ModEnemyAI<T> : EnemyAI
     public override void DoAIInterval()
     {
         base.DoAIInterval();
-        ActiveState.AIInterval(creatureAnimator);
+        ActiveState.AIInterval();
     }
 
     public override void Start()
@@ -103,28 +104,38 @@ public partial class ModEnemyAI<T> : EnemyAI
         //Initializers
         ActiveState = InitialState;
         enemyRandom = new System.Random(StartOfRound.Instance.randomMapSeed + thisEnemyIndex);
+
         if (enemyType.isOutsideEnemy)
-        {
             MyValidState = PlayerState.Outside;
-        }
         else
-        {
             MyValidState = PlayerState.Inside;
-        }
+
         //Debug to make sure that the agent is actually on the NavMesh
         if (!agent.isOnNavMesh && base.IsOwner)
         {
-            LogDebug(
-                "CREATURE " + this.__getTypeName() + " WAS NOT PLACED ON NAVMESH, DESTROYING..."
-            );
+            LogDebug("CREATURE " + __getTypeName() + " WAS NOT PLACED ON NAVMESH, DESTROYING...");
             KillEnemyOnOwnerClient();
         }
         //Fix for the animator sometimes deciding to just not work
         creatureAnimator.Rebind();
+        InitializeState(ActiveState, self, enemyRandom);
+    }
+
+    private void InitializeState(AIBehaviorState ActiveState, T self, System.Random enemyRandom)
+    {
         ActiveState.self = self;
-        ActiveState.agent = agent;
+        ActiveState.agent = self.agent;
         ActiveState.enemyRandom = enemyRandom;
-        ActiveState.OnStateEntered(creatureAnimator);
+        ActiveState.creatureAnimator = self.creatureAnimator;
+        ActiveState.OnStateEntered();
+    }
+
+    private void InitializeStateTransition(AIStateTransition transition, T self)
+    {
+        transition.self = self;
+        transition.agent = self.agent;
+        transition.enemyRandom = self.enemyRandom;
+        transition.creatureAnimator = self.creatureAnimator;
     }
 
     public override void Update()
@@ -146,22 +157,19 @@ public partial class ModEnemyAI<T> : EnemyAI
 
         foreach (AIStateTransition TransitionToCheck in AllTransitions)
         {
-            TransitionToCheck.self = self;
+            InitializeStateTransition(TransitionToCheck, self);
             if (TransitionToCheck.CanTransitionBeTaken() && base.IsOwner)
             {
                 RunUpdate = false;
                 nextTransition = TransitionToCheck;
-                TransitionStateServerRpc(
-                    nextTransition.ToString(),
-                    GenerateNextRandomInt(nextTransition.NextState().RandomRange)
-                );
+                TransitionStateServerRpc(nextTransition.ToString());
                 return;
             }
         }
 
         if (RunUpdate)
         {
-            ActiveState.UpdateBehavior(creatureAnimator);
+            ActiveState.UpdateBehavior();
         }
     }
 
@@ -189,12 +197,6 @@ public partial class ModEnemyAI<T> : EnemyAI
         return creatureAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f;
     }
 
-    internal int GenerateNextRandomInt(Vector2 Range)
-    {
-        Range = nextTransition.NextState().RandomRange;
-        return enemyRandom.Next((int)Range.x, (int)Range.y);
-    }
-
     [ServerRpc(RequireOwnership = false)]
     internal void SetAnimTriggerOnServerRpc(string name)
     {
@@ -213,39 +215,41 @@ public partial class ModEnemyAI<T> : EnemyAI
         }
     }
 
-    [ServerRpc]
-    internal void TransitionStateServerRpc(string StateName, int RandomInt)
+    internal void OverrideState(AIBehaviorState state)
     {
-        TransitionStateClientRpc(StateName, RandomInt);
+        if (isEnemyDead)
+            return;
+
+        TransitionStateServerRpc(state.ToString());
     }
+
+    [ServerRpc]
+    internal void TransitionStateServerRpc(string stateName) =>
+        TransitionStateClientRpc(stateName, enemyRandom.Next());
 
     [ClientRpc]
-    internal void TransitionStateClientRpc(string StateName, int RandomInt)
-    {
-        TransitionState(StateName, RandomInt);
-    }
+    internal void TransitionStateClientRpc(string stateName, int randomSeed) =>
+        TransitionState(stateName, randomSeed);
 
-    internal void TransitionState(string StateName, int RandomInt)
+    internal void TransitionState(string stateName, int randomSeed)
     {
         //Jesus fuck I can't believe I have to do this
-        Type type = Type.GetType(StateName);
-        AIStateTransition LocalNextTransition = (AIStateTransition)Activator.CreateInstance(type);
-        LocalNextTransition.self = self;
-        if (LocalNextTransition.NextState().GetType() == ActiveState.GetType())
-        {
+        Type type = Type.GetType(stateName);
+        AIStateTransition localNextTransition = (AIStateTransition)Activator.CreateInstance(type);
+        InitializeStateTransition(localNextTransition, self);
+
+        if (localNextTransition.NextState().GetType() == ActiveState.GetType())
             return;
-        }
-        //LogMessage(StateName);
-        LogDebug($"{__getTypeName()} #{self} is Exiting:  {ActiveState}");
-        ActiveState.OnStateExit(creatureAnimator);
-        LogDebug($"{__getTypeName()} #{self} is Transitioning via:  {LocalNextTransition}");
-        ActiveState = LocalNextTransition.NextState();
-        ActiveState.MyRandomInt = RandomInt;
-        ActiveState.self = self;
-        ActiveState.agent = agent;
-        ActiveState.enemyRandom = enemyRandom;
-        LogDebug($"{__getTypeName()} #{self} is Entering:  {ActiveState}");
-        ActiveState.OnStateEntered(creatureAnimator);
+
+        //LogMessage(stateName);
+        LogDebug($"{__getTypeName()} #{self.thisEnemyIndex} is Exiting:  {ActiveState}");
+        ActiveState.OnStateExit();
+        LogDebug(
+            $"{__getTypeName()} #{self.thisEnemyIndex} is Transitioning via:  {localNextTransition}"
+        );
+        ActiveState = localNextTransition.NextState();
+        LogDebug($"{__getTypeName()} #{self.thisEnemyIndex} is Entering:  {ActiveState}");
+        InitializeState(ActiveState, self, new(randomSeed));
 
         //Debug Prints
         StartOfRound.Instance.ClientPlayerList.TryGetValue(
@@ -253,7 +257,7 @@ public partial class ModEnemyAI<T> : EnemyAI
             out var value
         );
         LogDebug(
-            $"CREATURE: {enemyType.name} #{self} STATE: {ActiveState} ON PLAYER: #{value} ({StartOfRound.Instance.allPlayerScripts[value].playerUsername})"
+            $"CREATURE: {enemyType.name} #{self.thisEnemyIndex} STATE: {ActiveState} ON PLAYER: #{value} ({StartOfRound.Instance.allPlayerScripts[value].playerUsername})"
         );
     }
 

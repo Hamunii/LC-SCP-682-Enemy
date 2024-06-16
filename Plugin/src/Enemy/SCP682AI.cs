@@ -15,14 +15,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     // We use this list to destroy loaded game objects when plugin is reloaded
     internal static List<GameObject> SCP682Objects = [];
 
-    enum TravelingTo
-    {
-        Ship,
-        Facility
-    }
-
-    TravelingTo currentTravelDirection = TravelingTo.Facility;
-
     public enum Speed
     {
         Walking = 3,
@@ -42,9 +34,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     float boredOfWanderingFacilityTimer = defaultBoredOfWanderingFacilityTimer;
     bool readyToMakeTransitionFromAmbush = true;
     Vector3 posOnTopOfShip;
-
-    // targetJester is a variable of SCP682 AI because I don't know what the fuck this is:
-    // MissingMethodException: Default constructor not found for type SCP682.SCPEnemy.SCP682AI+AtFacilityEatNoisyJesterState+NoisyJesterEatenTransition
     JesterAI? targetJester = null!;
     LineRenderer lineRenderer = null!;
 
@@ -180,7 +169,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
             agent.enabled = true;
 
-            self.currentTravelDirection = TravelingTo.Facility;
             self.readyToMakeTransitionFromAmbush = true;
         }
 
@@ -326,7 +314,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             public override AIBehaviorState NextState()
             {
                 self.boredOfWanderingFacilityTimer = defaultBoredOfWanderingFacilityTimer;
-                self.currentTravelDirection = TravelingTo.Ship;
                 return new WanderThroughEntranceState();
             }
         }
@@ -437,10 +424,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             self.SetAgentSpeed(Speed.Running);
         }
 
-        public override void UpdateBehavior()
-        {
-            attackCooldown -= Time.deltaTime;
-        }
+        public override void UpdateBehavior() => attackCooldown -= Time.deltaTime;
 
         public override void AIInterval()
         {
@@ -569,14 +553,10 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
     class DebugNewSearchRoutineAction(SCP682AI self) : MMButtonAction("New Search Routine")
     {
-        protected override void OnClick()
-        {
-            self.StopSearch(self.currentSearch);
-            self.StartSearch(self.transform.position);
-        }
+        protected override void OnClick() => self.StartSearch(self.transform.position);
     }
 
-    class DebugOverrideState(SCP682AI self, Type state) : MMButtonAction($"To {state.Name}")
+    class DebugOverrideState(SCP682AI self, Type state) : MMButtonAction($"{state.Name}")
     {
         protected override void OnClick()
         {

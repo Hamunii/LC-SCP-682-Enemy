@@ -190,7 +190,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             {
                 self.targetPlayer = self.FindNearestPlayer();
                 // TODO: make it better
-                if (self.PlayerWithinRange(15) && self.readyToMakeTransitionFromAmbush)
+                if (self.TargetPlayerWithinRange(15) && self.readyToMakeTransitionFromAmbush)
                     return true;
                 return false;
             }

@@ -16,10 +16,8 @@ namespace SCP682.SCPEnemy;
 public partial class ModEnemyAI<T> : EnemyAI
     where T : ModEnemyAI<T>
 {
-    internal bool PlayerCanBeTargeted(PlayerControllerB myPlayer)
-    {
-        return GetPlayerState(myPlayer) == MyValidState;
-    }
+    internal bool PlayerCanBeTargeted(PlayerControllerB myPlayer) =>
+        GetPlayerState(myPlayer) == MyValidState;
 
     internal PlayerState GetPlayerState(PlayerControllerB myPlayer)
     {
@@ -199,13 +197,13 @@ public partial class ModEnemyAI<T> : EnemyAI
         return IsPlayerReachable(targetPlayer);
     }
 
-    internal bool IsPlayerReachable(PlayerControllerB? PlayerToCheck)
+    internal bool IsPlayerReachable(PlayerControllerB? playerToCheck)
     {
-        if (PlayerToCheck is null)
+        if (playerToCheck is null)
             return false;
 
         Vector3 Position = RoundManager.Instance.GetNavMeshPosition(
-            PlayerToCheck.transform.position,
+            playerToCheck.transform.position,
             RoundManager.Instance.navHit,
             2.7f
         );
@@ -220,30 +218,31 @@ public partial class ModEnemyAI<T> : EnemyAI
         return HasPath;
     }
 
-    internal float PlayerDistanceFromShip(PlayerControllerB PlayerToCheck)
+    internal float PlayerDistanceFromShip(PlayerControllerB playerToCheck)
     {
-        if (PlayerToCheck is null)
+        if (playerToCheck is null)
         {
             P.LogError("PlayerNearShip check has no target player or passed in argument!");
             return -1;
         }
         float DistanceFromShip = Vector3.Distance(
-            PlayerToCheck.transform.position,
+            playerToCheck.transform.position,
             StartOfRound.Instance.shipBounds.transform.position
         );
         DebugLog($"PlayerNearShip check: {DistanceFromShip}");
         return DistanceFromShip;
     }
 
-    internal bool PlayerWithinRange(float Range, bool IncludeYAxis = true)
+    internal bool TargetPlayerWithinRange(float range, bool includeYAxis = true)
     {
-        DebugLog($"Distance from target player: {DistanceFromTargetPlayer(IncludeYAxis)}");
-        return DistanceFromTargetPlayer(IncludeYAxis) <= Range;
+        var distance = DistanceFromTargetPlayer(includeYAxis);
+        DebugLog($"Distance from target player: {distance}");
+        return distance <= range;
     }
 
-    internal bool PlayerWithinRange(PlayerControllerB player, float Range, bool IncludeYAxis = true)
+    internal bool PlayerWithinRange(PlayerControllerB player, float range, bool includeYAxis = true)
     {
-        return DistanceFromPlayer(player, IncludeYAxis) <= Range;
+        return DistanceFromPlayer(player, includeYAxis) <= range;
     }
 
     private float DistanceFromTargetPlayer(bool IncludeYAxis)
@@ -255,16 +254,7 @@ public partial class ModEnemyAI<T> : EnemyAI
             );
             return -1f;
         }
-        if (IncludeYAxis)
-        {
-            return Vector3.Distance(targetPlayer.transform.position, this.transform.position);
-        }
-        Vector2 PlayerFlatLocation = new Vector2(
-            targetPlayer.transform.position.x,
-            targetPlayer.transform.position.z
-        );
-        Vector2 EnemyFlatLocation = new Vector2(transform.position.x, transform.position.z);
-        return Vector2.Distance(PlayerFlatLocation, EnemyFlatLocation);
+        return DistanceFromPlayer(targetPlayer, IncludeYAxis);
     }
 
     private float DistanceFromPlayer(PlayerControllerB player, bool IncludeYAxis)

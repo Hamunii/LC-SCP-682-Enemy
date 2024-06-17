@@ -5,7 +5,7 @@ schemaVersion = "0.0.1"
 repository = "https://thunderstore.io"
 
 [package]
-description = "Example Enemy for Lethal Company."
+description = "Adds SCP-682 as a monster to Lethal Company!"
 websiteUrl = "https://github.com/Hamunii/LC-SCP682"
 containsNsfwContent = false
 [package.dependencies]
@@ -18,12 +18,16 @@ readme = "./README.md"
 outdir = "./Packages"
 
 [[build.copy]]
-source = "../bin/Release/netstandard2.1/Hamunii.SCP682.dll"
+source = "../bin/Release/netstandard2.1/ProjectSCP.SCP682.dll"
 target = "plugins/SCP682/"
 
 [[build.copy]]
-source = "../../UnityProject/AssetBundles/StandaloneWindows/modassets"
-target = "plugins/SCP682/"
+source = "../../UnityProject/AssetBundles/StandaloneWindows/scp682assets"
+target = "plugins/SCP682/SCP682Assets/"
+
+[[build.copy]]
+source = "../../UnityProject/Assets/ModAssets/SCP682/Bestiary/SCP682Spin.mp4"
+target = "plugins/SCP682/SCP682Assets/"
 
 [[build.copy]]
 source = "./CHANGELOG.md"

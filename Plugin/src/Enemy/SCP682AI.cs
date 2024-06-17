@@ -296,7 +296,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             public override bool CanTransitionBeTaken()
             {
                 self.boredOfWanderingFacilityTimer -= Time.deltaTime;
-                if (debugMSGTimer - self.boredOfWanderingFacilityTimer > 1)
+                if (debugMSGTimer - self.boredOfWanderingFacilityTimer > 5)
                 {
                     debugMSGTimer = self.boredOfWanderingFacilityTimer;
                     self.DebugLog(

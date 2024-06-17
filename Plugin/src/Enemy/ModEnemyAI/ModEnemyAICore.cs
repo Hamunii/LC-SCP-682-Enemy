@@ -66,12 +66,12 @@ public partial class ModEnemyAI<T> : EnemyAI
     internal List<AIStateTransition> GlobalTransitions = new List<AIStateTransition>();
     internal List<AIStateTransition> AllTransitions = new List<AIStateTransition>();
     internal T self = default!;
-    private PlayerControllerB? _targetPlayerForOwner;
+    private PlayerControllerB? _lastSyncedTargetPlayer;
     public new PlayerControllerB? targetPlayer
     {
         get
         {
-            if (IsOwner && base.targetPlayer != _targetPlayerForOwner)
+            if (IsOwner && base.targetPlayer != _lastSyncedTargetPlayer)
             {
                 if (base.targetPlayer is not null)
                     SetTargetServerRpc((int)base.targetPlayer.actualClientId);
@@ -82,6 +82,8 @@ public partial class ModEnemyAI<T> : EnemyAI
         }
         set
         {
+            if (value == _lastSyncedTargetPlayer && _lastSyncedTargetPlayer == base.targetPlayer)
+                return;
             if (value is not null)
                 SetTargetServerRpc((int)value.actualClientId);
             else
@@ -92,12 +94,6 @@ public partial class ModEnemyAI<T> : EnemyAI
     public override string __getTypeName()
     {
         return GetType().Name;
-    }
-
-    public override void DoAIInterval()
-    {
-        base.DoAIInterval();
-        ActiveState.AIInterval();
     }
 
     public override void Start()
@@ -122,23 +118,6 @@ public partial class ModEnemyAI<T> : EnemyAI
         //Fix for the animator sometimes deciding to just not work
         creatureAnimator.Rebind();
         InitializeState(ActiveState, self, enemyRandom);
-    }
-
-    private void InitializeState(AIBehaviorState ActiveState, T self, System.Random enemyRandom)
-    {
-        ActiveState.self = self;
-        ActiveState.agent = self.agent;
-        ActiveState.enemyRandom = enemyRandom;
-        ActiveState.creatureAnimator = self.creatureAnimator;
-        ActiveState.OnStateEntered();
-    }
-
-    private void InitializeStateTransition(AIStateTransition transition, T self)
-    {
-        transition.self = self;
-        transition.agent = self.agent;
-        transition.enemyRandom = self.enemyRandom;
-        transition.creatureAnimator = self.creatureAnimator;
     }
 
     public override void Update()
@@ -174,6 +153,29 @@ public partial class ModEnemyAI<T> : EnemyAI
         {
             ActiveState.UpdateBehavior();
         }
+    }
+
+    public override void DoAIInterval()
+    {
+        base.DoAIInterval();
+        ActiveState.AIInterval();
+    }
+
+    private void InitializeState(AIBehaviorState ActiveState, T self, System.Random enemyRandom)
+    {
+        ActiveState.self = self;
+        ActiveState.agent = self.agent;
+        ActiveState.enemyRandom = enemyRandom;
+        ActiveState.creatureAnimator = self.creatureAnimator;
+        ActiveState.OnStateEntered();
+    }
+
+    private void InitializeStateTransition(AIStateTransition transition, T self)
+    {
+        transition.self = self;
+        transition.agent = self.agent;
+        transition.enemyRandom = self.enemyRandom;
+        transition.creatureAnimator = self.creatureAnimator;
     }
 
     internal void DebugLog(object data)
@@ -273,8 +275,8 @@ public partial class ModEnemyAI<T> : EnemyAI
     {
         if (PlayerID == -1)
         {
-            targetPlayer = null;
-            _targetPlayerForOwner = null;
+            base.targetPlayer = null;
+            _lastSyncedTargetPlayer = null;
             DebugLog($"Clearing target on {this}");
             return;
         }
@@ -283,8 +285,8 @@ public partial class ModEnemyAI<T> : EnemyAI
             DebugLog($"Index invalid! {this}");
             return;
         }
-        targetPlayer = StartOfRound.Instance.allPlayerScripts[PlayerID];
-        _targetPlayerForOwner = targetPlayer;
-        DebugLog($"{this} setting target to: {targetPlayer.playerUsername}");
+        base.targetPlayer = StartOfRound.Instance.allPlayerScripts[PlayerID];
+        _lastSyncedTargetPlayer = base.targetPlayer;
+        DebugLog($"{this} setting target to: {base.targetPlayer.playerUsername}");
     }
 }

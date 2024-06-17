@@ -1,14 +1,21 @@
-﻿using System.IO;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using BepInEx;
 using BepInEx.Logging;
+using HarmonyLib;
 using LethalLib.Modules;
+using MonoMod.Cil;
+using MonoMod.RuntimeDetour;
 using MonoMod.RuntimeDetour.HookGen;
 using SCP682.Configuration;
 using SCP682.Hooks;
 using SCP682.SCPEnemy;
 using UnityEngine;
+using UnityEngine.Networking;
+using UnityEngine.Video;
 
 namespace SCP682;
 
@@ -24,7 +31,7 @@ public class Plugin : BaseUnityPlugin
     private void Awake()
     {
         Logger = base.Logger;
-
+        var watch = Stopwatch.StartNew();
         Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} started loading...");
 
         // If you don't want your mod to use a configuration file, you can remove this line, Configuration.cs, and other references.
@@ -38,10 +45,11 @@ public class Plugin : BaseUnityPlugin
         // asset bundle identifiers being the same between multiple bundles, allowing the loading of only one bundle from one mod.
         // In that case also remember to change the asset bundle copying code in the csproj.user file.
         var bundleName = "scp682assets";
+        var assetsDirName = "SCP682Assets";
 #if DEBUG
-        var assetsDir = Path.Combine(Paths.BepInExRootPath, "scripts");
+        var assetsDir = Path.Combine(Paths.BepInExRootPath, "scripts", assetsDirName);
 #else
-        var assetsDir = Path.GetDirectoryName(Info.Location);
+        var assetsDir = Path.Combine(Path.GetDirectoryName(Info.Location), bundleDirName);
 #endif
         ModAssets = AssetBundle.LoadFromFile(Path.Combine(assetsDir, bundleName));
         if (ModAssets is null)
@@ -52,6 +60,14 @@ public class Plugin : BaseUnityPlugin
 
         SCP682ET = ModAssets.LoadAsset<EnemyType>("SCP682ET");
         var SCP682TN = ModAssets.LoadAsset<TerminalNode>("SCP682TN");
+        // P.Log("File exists? " + File.Exists(Path.Combine(assetsDir, "SCP682Spin.mp4")));
+        // var terminalSpinVid = Resources.Load<VideoClip>(Path.Combine(assetsDir, "SCP682Spin"));
+        // SCP682TN.displayVideo = terminalSpinVid;
+
+        // P.Log("Is video null? " + (terminalSpinVid is null));
+        // P.Log(
+        //     $"Loaded video with {terminalSpinVid.frameCount} frames and {terminalSpinVid.frameRate} FPS"
+        // );
 
         AddEnemyScript.SCP682AI(SCP682ET, ModAssets);
 
@@ -83,7 +99,10 @@ public class Plugin : BaseUnityPlugin
 #endif
         JesterListHook.Init();
 
-        Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
+        watch.Stop();
+        Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} loaded in {watch.ElapsedMilliseconds}ms!");
+
+        // InitGenericHooks();
     }
 
     // We should clean up our resources when reloading the plugin.

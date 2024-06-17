@@ -51,6 +51,5 @@ UpgradeLog.htm
 /Thunderstore/Packages/*
 
 # Exclude stuff
-!/dlls/LethalLib.dll
 !/Thunderstore/Packages/*.txt
 !*template.csproj.user

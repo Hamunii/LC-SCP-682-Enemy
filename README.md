@@ -40,21 +40,22 @@ This is the [SCP682.template.csproj.user](/Plugin/SCP682.template.csproj.user) t
         <TestingDirectory>$(PluginsDirectory)../scripts/</TestingDirectory>
     </PropertyGroup>
 
-    <!-- Game Directories - Do Not Modify -->
+    <!-- Constant Variables - Do Not modify -->
     <PropertyGroup>
         <ManagedDirectory>$(GameDirectory)Lethal Company_Data/Managed/</ManagedDirectory>
+        <MMHOOK>$(PluginsDirectory)MMHOOK/</MMHOOK>
+        <SCPAssets>$(TestingDirectory)SCP682Assets/</SCPAssets>
     </PropertyGroup>
 
-    <!-- MMHOOK Directories - Do Not Modify -->
-    <PropertyGroup>
-        <MMHOOK>$(PluginsDirectory)MMHOOK/</MMHOOK>
-    </PropertyGroup>
-    
     <!-- Our mod files get copied over after NetcodePatcher has processed our DLL -->
     <Target Name="CopyToTestProfile" DependsOnTargets="NetcodePatch" AfterTargets="PostBuildEvent">
+        <MakeDir
+            Directories="$(SCPAssets)"
+            Condition="!Exists('$(SCPAssets)')"
+        />
         <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(TestingDirectory)"/>
         <!-- We will copy the asset bundle named "modassets" over -->
-        <Copy SourceFiles="../UnityProject/AssetBundles/StandaloneWindows/scp682assets" DestinationFolder="$(TestingDirectory)" SkipUnchangedFiles="true"/>
+        <Copy SourceFiles="../UnityProject/AssetBundles/StandaloneWindows/scp682assets" DestinationFolder="$(SCPAssets)" SkipUnchangedFiles="true"/>
         <Exec Command="echo '[csproj.user] Mod files copied to $(TestingDirectory)'" />
     </Target>
 </Project>

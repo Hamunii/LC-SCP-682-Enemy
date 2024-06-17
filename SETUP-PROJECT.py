@@ -130,6 +130,7 @@ def main():
          <GameDirectory>{gameFilesPath}/</GameDirectory>
          <!-- The path you pasted when running the script -->
          <PluginsDirectory>{userInputPath}</PluginsDirectory>
+         <TestingDirectory>$(PluginsDirectory)../scripts/</TestingDirectory>
       </PropertyGroup>
 
       <!-- Game Directories - Do Not Modify -->
@@ -144,10 +145,10 @@ def main():
       
       <!-- Our mod files get copied over after NetcodePatcher has processed our DLL -->
       <Target Name="CopyToTestProfile" DependsOnTargets="NetcodePatch" AfterTargets="PostBuildEvent">
-         <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(PluginsDirectory)"/>
+         <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(TestingDirectory)"/>
          <!-- We will copy the asset bundle named "modassets" over -->
-         <Copy SourceFiles="../UnityProject/AssetBundles/StandaloneWindows/scp682assets" DestinationFolder="$(PluginsDirectory)"/>
-         <Exec Command="echo '[csproj.user] Mod files copied to $(PluginsDirectory)'" />
+         <Copy SourceFiles="../UnityProject/AssetBundles/StandaloneWindows/scp682assets" DestinationFolder="$(TestingDirectory)" SkipUnchangedFiles="true"/>
+         <Exec Command="echo '[csproj.user] Mod files copied to $(TestingDirectory)'" />
       </Target>
    </Project>"""
 

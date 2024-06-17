@@ -37,6 +37,7 @@ This is the [SCP682.template.csproj.user](/Plugin/SCP682.template.csproj.user) t
         <GameDirectory>%programfiles(x86)%/Steam/steamapps/Common/Lethal Company/</GameDirectory>
         <!-- Paste a path to where your mod files get copied to when building.  Include the last slash '/' -->
         <PluginsDirectory>/my/path/to/BepInEx/scripts/</PluginsDirectory>
+        <TestingDirectory>$(PluginsDirectory)../scripts/</TestingDirectory>
     </PropertyGroup>
 
     <!-- Game Directories - Do Not Modify -->
@@ -51,10 +52,10 @@ This is the [SCP682.template.csproj.user](/Plugin/SCP682.template.csproj.user) t
     
     <!-- Our mod files get copied over after NetcodePatcher has processed our DLL -->
     <Target Name="CopyToTestProfile" DependsOnTargets="NetcodePatch" AfterTargets="PostBuildEvent">
-        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(PluginsDirectory)"/>
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(TestingDirectory)"/>
         <!-- We will copy the asset bundle named "modassets" over -->
-        <Copy SourceFiles="../UnityProject/AssetBundles/StandaloneWindows/scp682assets" DestinationFolder="$(PluginsDirectory)"/>
-        <Exec Command="echo '[csproj.user] Mod files copied to $(PluginsDirectory)'" />
+        <Copy SourceFiles="../UnityProject/AssetBundles/StandaloneWindows/scp682assets" DestinationFolder="$(TestingDirectory)" SkipUnchangedFiles="true"/>
+        <Exec Command="echo '[csproj.user] Mod files copied to $(TestingDirectory)'" />
     </Target>
 </Project>
 ```

@@ -83,7 +83,7 @@ This project is based off of the [LC-ExampleEnemy](https://github.com/Hamunii/LC
 
 - JoeJoe - Project leader
 - [Hamunii](https://github.com/Hamunii) - Programming
-- [SkullCrusher/Skull220](https://github.com/Skull220) - Creator of the WTOEnemy class which is for their project [Welcome To Ooblterra](https://thunderstore.io/c/lethal-company/p/Skeleton_Studios/Welcome_To_Ooblterra/), and is the base of this project's [ModEnemyAI](/Plugin/src/Enemy/ModEnemyAI.cs) class
+- [SkullCrusher/Skull220](https://github.com/Skull220) - Creator of the WTOEnemy class which is for their project [Welcome To Ooblterra](https://thunderstore.io/c/lethal-company/p/Skeleton_Studios/Welcome_To_Ooblterra/), and is the base of this project's [ModEnemyAI](/Plugin/src/Enemy/ModEnemyAI/) class
 - DBJ - Voice of SCP-682
 - s1ckboy - Sounds (coming soon(tm))
 

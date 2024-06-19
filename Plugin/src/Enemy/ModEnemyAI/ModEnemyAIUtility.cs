@@ -236,7 +236,7 @@ public partial class ModEnemyAI<T> : EnemyAI
     internal bool TargetPlayerWithinRange(float range, bool includeYAxis = true)
     {
         var distance = DistanceFromTargetPlayer(includeYAxis);
-        DebugLog($"Distance from target player: {distance}");
+        // DebugLog($"Distance from target player: {distance}");
         return distance <= range;
     }
 

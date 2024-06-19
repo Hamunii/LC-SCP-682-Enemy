@@ -104,10 +104,7 @@ public partial class ModEnemyAI<T> : EnemyAI
         ActiveState = InitialState;
         enemyRandom = new System.Random(StartOfRound.Instance.randomMapSeed + thisEnemyIndex);
 
-        if (enemyType.isOutsideEnemy)
-            MyValidState = PlayerState.Outside;
-        else
-            MyValidState = PlayerState.Inside;
+        MyValidState = enemyType.isOutsideEnemy ? PlayerState.Outside : PlayerState.Inside;
 
         //Debug to make sure that the agent is actually on the NavMesh
         if (!agent.isOnNavMesh && base.IsOwner)
@@ -184,20 +181,20 @@ public partial class ModEnemyAI<T> : EnemyAI
             P.Log(data);
     }
 
-    internal bool AnimationIsFinished(string AnimName)
+    internal bool AnimationIsFinished(string AnimName, int layerIndex)
     {
-        if (!creatureAnimator.GetCurrentAnimatorStateInfo(0).IsName(AnimName))
+        if (!creatureAnimator.GetCurrentAnimatorStateInfo(layerIndex).IsName(AnimName))
         {
             DebugLog(
                 __getTypeName()
                     + ": Checking for animation "
                     + AnimName
                     + ", but current animation is "
-                    + creatureAnimator.GetCurrentAnimatorClipInfo(0)[0].clip.name
+                    + creatureAnimator.GetCurrentAnimatorClipInfo(layerIndex)[0].clip.name
             );
             return true;
         }
-        return creatureAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f;
+        return creatureAnimator.GetCurrentAnimatorStateInfo(layerIndex).normalizedTime >= 1f;
     }
 
     [ServerRpc(RequireOwnership = false)]

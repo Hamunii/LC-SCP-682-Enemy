@@ -32,7 +32,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
     const float defaultBoredOfWanderingFacilityTimer = 120f;
     float boredOfWanderingFacilityTimer = defaultBoredOfWanderingFacilityTimer;
-    bool readyToMakeTransitionFromAmbush = true;
     Vector3 posOnTopOfShip;
     JesterAI? targetJester = null!;
     LineRenderer lineRenderer = null!;
@@ -160,7 +159,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             agent.enabled = false;
             // TODO: Jump animation
             self.gameObject.transform.position = self.posOnTopOfShip;
-            self.readyToMakeTransitionFromAmbush = false;
             yield break;
         }
 
@@ -170,8 +168,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             creatureAnimator.SetBool(Anim.isOnShip, false);
 
             agent.enabled = true;
-
-            self.readyToMakeTransitionFromAmbush = true;
             yield break;
         }
 
@@ -193,7 +189,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             {
                 self.targetPlayer = self.FindNearestPlayer();
                 // TODO: make it better
-                if (self.TargetPlayerWithinRange(15) && self.readyToMakeTransitionFromAmbush)
+                if (self.TargetPlayerWithinRange(15))
                     return true;
                 return false;
             }
@@ -208,7 +204,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             public override bool CanTransitionBeTaken()
             {
                 boredOfAmbushTimer -= Time.deltaTime;
-                if (boredOfAmbushTimer <= 0 && self.readyToMakeTransitionFromAmbush)
+                if (boredOfAmbushTimer <= 0)
                     return true;
                 return false;
             }

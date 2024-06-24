@@ -235,11 +235,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             self.SetDestinationToPosition(facilityEntrance.entrancePoint.position);
         }
 
-        public override IEnumerator OnStateExit()
-        {
-            self.TeleportSelfToOtherEntranceClientRpc(!self.isOutside);
-            yield break;
-        }
+        public override IEnumerator OnStateExit() { yield break; }
 
         public class EnterEntranceTransition : AIStateTransition
         {
@@ -248,11 +244,11 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             public override bool CanTransitionBeTaken()
             {
                 _et ??= RoundManager.FindMainEntranceScript(self.isOutside);
-                if (
-                    Vector3.Distance(_et.entrancePoint.position, self.gameObject.transform.position)
-                    < 3
-                )
+                if (Vector3.Distance(_et.entrancePoint.position, self.gameObject.transform.position) < 3)
+                {
+                    self.TeleportSelfToOtherEntranceClientRpc(!self.isOutside);
                     return true;
+                }
                 return false;
             }
 

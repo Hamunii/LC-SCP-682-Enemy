@@ -1,0 +1,1 @@
+This bundle contains an uncompressed 1 MB video file for the terminal entry spinning animation.

@@ -32,7 +32,7 @@ public class Plugin : BaseUnityPlugin
     {
         Logger = base.Logger;
         var watch = Stopwatch.StartNew();
-        Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} started loading...");
+        Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} {PluginInfo.PLUGIN_VERSION} started loading...");
 
         // If you don't want your mod to use a configuration file, you can remove this line, Configuration.cs, and other references.
         BoundConfig = new PluginConfig(base.Config);
@@ -44,14 +44,17 @@ public class Plugin : BaseUnityPlugin
         // You may want to rename your asset bundle from the AssetBundle Browser in order to avoid an issue with
         // asset bundle identifiers being the same between multiple bundles, allowing the loading of only one bundle from one mod.
         // In that case also remember to change the asset bundle copying code in the csproj.user file.
-        var bundleName = "scp682assets";
-        var assetsDirName = "SCP682Assets";
+        const string mainBundleName = "scp682assets";
+#pragma warning disable CS0219 // Variable is assigned but its value is never used
+        const string videoBundleName = "scp682videobundle";
+#pragma warning restore CS0219 // Variable is assigned but its value is never used
+        const string assetsDirName = "SCP682Assets";
 #if DEBUG
         var assetsDir = Path.Combine(Paths.BepInExRootPath, "scripts", assetsDirName);
 #else
         var assetsDir = Path.Combine(Path.GetDirectoryName(Info.Location), bundleDirName);
 #endif
-        ModAssets = AssetBundle.LoadFromFile(Path.Combine(assetsDir, bundleName));
+        ModAssets = AssetBundle.LoadFromFile(Path.Combine(assetsDir, mainBundleName));
         if (ModAssets is null)
         {
             Logger.LogError($"Failed to load custom assets.");
@@ -60,14 +63,11 @@ public class Plugin : BaseUnityPlugin
 
         SCP682ET = ModAssets.LoadAsset<EnemyType>("SCP682ET");
         var SCP682TN = ModAssets.LoadAsset<TerminalNode>("SCP682TN");
-        // P.Log("File exists? " + File.Exists(Path.Combine(assetsDir, "SCP682Spin.mp4")));
-        // var terminalSpinVid = Resources.Load<VideoClip>(Path.Combine(assetsDir, "SCP682Spin"));
-        // SCP682TN.displayVideo = terminalSpinVid;
-
-        // P.Log("Is video null? " + (terminalSpinVid is null));
-        // P.Log(
-        //     $"Loaded video with {terminalSpinVid.frameCount} frames and {terminalSpinVid.frameRate} FPS"
-        // );
+#if !DEBUG // Save reload time by not loading the video
+        var videoAssets = AssetBundle.LoadFromFile(Path.Combine(assetsDir, videoBundleName));
+        var terminalSpinVid = videoAssets.LoadAsset<VideoClip>("SCP682Spin");
+        SCP682TN.displayVideo = terminalSpinVid;
+#endif
 
         AddEnemyScript.SCP682AI(SCP682ET, ModAssets);
 
@@ -100,7 +100,7 @@ public class Plugin : BaseUnityPlugin
         JesterListHook.Init();
 
         watch.Stop();
-        Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} loaded in {watch.ElapsedMilliseconds}ms!");
+        Logger.LogInfo($"{PluginInfo.PLUGIN_GUID} loaded in {watch.ElapsedMilliseconds}ms!");
 
         // InitGenericHooks();
     }

@@ -543,12 +543,21 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     {
         new ModMenu("SCP-682 Debug")
             .RegisterItem(new DebugNewSearchRoutineAction(this))
-            .RegisterItem(mmMenu);
+            .RegisterItem(mmMenu)
+            .RegisterItem(new DebugPrintInfoAction(this));
 
         mmMenu.MenuItems.Add(new DebugOverrideState(this, typeof(WanderToShipState)));
         mmMenu.MenuItems.Add(new DebugOverrideState(this, typeof(OnShipAmbushState)));
         mmMenu.MenuItems.Add(new DebugOverrideState(this, typeof(WanderThroughEntranceState)));
         mmMenu.MenuItems.Add(new DebugOverrideState(this, typeof(AtFacilityWanderingState)));
+    }
+
+    class DebugPrintInfoAction(SCP682AI self) : MMButtonAction("Print Info")
+    {
+        protected override void OnClick()
+        {
+            P.Log($"Current State: {self.ActiveState}");
+        }
     }
 
     class DebugNewSearchRoutineAction(SCP682AI self) : MMButtonAction("New Search Routine")

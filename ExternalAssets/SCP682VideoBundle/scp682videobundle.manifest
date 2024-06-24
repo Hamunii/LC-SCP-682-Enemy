@@ -1,0 +1,20 @@
+ManifestFileVersion: 0
+CRC: 3675024957
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: e9b5febe2037b6fd086b9331da380e44
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: c12678a98877549a3fe7bb52917258ad
+  IncrementalBuildHash:
+    serializedVersion: 2
+    Hash: e9b5febe2037b6fd086b9331da380e44
+HashAppended: 0
+ClassTypes:
+- Class: 329
+  Script: {instanceID: 0}
+SerializeReferenceClassIdentifiers: []
+Assets:
+- Assets/SCP682Spin.mp4
+Dependencies: []

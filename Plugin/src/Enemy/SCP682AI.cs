@@ -133,9 +133,10 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         public override List<AIStateTransition> Transitions { get; set; } =
             [new OnShipAmbushState.ArrivedAtShipTransition(), new InvestigatePlayerTransition()];
 
-        public override void OnStateEntered()
+        public override IEnumerator OnStateEntered()
         {
             creatureAnimator.SetBool(Anim.isMoving, true);
+            yield break;
         }
 
         public override void AIInterval()
@@ -143,7 +144,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             self.SetDestinationToPosition(self.posOnTopOfShip);
         }
 
-        public override void OnStateExit() { }
+        public override IEnumerator OnStateExit() { yield break; }
     }
 
     private class OnShipAmbushState : AIBehaviorState
@@ -151,7 +152,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         public override List<AIStateTransition> Transitions { get; set; } =
             [new AmbushPlayerFromShipTransition(), new BoredOfAmbushTransition()];
 
-        public override void OnStateEntered()
+        public override IEnumerator OnStateEntered()
         {
             creatureAnimator.SetBool(Anim.isMoving, false);
             creatureAnimator.SetBool(Anim.isOnShip, true);
@@ -160,9 +161,10 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             // TODO: Jump animation
             self.gameObject.transform.position = self.posOnTopOfShip;
             self.readyToMakeTransitionFromAmbush = false;
+            yield break;
         }
 
-        public override void OnStateExit()
+        public override IEnumerator OnStateExit()
         {
             creatureAnimator.SetBool(Anim.isMoving, true);
             creatureAnimator.SetBool(Anim.isOnShip, false);
@@ -170,6 +172,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             agent.enabled = true;
 
             self.readyToMakeTransitionFromAmbush = true;
+            yield break;
         }
 
         internal class ArrivedAtShipTransition : AIStateTransition
@@ -221,12 +224,13 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             [new InvestigatePlayerTransition()];
         EntranceTeleport facilityEntrance = null!;
 
-        public override void OnStateEntered()
+        public override IEnumerator OnStateEntered()
         {
             creatureAnimator.SetBool(Anim.isMoving, true);
 
             facilityEntrance = RoundManager.FindMainEntranceScript(self.isOutside);
             Transitions.Add(new EnterEntranceTransition());
+            yield break;
         }
 
         public override void AIInterval()
@@ -235,9 +239,10 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             self.SetDestinationToPosition(facilityEntrance.entrancePoint.position);
         }
 
-        public override void OnStateExit()
+        public override IEnumerator OnStateExit()
         {
             self.TeleportSelfToOtherEntranceClientRpc(!self.isOutside);
+            yield break;
         }
 
         public class EnterEntranceTransition : AIStateTransition
@@ -277,16 +282,18 @@ class SCP682AI : ModEnemyAI<SCP682AI>
                 new InvestigatePlayerTransition()
             ];
 
-        public override void OnStateEntered()
+        public override IEnumerator OnStateEntered()
         {
             creatureAnimator.SetBool(Anim.isMoving, true);
 
             self.StartSearch(self.transform.position);
+            yield break;
         }
 
-        public override void OnStateExit()
+        public override IEnumerator OnStateExit()
         {
             self.StopSearch(self.currentSearch);
+            yield break;
         }
 
         private class BoredOfFacilityTransition : AIStateTransition
@@ -327,10 +334,11 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         public override List<AIStateTransition> Transitions { get; set; } =
             [new NoisyJesterEatenTransition()];
 
-        public override void OnStateEntered()
+        public override IEnumerator OnStateEntered()
         {
             creatureAnimator.SetBool(Anim.isMoving, true);
             self.SetAgentSpeed(Speed.Running);
+            yield break;
         }
 
         public override void AIInterval()
@@ -346,9 +354,10 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             self.SetDestinationToPosition(jesterPos);
         }
 
-        public override void OnStateExit()
+        public override IEnumerator OnStateExit()
         {
             self.SetAgentSpeed(Speed.Walking);
+            yield break;
         }
 
         internal class FindNoisyJesterTransition : AIStateTransition
@@ -396,9 +405,10 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         public override List<AIStateTransition> Transitions { get; set; } =
             [new AttackPlayerTransition(), new LostPlayerTransition()];
 
-        public override void OnStateEntered()
+        public override IEnumerator OnStateEntered()
         {
             creatureAnimator.SetBool(Anim.isMoving, true);
+            yield break;
         }
 
         public override void AIInterval()
@@ -407,7 +417,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             self.SetDestinationToPosition(self.targetPlayer.transform.position);
         }
 
-        public override void OnStateExit() { }
+        public override IEnumerator OnStateExit() { yield break; }
     }
 
     private class AttackPlayerState : AIBehaviorState
@@ -418,10 +428,11 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         const float defaultCooldown = 0.5f;
         float attackCooldown = defaultCooldown;
 
-        public override void OnStateEntered()
+        public override IEnumerator OnStateEntered()
         {
             creatureAnimator.SetBool(Anim.isMoving, true);
             self.SetAgentSpeed(Speed.Running);
+            yield break;
         }
 
         public override void UpdateBehavior() => attackCooldown -= Time.deltaTime;
@@ -432,9 +443,10 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             self.SetDestinationToPosition(self.targetPlayer.transform.position);
         }
 
-        public override void OnStateExit()
+        public override IEnumerator OnStateExit()
         {
             self.SetAgentSpeed(Speed.Walking);
+            yield break;
         }
 
         internal void AttackCollideWithPlayer(Collider other)

@@ -6,6 +6,7 @@
 */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using GameNetcodeStuff;
 using Unity.Netcode;
@@ -24,7 +25,7 @@ public partial class ModEnemyAI<T> : EnemyAI
         public NavMeshAgent agent = null!;
         public System.Random enemyRandom = null!;
         public Animator creatureAnimator = null!;
-        public abstract void OnStateEntered();
+        public abstract IEnumerator OnStateEntered();
 
         /// <summary>Runs every frame.</summary>
         public virtual void UpdateBehavior() { }
@@ -32,7 +33,7 @@ public partial class ModEnemyAI<T> : EnemyAI
         /// <summary>Runs at <c>DoAIInterval</c>, which the interval depends on EnemyAI's <c>AIIntervalTime</c>.</summary>
         public virtual void AIInterval() { }
 
-        public abstract void OnStateExit();
+        public abstract IEnumerator OnStateExit();
 
         /// <summary>All the transitions that can be made from current State, excluding global transitions.</summary>
         public abstract List<AIStateTransition> Transitions { get; set; }
@@ -90,6 +91,7 @@ public partial class ModEnemyAI<T> : EnemyAI
                 SetTargetServerRpc(-1);
         }
     }
+    private Coroutine? transitionCoroutineInProgress = null;
 
     public override string __getTypeName()
     {
@@ -114,7 +116,7 @@ public partial class ModEnemyAI<T> : EnemyAI
         }
         //Fix for the animator sometimes deciding to just not work
         creatureAnimator.Rebind();
-        InitializeState(ActiveState, self, enemyRandom);
+        transitionCoroutineInProgress = StartCoroutine(InitializeState(ActiveState, self, enemyRandom));
     }
 
     public override void Update()
@@ -125,8 +127,8 @@ public partial class ModEnemyAI<T> : EnemyAI
         }
         base.Update();
         AITimer += Time.deltaTime;
-        //don't run enemy ai if they're dead
 
+        if (transitionCoroutineInProgress is not null) return;
         bool RunUpdate = true;
 
         //Reset transition list to match all those in our current state, along with any global transitions that exist regardless of state (stunned, mostly)
@@ -155,16 +157,18 @@ public partial class ModEnemyAI<T> : EnemyAI
     public override void DoAIInterval()
     {
         base.DoAIInterval();
+        if (transitionCoroutineInProgress is not null) return;
         ActiveState.AIInterval();
     }
 
-    private void InitializeState(AIBehaviorState ActiveState, T self, System.Random enemyRandom)
+    private IEnumerator InitializeState(AIBehaviorState ActiveState, T self, System.Random enemyRandom)
     {
         ActiveState.self = self;
         ActiveState.agent = self.agent;
         ActiveState.enemyRandom = enemyRandom;
         ActiveState.creatureAnimator = self.creatureAnimator;
-        ActiveState.OnStateEntered();
+        yield return StartCoroutine(ActiveState.OnStateEntered());
+        transitionCoroutineInProgress = null;
     }
 
     private void InitializeStateTransition(AIStateTransition transition, T self)
@@ -229,9 +233,9 @@ public partial class ModEnemyAI<T> : EnemyAI
 
     [ClientRpc]
     internal void TransitionStateClientRpc(string stateName, int randomSeed) =>
-        TransitionState(stateName, randomSeed);
+        transitionCoroutineInProgress = StartCoroutine(TransitionState(stateName, randomSeed));
 
-    internal void TransitionState(string stateName, int randomSeed)
+    internal IEnumerator TransitionState(string stateName, int randomSeed)
     {
         //Jesus fuck I can't believe I have to do this
         Type type = Type.GetType(stateName);
@@ -239,17 +243,17 @@ public partial class ModEnemyAI<T> : EnemyAI
         InitializeStateTransition(localNextTransition, self);
 
         if (localNextTransition.NextState().GetType() == ActiveState.GetType())
-            return;
+            yield break;
 
         //LogMessage(stateName);
         DebugLog($"{__getTypeName()} #{self.thisEnemyIndex} is Exiting:  {ActiveState}");
-        ActiveState.OnStateExit();
+        yield return StartCoroutine(ActiveState.OnStateExit());
         DebugLog(
             $"{__getTypeName()} #{self.thisEnemyIndex} is Transitioning via:  {localNextTransition}"
         );
         ActiveState = localNextTransition.NextState();
         DebugLog($"{__getTypeName()} #{self.thisEnemyIndex} is Entering:  {ActiveState}");
-        InitializeState(ActiveState, self, new(randomSeed));
+        StartCoroutine(InitializeState(ActiveState, self, new(randomSeed)));
 
         //Debug Prints
         StartOfRound.Instance.ClientPlayerList.TryGetValue(

@@ -48,12 +48,9 @@ public partial class ModEnemyAI<T> : EnemyAI
     }
 
     public PlayerControllerB? IsAnyPlayerWithinLOS(
-        int range = 45,
-        float width = 60,
-        int proximityAwareness = -1,
-        bool DoLinecast = true,
-        bool PrintResults = false,
-        bool SortByDistance = false
+        int range = 45, float width = 60,
+        int proximityAwareness = -1, bool DoLinecast = true,
+        bool PrintResults = false, bool SortByDistance = false
     )
     {
         float ShortestDistance = range;
@@ -65,16 +62,7 @@ public partial class ModEnemyAI<T> : EnemyAI
             {
                 continue;
             }
-            if (
-                IsTargetPlayerWithinLOS(
-                    Player,
-                    range,
-                    width,
-                    proximityAwareness,
-                    DoLinecast,
-                    PrintResults
-                )
-            )
+            if (IsTargetPlayerWithinLOS(Player, range, width, proximityAwareness, DoLinecast, PrintResults))
             {
                 if (!SortByDistance)
                 {
@@ -92,18 +80,11 @@ public partial class ModEnemyAI<T> : EnemyAI
     }
 
     public bool IsTargetPlayerWithinLOS(
-        PlayerControllerB player,
-        int range = 45,
-        float width = 60,
-        int proximityAwareness = -1,
-        bool DoLinecast = true,
-        bool PrintResults = false
+        PlayerControllerB player, int range = 45, float width = 60,
+        int proximityAwareness = -1, bool DoLinecast = true, bool PrintResults = false
     )
     {
-        float DistanceToTarget = Vector3.Distance(
-            transform.position,
-            player.gameplayCamera.transform.position
-        );
+        float DistanceToTarget = Vector3.Distance(transform.position, player.gameplayCamera.transform.position);
         bool TargetInDistance = DistanceToTarget < range;
         float AngleToTarget = Vector3.Angle(
             eye.transform.forward,
@@ -111,13 +92,9 @@ public partial class ModEnemyAI<T> : EnemyAI
         );
         bool TargetWithinViewCone = AngleToTarget < width;
         bool TargetWithinProxAwareness = DistanceToTarget < proximityAwareness;
-        bool LOSBlocked =
-            DoLinecast
-            && Physics.Linecast(
-                eye.transform.position,
-                player.transform.position,
-                StartOfRound.Instance.collidersRoomDefaultAndFoliage,
-                QueryTriggerInteraction.Ignore
+        bool LOSBlocked = DoLinecast && Physics.Linecast(
+                eye.transform.position, player.transform.position,
+                StartOfRound.Instance.collidersRoomDefaultAndFoliage, QueryTriggerInteraction.Ignore
             );
         if (PrintResults)
         {
@@ -132,27 +109,21 @@ public partial class ModEnemyAI<T> : EnemyAI
     }
 
     public bool IsTargetPlayerWithinLOS(
-        int range = 45,
-        float width = 60,
-        int proximityAwareness = -1,
-        bool DoLinecast = true,
-        bool PrintResults = false
+        int range = 45, float width = 60,
+        int proximityAwareness = -1, bool DoLinecast = true, bool PrintResults = false
     )
     {
         if (targetPlayer == null)
         {
             DebugLog(
-                $"{this.__getTypeName()} called Target Player LOS check called with null target player; returning false!"
+                $"{this.__getTypeName()} called Target Player LOS check called with"
+                + " null target player; returning false!"
             );
             return false;
         }
         return IsTargetPlayerWithinLOS(
-            targetPlayer,
-            range,
-            width,
-            proximityAwareness,
-            DoLinecast,
-            PrintResults
+            targetPlayer, range, width,
+            proximityAwareness, DoLinecast, PrintResults
         );
     }
 
@@ -249,9 +220,7 @@ public partial class ModEnemyAI<T> : EnemyAI
     {
         if (targetPlayer == null)
         {
-            P.LogError(
-                $"{this} attempted DistanceFromTargetPlayer with null target; returning -1!"
-            );
+            P.LogError($"{this} attempted DistanceFromTargetPlayer with null target; returning -1!");
             return -1f;
         }
         return DistanceFromPlayer(targetPlayer, IncludeYAxis);
@@ -263,10 +232,7 @@ public partial class ModEnemyAI<T> : EnemyAI
         {
             return Vector3.Distance(player.transform.position, this.transform.position);
         }
-        Vector2 PlayerFlatLocation = new Vector2(
-            player.transform.position.x,
-            player.transform.position.z
-        );
+        Vector2 PlayerFlatLocation = new Vector2(player.transform.position.x, player.transform.position.z);
         Vector2 EnemyFlatLocation = new Vector2(transform.position.x, transform.position.z);
         return Vector2.Distance(PlayerFlatLocation, EnemyFlatLocation);
     }

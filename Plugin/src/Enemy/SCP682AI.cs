@@ -17,13 +17,23 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
     public enum Speed
     {
+        Stopped = 0,
         Walking = 3,
         Running = 7
     }
 
-    public void SetAgentSpeed(Speed speed)
+    public void SetAgentSpeedAndAnimations(Speed speed)
     {
         agent.speed = (int)speed;
+
+        if (speed == Speed.Stopped)
+        {
+            creatureAnimator.SetBool(Anim.isRunning, false);
+            creatureAnimator.SetBool(Anim.isMoving, false);
+            return;
+        }
+
+        creatureAnimator.SetBool(Anim.isMoving, true);
 
         bool newIsRunning = speed == Speed.Running;
         if (creatureAnimator.GetBool(Anim.isRunning) != newIsRunning)
@@ -350,7 +360,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         public override IEnumerator OnStateEntered()
         {
             creatureAnimator.SetBool(Anim.isMoving, true);
-            self.SetAgentSpeed(Speed.Running);
+            self.SetAgentSpeedAndAnimations(Speed.Running);
             yield break;
         }
 
@@ -369,7 +379,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
         public override IEnumerator OnStateExit()
         {
-            self.SetAgentSpeed(Speed.Walking);
+            self.SetAgentSpeedAndAnimations(Speed.Walking);
             yield break;
         }
 
@@ -443,9 +453,16 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
         public override IEnumerator OnStateEntered()
         {
+            // self.SetAgentSpeedAndAnimations(Speed.Stopped); // We need Anim.isRunning to be enabled, but we must not move because of things our Animator does
+            agent.speed = 0;
             creatureAnimator.SetBool(Anim.isMoving, true);
-            self.SetAgentSpeed(Speed.Running);
-            yield break;
+            creatureAnimator.SetBool(Anim.isRunning, true);
+
+            yield return new WaitForSeconds(1);
+            self.creatureSFX.PlayOneShot(SFX.roar.FromRandom(enemyRandom));
+            yield return new WaitForSeconds(2);
+
+            self.SetAgentSpeedAndAnimations(Speed.Running);
         }
 
         public override void UpdateBehavior() => attackCooldown -= Time.deltaTime;
@@ -458,7 +475,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
         public override IEnumerator OnStateExit()
         {
-            self.SetAgentSpeed(Speed.Walking);
+            self.SetAgentSpeedAndAnimations(Speed.Walking);
             yield break;
         }
 
@@ -470,16 +487,23 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             PlayerControllerB? player = self.MeetsStandardPlayerCollisionConditions(other);
             if (player is not null)
             {
-                int damageToDeal;
-                if (player.health > 45) // At min do 15 damage
-                    damageToDeal = player.health + 30; // Set health to 30
-                else
-                    damageToDeal = 15;
-                player.DamagePlayer(damageToDeal);
-                self.creatureAnimator.SetTrigger(Anim.doBite);
-
+                self.StartCoroutine(WaitAndDealDamage(player));
                 attackCooldown = defaultCooldown;
             }
+        }
+        private IEnumerator WaitAndDealDamage(PlayerControllerB player)
+        {
+            self.creatureSFX.PlayOneShot(SFX.bite.FromRandom(enemyRandom));
+            yield return new WaitForSeconds(0.8f);
+            creatureAnimator.SetTrigger(Anim.doBite);
+            yield return new WaitForSeconds(0.2f);
+            int damageToDeal;
+            if (player.health > 45) // At min do 15 damage
+                damageToDeal = player.health + 30; // Set health to 30
+            else
+                damageToDeal = 15;
+            player.DamagePlayer(damageToDeal);
+
         }
     }
 

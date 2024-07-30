@@ -43,5 +43,5 @@ public static class SFX
     public static List<AudioClip> spawn = [];
 
     public static AudioClip FromRandom(this List<AudioClip> clips, System.Random random)
-        => clips[random.Next(clips.Count - 1)];
+        => clips[random.Next(clips.Count)];
 }

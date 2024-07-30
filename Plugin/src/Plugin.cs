@@ -25,7 +25,7 @@ public class Plugin : BaseUnityPlugin
 {
     internal static new ManualLogSource Logger = null!;
     internal static PluginConfig BoundConfig { get; private set; } = null!;
-    public static AssetBundle? ModAssets;
+    public static AssetBundle? modAssets;
     internal static EnemyType SCP682ET = null!;
 
     private void Awake()
@@ -54,22 +54,23 @@ public class Plugin : BaseUnityPlugin
 #else
         var assetsDir = Path.Combine(Path.GetDirectoryName(Info.Location), bundleDirName);
 #endif
-        ModAssets = AssetBundle.LoadFromFile(Path.Combine(assetsDir, mainBundleName));
-        if (ModAssets is null)
+        modAssets = AssetBundle.LoadFromFile(Path.Combine(assetsDir, mainBundleName));
+        if (modAssets is null)
         {
             Logger.LogError($"Failed to load custom assets.");
             return;
         }
 
-        SCP682ET = ModAssets.LoadAsset<EnemyType>("SCP682ET");
-        var SCP682TN = ModAssets.LoadAsset<TerminalNode>("SCP682TN");
+        SFX.InitializeSFX(modAssets);
+        SCP682ET = modAssets.LoadAsset<EnemyType>("SCP682ET");
+        var SCP682TN = modAssets.LoadAsset<TerminalNode>("SCP682TN");
 #if !DEBUG // Save reload time by not loading the video
         var videoAssets = AssetBundle.LoadFromFile(Path.Combine(assetsDir, videoBundleName));
         var terminalSpinVid = videoAssets.LoadAsset<VideoClip>("SCP682Spin");
         SCP682TN.displayVideo = terminalSpinVid;
 #endif
 
-        AddEnemyScript.SCP682AI(SCP682ET, ModAssets);
+        AddEnemyScript.SCP682AI(SCP682ET, modAssets);
 
         // Network Prefabs need to be registered. See https://docs-multiplayer.unity3d.com/netcode/current/basics/object-spawning/
         // LethalLib registers prefabs on GameNetworkManager.Start.
@@ -109,7 +110,7 @@ public class Plugin : BaseUnityPlugin
     private void OnDestroy()
     {
         SCP682ET.enemyPrefab.RemoveComponent<SCP682AI>();
-        ModAssets?.Unload(true);
+        modAssets?.Unload(true);
 
         SCP682AI.SCP682Objects.ForEach(Destroy);
         SCP682AI.SCP682Objects.Clear();

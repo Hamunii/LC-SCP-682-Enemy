@@ -100,13 +100,16 @@ public partial class ModEnemyAI<T> : EnemyAI
 
     public override void Start()
     {
-        base.Start();
-
         //Initializers
         ActiveState = InitialState;
         enemyRandom = new System.Random(StartOfRound.Instance.randomMapSeed + thisEnemyIndex);
 
         MyValidState = enemyType.isOutsideEnemy ? PlayerState.Outside : PlayerState.Inside;
+
+        //Fix for the animator sometimes deciding to just not work
+        creatureAnimator.Rebind();
+
+        base.Start();
 
         //Debug to make sure that the agent is actually on the NavMesh
         if (!agent.isOnNavMesh && base.IsOwner)
@@ -114,8 +117,7 @@ public partial class ModEnemyAI<T> : EnemyAI
             DebugLog("CREATURE " + __getTypeName() + " WAS NOT PLACED ON NAVMESH, DESTROYING...");
             KillEnemyOnOwnerClient();
         }
-        //Fix for the animator sometimes deciding to just not work
-        creatureAnimator.Rebind();
+
         transitionCoroutineInProgress = StartCoroutine(InitializeState(ActiveState, self, enemyRandom));
     }
 

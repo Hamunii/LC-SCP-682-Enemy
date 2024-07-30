@@ -53,6 +53,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     JesterAI? targetJester = null!;
     LineRenderer lineRenderer = null!;
 
+    const float defaultAttackCooldown = 5f;
+    float attackCooldown = defaultAttackCooldown;
+
     static class Anim
     {
         // do: trigger
@@ -109,6 +112,12 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 #endif
     }
 
+    public override void Update()
+    {
+        attackCooldown -= Time.deltaTime;
+        base.Update();
+    }
+
 #if DEBUG
     public override void DoAIInterval()
     {
@@ -120,8 +129,35 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     public override void OnCollideWithPlayer(Collider other)
     {
         base.OnCollideWithPlayer(other);
-        if (ActiveState is AttackPlayerState state)
-            state.AttackCollideWithPlayer(other);
+        if (ActiveState is AttackPlayerState or InvestigatePlayerState)
+            AttackCollideWithPlayer(other);
+    }
+
+    internal void AttackCollideWithPlayer(Collider other)
+    {
+        if (attackCooldown > 0)
+            return;
+
+        PlayerControllerB? player = self.MeetsStandardPlayerCollisionConditions(other);
+        if (player is not null)
+        {
+            self.StartCoroutine(WaitAndDealDamage(player));
+            attackCooldown = defaultAttackCooldown;
+        }
+    }
+
+    private IEnumerator WaitAndDealDamage(PlayerControllerB player)
+    {
+        self.creatureSFX.PlayOneShot(SFX.bite.FromRandom(enemyRandom));
+        yield return new WaitForSeconds(0.8f);
+        creatureAnimator.SetTrigger(Anim.doBite);
+        yield return new WaitForSeconds(0.2f);
+        int damageToDeal;
+        if (player.health > 45) // At min do 15 damage
+            damageToDeal = player.health - 30; // Set health to 30
+        else
+            damageToDeal = 15;
+        player.DamagePlayer(damageToDeal);
     }
 
     public override void HitEnemy(
@@ -448,9 +484,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         public override List<AIStateTransition> Transitions { get; set; } =
             [new LostPlayerTransition()];
 
-        const float defaultCooldown = 0.5f;
-        float attackCooldown = defaultCooldown;
-
         public override IEnumerator OnStateEntered()
         {
             // self.SetAgentSpeedAndAnimations(Speed.Stopped); // We need Anim.isRunning to be enabled, but we must not move because of things our Animator does
@@ -460,12 +493,10 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
             yield return new WaitForSeconds(1);
             self.creatureSFX.PlayOneShot(SFX.roar.FromRandom(enemyRandom));
-            yield return new WaitForSeconds(2);
+            yield return new WaitForSeconds(1.5f);
 
             self.SetAgentSpeedAndAnimations(Speed.Running);
         }
-
-        public override void UpdateBehavior() => attackCooldown -= Time.deltaTime;
 
         public override void AIInterval()
         {
@@ -477,33 +508,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         {
             self.SetAgentSpeedAndAnimations(Speed.Walking);
             yield break;
-        }
-
-        internal void AttackCollideWithPlayer(Collider other)
-        {
-            if (attackCooldown > 0)
-                return;
-
-            PlayerControllerB? player = self.MeetsStandardPlayerCollisionConditions(other);
-            if (player is not null)
-            {
-                self.StartCoroutine(WaitAndDealDamage(player));
-                attackCooldown = defaultCooldown;
-            }
-        }
-        private IEnumerator WaitAndDealDamage(PlayerControllerB player)
-        {
-            self.creatureSFX.PlayOneShot(SFX.bite.FromRandom(enemyRandom));
-            yield return new WaitForSeconds(0.8f);
-            creatureAnimator.SetTrigger(Anim.doBite);
-            yield return new WaitForSeconds(0.2f);
-            int damageToDeal;
-            if (player.health > 45) // At min do 15 damage
-                damageToDeal = player.health - 30; // Set health to 30
-            else
-                damageToDeal = 15;
-            player.DamagePlayer(damageToDeal);
-
         }
     }
 
@@ -517,7 +521,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             if (self.ActiveState is AttackPlayerState)
                 return false;
 
-            if (self.CheckLineOfSightForPlayer())
+            if (self.CheckLineOfSightForPlayer(45, 60, 6))
                 return true;
             return false;
         }
@@ -547,7 +551,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
         public override bool CanTransitionBeTaken()
         {
-            var playerInSight = self.CheckLineOfSightForPlayer();
+            var playerInSight = self.CheckLineOfSightForPlayer(45, 20, 6);
             if (playerInSight is not null)
             {
                 playerLostTimer = defaultPlayerLostTimer;

@@ -541,10 +541,11 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         }
     }
 
-    MMButtonMenuInstantiable mmMenu = new("Override State >");
 
     public void InitDebug()
     {
+        MMButtonMenuInstantiable mmMenu = new("Override State >");
+
         new ModMenu("SCP-682 Debug")
             .RegisterItem(new DebugNewSearchRoutineAction(this))
             .RegisterItem(mmMenu)

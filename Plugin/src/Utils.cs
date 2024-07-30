@@ -3,7 +3,7 @@ namespace SCP682;
 /// <summary>
 /// The Plugin's logging class.
 /// </summary>
-static class P
+static class PLog
 {
     internal static void Log(object data) => Plugin.Logger.LogInfo(data);
 

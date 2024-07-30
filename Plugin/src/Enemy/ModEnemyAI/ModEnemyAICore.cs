@@ -182,7 +182,7 @@ public partial class ModEnemyAI<T> : EnemyAI
     internal void DebugLog(object data)
     {
         if (PrintDebugs)
-            P.Log(data);
+            PLog.Log(data);
     }
 
     internal bool AnimationIsFinished(string AnimName, int layerIndex)

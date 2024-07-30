@@ -162,7 +162,7 @@ public partial class ModEnemyAI<T> : EnemyAI
     {
         if (targetPlayer == null)
         {
-            P.LogError("Player Reach Test has no target player or passed in argument!");
+            PLog.LogError("Player Reach Test has no target player or passed in argument!");
             return false;
         }
         return IsPlayerReachable(targetPlayer);
@@ -193,7 +193,7 @@ public partial class ModEnemyAI<T> : EnemyAI
     {
         if (playerToCheck is null)
         {
-            P.LogError("PlayerNearShip check has no target player or passed in argument!");
+            PLog.LogError("PlayerNearShip check has no target player or passed in argument!");
             return -1;
         }
         float DistanceFromShip = Vector3.Distance(
@@ -220,7 +220,7 @@ public partial class ModEnemyAI<T> : EnemyAI
     {
         if (targetPlayer == null)
         {
-            P.LogError($"{this} attempted DistanceFromTargetPlayer with null target; returning -1!");
+            PLog.LogError($"{this} attempted DistanceFromTargetPlayer with null target; returning -1!");
             return -1f;
         }
         return DistanceFromPlayer(targetPlayer, IncludeYAxis);

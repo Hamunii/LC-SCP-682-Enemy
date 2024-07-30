@@ -27,7 +27,14 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
         bool newIsRunning = speed == Speed.Running;
         if (creatureAnimator.GetBool(Anim.isRunning) != newIsRunning)
+        {
             creatureAnimator.SetBool(Anim.isRunning, newIsRunning);
+
+            if (speed == Speed.Walking)
+                creatureSFX.clip = SFX.walk.FromRandom(enemyRandom);
+            else
+                creatureSFX.clip = SFX.run.FromRandom(enemyRandom);
+        }
     }
 
     const float defaultBoredOfWanderingFacilityTimer = 120f;
@@ -77,10 +84,19 @@ class SCP682AI : ModEnemyAI<SCP682AI>
                 .isInsideFactory;
             MyValidState = GetPlayerState(GameNetworkManager.Instance.localPlayerController);
         }
+
+        // creatureSFX.clip = SFX.walk.FromRandom(enemyRandom);
+        // creatureSFX.loop = true;
+        // creatureSFX.Play();
         // agent.radius = 0.5f;
         base.Start();
 
-        InitDebug();
+#if DEBUG
+        if (ModMenuAPICompatibility.Enabled)
+            ModMenuAPICompatibility.InitDebug(this);
+        else
+            PLog.LogWarning("Hamunii.ModMenuAPI not installed, debug UI can't be shown!");
+#endif
     }
 
 #if DEBUG
@@ -108,6 +124,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         base.HitEnemy(force, playerWhoHit, playHitSFX, hitID);
         if (isEnemyDead)
             return;
+
+        if (enemyHP > 0)
+            creatureSFX.PlayOneShot(SFX.hit.FromRandom(enemyRandom));
 
         enemyHP -= force;
         if (enemyHP <= 0 && !isEnemyDead)
@@ -540,45 +559,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             line.SetPosition(i, agent.path.corners[i]); //go through each corner and set that to the line renderer's position
         }
     }
-
-
-    public void InitDebug()
-    {
-        MMButtonMenuInstantiable mmMenu = new("Override State >");
-
-        new ModMenu("SCP-682 Debug")
-            .RegisterItem(new DebugNewSearchRoutineAction(this))
-            .RegisterItem(mmMenu)
-            .RegisterItem(new DebugPrintInfoAction(this));
-
-        mmMenu.MenuItems.Add(new DebugOverrideState(this, typeof(WanderToShipState)));
-        mmMenu.MenuItems.Add(new DebugOverrideState(this, typeof(OnShipAmbushState)));
-        mmMenu.MenuItems.Add(new DebugOverrideState(this, typeof(WanderThroughEntranceState)));
-        mmMenu.MenuItems.Add(new DebugOverrideState(this, typeof(AtFacilityWanderingState)));
-    }
-
-    class DebugPrintInfoAction(SCP682AI self) : MMButtonAction("Print Info")
-    {
-        protected override void OnClick()
-        {
-            P.Log($"Current State: {self.ActiveState}");
-        }
-    }
-
-    class DebugNewSearchRoutineAction(SCP682AI self) : MMButtonAction("New Search Routine")
-    {
-        protected override void OnClick() => self.StartSearch(self.transform.position);
-    }
-
-    class DebugOverrideState(SCP682AI self, Type state) : MMButtonAction($"{state.Name}")
-    {
-        protected override void OnClick()
-        {
-            var stateInstance = (AIBehaviorState)Activator.CreateInstance(state);
-            self.OverrideState(stateInstance);
-        }
-    }
-
 #endif
     #endregion
 }

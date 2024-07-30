@@ -125,7 +125,16 @@ public class Plugin : BaseUnityPlugin
     private static void InitializeNetworkBehaviours()
     {
         // See https://github.com/EvaisaDev/UnityNetcodePatcher?tab=readme-ov-file#preparing-mods-for-patching
-        var types = Assembly.GetExecutingAssembly().GetTypes();
+
+        Type[] types;
+        try
+        {
+			types = Assembly.GetExecutingAssembly().GetTypes();
+		}
+        catch(ReflectionTypeLoadException ex)
+        {
+			types = ex.Types.Where(t => t != null).ToArray();
+		}
         foreach (var type in types)
         {
             var methods = type.GetMethods(

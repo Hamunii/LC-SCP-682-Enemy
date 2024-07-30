@@ -499,7 +499,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             yield return new WaitForSeconds(0.2f);
             int damageToDeal;
             if (player.health > 45) // At min do 15 damage
-                damageToDeal = player.health + 30; // Set health to 30
+                damageToDeal = player.health - 30; // Set health to 30
             else
                 damageToDeal = 15;
             player.DamagePlayer(damageToDeal);

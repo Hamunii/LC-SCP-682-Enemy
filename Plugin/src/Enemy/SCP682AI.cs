@@ -251,7 +251,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         public override void AIInterval()
         {
             // TODO: More interesting pathing
-            self.SetDestinationToPosition(facilityEntrance.entrancePoint.position);
+            if (!self.SetDestinationToPosition(facilityEntrance.entrancePoint.position, true)) // when checkForPath is true, pathfinding is a little better (can path to the half-obstructed door in test level)
+                PLog.LogWarning("Facility door is unreachable!");
+            
         }
 
         public override IEnumerator OnStateExit() { yield break; }

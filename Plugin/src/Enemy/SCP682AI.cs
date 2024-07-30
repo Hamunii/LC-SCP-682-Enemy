@@ -104,6 +104,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         // agent.radius = 0.5f;
         base.Start();
 
+        creatureSFX.PlayOneShot(SFX.spawn.FromRandom(enemyRandom));
+
 #if DEBUG
         if (ModMenuAPICompatibility.Enabled)
             ModMenuAPICompatibility.InitDebug(this);

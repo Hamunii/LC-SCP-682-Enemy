@@ -5,17 +5,12 @@ using System.Linq;
 using System.Reflection;
 using BepInEx;
 using BepInEx.Logging;
-using HarmonyLib;
 using LethalLib.Modules;
-using MonoMod.Cil;
-using MonoMod.RuntimeDetour;
 using MonoMod.RuntimeDetour.HookGen;
 using SCP682.Configuration;
 using SCP682.Hooks;
 using SCP682.SCPEnemy;
 using UnityEngine;
-using UnityEngine.Networking;
-using UnityEngine.Video;
 
 namespace SCP682;
 
@@ -102,8 +97,6 @@ public class Plugin : BaseUnityPlugin
 
         watch.Stop();
         Logger.LogInfo($"{PluginInfo.PLUGIN_GUID} loaded in {watch.ElapsedMilliseconds}ms!");
-
-        // InitGenericHooks();
     }
 
     // We should clean up our resources when reloading the plugin.
@@ -117,7 +110,8 @@ public class Plugin : BaseUnityPlugin
 
         HookEndpointManager.RemoveAllOwnedBy(Assembly.GetExecutingAssembly());
 #if DEBUG
-        ModMenuAPI.ModMenuItems.ModMenu.RemoveAllOwnedBy(Assembly.GetExecutingAssembly());
+        if (ModMenuAPICompatibility.Enabled)
+            ModMenuAPICompatibility.ClearMenus();
 #endif
         Logger.LogInfo("Cleaned all resources!");
     }

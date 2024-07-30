@@ -1,4 +1,5 @@
-using System;
+#if DEBUG
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using ModMenuAPI.ModMenuItems;
 using SCP682;
@@ -24,6 +25,10 @@ static class ModMenuAPICompatibility
         mmMenu.MenuItems.Add(new DebugOverrideState(instance, "AtFacilityWanderingState"));
     }
 
+    [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+    public static void ClearMenus() =>
+        ModMenu.RemoveAllOwnedBy(Assembly.GetExecutingAssembly());
+
     class DebugPrintInfoAction(SCP682AI self) : MMButtonAction("Print Info")
     {
         protected override void OnClick()
@@ -46,3 +51,4 @@ static class ModMenuAPICompatibility
         }
     }
 }
+#endif

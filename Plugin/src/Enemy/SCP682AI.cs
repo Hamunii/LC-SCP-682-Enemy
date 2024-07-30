@@ -1,10 +1,7 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using GameNetcodeStuff;
-using ModMenuAPI.ModMenuItems;
 using SCP682.Hooks;
-using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
 

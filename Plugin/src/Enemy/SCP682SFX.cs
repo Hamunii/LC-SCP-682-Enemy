@@ -23,6 +23,7 @@ public static class SFX
                 case "jumpAttack": jumpAttack.Add(clip); break;
                 case "swimDown": swimDown.Add(clip); break;
                 case "wakeUp": wakeUp.Add(clip); break;
+                case "spawn": spawn.Add(clip); break;
                 default: Plugin.Logger.LogError($"AudioClip with name '{clip.name}' was not identified!"); break;
             }
         }
@@ -39,4 +40,8 @@ public static class SFX
     public static List<AudioClip> jumpAttack = [];
     public static List<AudioClip> swimDown = [];
     public static List<AudioClip> wakeUp = [];
+    public static List<AudioClip> spawn = [];
+
+    public static AudioClip FromRandom(this List<AudioClip> clips, System.Random random)
+        => clips[random.Next(clips.Count - 1)];
 }

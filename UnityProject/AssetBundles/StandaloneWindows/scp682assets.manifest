@@ -1,15 +1,15 @@
 ManifestFileVersion: 0
-CRC: 3878112896
+CRC: 242486961
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 8f9f9254e5e4e6bfb056efdac86ed23a
+    Hash: d2e861926c503fc7f5ece78eaa1c68d4
   TypeTreeHash:
     serializedVersion: 2
-    Hash: 6dd9f41828d3c2f9fa8080a0d77bc99a
+    Hash: a0880f8f886394820057942d28a792cb
   IncrementalBuildHash:
     serializedVersion: 2
-    Hash: 8f9f9254e5e4e6bfb056efdac86ed23a
+    Hash: d2e861926c503fc7f5ece78eaa1c68d4
 HashAppended: 0
 ClassTypes:
 - Class: 1
@@ -36,8 +36,6 @@ ClassTypes:
   Script: {instanceID: 0}
 - Class: 82
   Script: {instanceID: 0}
-- Class: 83
-  Script: {instanceID: 0}
 - Class: 91
   Script: {instanceID: 0}
 - Class: 95
@@ -60,14 +58,11 @@ ClassTypes:
   Script: {instanceID: 0}
 - Class: 195
   Script: {instanceID: 0}
-- Class: 329
-  Script: {instanceID: 0}
 SerializeReferenceClassIdentifiers:
 - AssemblyName: Assembly-CSharp
   ClassName: NavSizeLimit
 Assets:
 - Assets/ModAssets/SCP682/SCP682ET.asset
-- Assets/ModAssets/SCP682/Audio/SkibidiDeath.mp3
 - Assets/ModAssets/SCP682/SCP682Animator.controller
 - Assets/ModAssets/SCP682/Bestiary/SCP682TN.asset
 Dependencies: []

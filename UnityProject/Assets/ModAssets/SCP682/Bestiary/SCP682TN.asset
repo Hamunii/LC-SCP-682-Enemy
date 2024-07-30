@@ -12,13 +12,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e80ae96b3eb9177eea5c8f9dadbcda1, type: 3}
   m_Name: SCP682TN
   m_EditorClassIdentifier: 
-  displayText: 'SCP-682
+  displayText: 'SCP-682/Hard to destroy reptile
 
 
-    Sigurd''s danger level: 90%
+    Sigurd''s danger level: Run
 
 
-    This is a placeholder.'
+    Im
+    not internally sure what this thing is, it looks like some sort of reptile but
+    it also seems to have fur.
+
+    for some it has seems as if it was held in the
+    facility but when we took the apparatus away it got let loose, it hunted us from
+    the inside and didn''t have any mercy towards us, it even talked like a human,
+    when we got out somehow this thing enlarged, as if it was adapting, some of my
+    foolish crewmates did get some good hits in on it, and it fell, but after a little
+    bit of time, it woke back up even angrier, at some point when we where in the
+    ship it tried to wait for us to get out, no idea what it is planing, but it is
+    very intelligent but also very fierce, If you see this thing i would recommend
+    just flying away. -Sigurd'
   terminalEvent: 
   clearPreviousText: 1
   maxCharactersToType: 35

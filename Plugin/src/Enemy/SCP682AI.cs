@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using GameNetcodeStuff;
@@ -44,6 +45,20 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         }
     }
 
+    internal IEnumerator RoarAndRunCoroutine()
+    {
+        // self.SetAgentSpeedAndAnimations(Speed.Stopped); // We need Anim.isRunning to be enabled, but we must not move because of things our Animator does
+        agent.speed = 0;
+        creatureAnimator.SetBool(Anim.isMoving, true);
+        creatureAnimator.SetBool(Anim.isRunning, true);
+
+        yield return new WaitForSeconds(1);
+        creatureSFX.PlayOneShot(SFX.roar.FromRandom(enemyRandom));
+        yield return new WaitForSeconds(1.5f);
+
+        SetAgentSpeedAndAnimations(Speed.Running);
+    }
+
     const float defaultBoredOfWanderingFacilityTimer = 120f;
     float boredOfWanderingFacilityTimer = defaultBoredOfWanderingFacilityTimer;
     Vector3 posOnTopOfShip;
@@ -74,7 +89,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     public override void Start()
     {
         posOnTopOfShip =
-            StartOfRound.Instance.insideShipPositions[0].position + new Vector3(0, 5, 0); // temporary
+            StartOfRound.Instance.insideShipPositions[0].position + new Vector3(-2, 5, 3); // temporary
         lineRenderer = gameObject.AddComponent<LineRenderer>();
 
         self = this;
@@ -101,7 +116,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         // agent.radius = 0.5f;
         base.Start();
 
-        creatureSFX.PlayOneShot(SFX.spawn.FromRandom(enemyRandom));
+        // creatureSFX.PlayOneShot(SFX.spawn.FromRandom(enemyRandom));
 
 #if DEBUG
         if (ModMenuAPICompatibility.Enabled)
@@ -239,7 +254,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         {
             public override bool CanTransitionBeTaken()
             {
-                if (Vector3.Distance(self.posOnTopOfShip, self.gameObject.transform.position) < 20)
+                if (Vector3.Distance(self.posOnTopOfShip, self.gameObject.transform.position) < 2)
                     return true;
                 return false;
             }
@@ -258,7 +273,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
                 return false;
             }
 
-            public override AIBehaviorState NextState() => new AttackPlayerState();
+            public override AIBehaviorState NextState() => new FromAmbushJumpPlayerState();
         }
 
         private class BoredOfAmbushTransition : AIStateTransition
@@ -274,6 +289,60 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             }
 
             public override AIBehaviorState NextState() => new WanderThroughEntranceState();
+        }
+    }
+
+    private class FromAmbushJumpPlayerState : AIBehaviorState
+    {
+        public override List<AIStateTransition> Transitions { get; set; } =
+            [new LostPlayerTransition()];
+
+        public override IEnumerator OnStateEntered()
+        {
+            // TODO: Implement jump animation
+            yield return new NotImplementedException();
+            self.StartCoroutine(self.RoarAndRunCoroutine());
+            yield break;
+        }
+
+        public override void AIInterval()
+        {
+            self.targetPlayer = self.FindNearestPlayer();
+            self.SetDestinationToPosition(self.targetPlayer.transform.position);
+            // TODO: if touched player, go into new DragPlayerState();
+        }
+
+        public override IEnumerator OnStateExit()
+        {
+            self.SetAgentSpeedAndAnimations(Speed.Walking);
+            yield break;
+        }
+    }
+
+    private class DragPlayerState : AIBehaviorState
+    {
+        public override List<AIStateTransition> Transitions { get; set; } =
+            [new DraggedPlayerEnoughTransition()];
+
+        public override IEnumerator OnStateEntered()
+        {
+            yield break;
+        }
+
+        public override IEnumerator OnStateExit() { yield break; }
+
+        private class DraggedPlayerEnoughTransition : AIStateTransition
+        {
+            float draggedPlayerTimer = 0;
+            public override bool CanTransitionBeTaken()
+            {
+                draggedPlayerTimer += Time.deltaTime;
+                if (draggedPlayerTimer > 10)
+                    return true;
+                return false;
+            }
+
+            public override AIBehaviorState NextState() => new AttackPlayerState();
         }
     }
 
@@ -485,16 +554,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
         public override IEnumerator OnStateEntered()
         {
-            // self.SetAgentSpeedAndAnimations(Speed.Stopped); // We need Anim.isRunning to be enabled, but we must not move because of things our Animator does
-            agent.speed = 0;
-            creatureAnimator.SetBool(Anim.isMoving, true);
-            creatureAnimator.SetBool(Anim.isRunning, true);
-
-            yield return new WaitForSeconds(1);
-            self.creatureSFX.PlayOneShot(SFX.roar.FromRandom(enemyRandom));
-            yield return new WaitForSeconds(1.5f);
-
-            self.SetAgentSpeedAndAnimations(Speed.Running);
+            self.StartCoroutine(self.RoarAndRunCoroutine());
+            yield break;
         }
 
         public override void AIInterval()

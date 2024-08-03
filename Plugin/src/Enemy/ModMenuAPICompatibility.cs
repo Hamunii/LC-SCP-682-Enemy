@@ -19,10 +19,10 @@ static class ModMenuAPICompatibility
             .RegisterItem(mmMenu)
             .RegisterItem(new DebugPrintInfoAction(instance));
 
-        mmMenu.MenuItems.Add(new DebugOverrideState(instance, "WanderToShipState"));
-        mmMenu.MenuItems.Add(new DebugOverrideState(instance, "OnShipAmbushState"));
-        mmMenu.MenuItems.Add(new DebugOverrideState(instance, "WanderThroughEntranceState"));
-        mmMenu.MenuItems.Add(new DebugOverrideState(instance, "AtFacilityWanderingState"));
+        mmMenu.MenuItems.Add(new DebugOverrideState(instance, "SCP682.SCPEnemy.SCP682AI+WanderToShipState"));
+        mmMenu.MenuItems.Add(new DebugOverrideState(instance, "SCP682.SCPEnemy.SCP682AI+OnShipAmbushState"));
+        mmMenu.MenuItems.Add(new DebugOverrideState(instance, "SCP682.SCPEnemy.SCP682AI+WanderThroughEntranceState"));
+        mmMenu.MenuItems.Add(new DebugOverrideState(instance, "SCP682.SCPEnemy.SCP682AI+AtFacilityWanderingState"));
     }
 
     [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]

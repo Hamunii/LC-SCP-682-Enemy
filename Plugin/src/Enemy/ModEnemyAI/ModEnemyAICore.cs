@@ -237,23 +237,36 @@ public partial class ModEnemyAI<T> : EnemyAI
     internal void TransitionStateClientRpc(string stateName, int randomSeed) =>
         transitionCoroutineInProgress = StartCoroutine(TransitionState(stateName, randomSeed));
 
-    internal IEnumerator TransitionState(string stateName, int randomSeed)
+    internal IEnumerator TransitionState(string stateOrTransitionName, int randomSeed)
     {
         //Jesus fuck I can't believe I have to do this
-        Type type = Type.GetType(stateName);
-        AIStateTransition localNextTransition = (AIStateTransition)Activator.CreateInstance(type);
-        InitializeStateTransition(localNextTransition, self);
+        Type type = Type.GetType(stateOrTransitionName);
 
-        if (localNextTransition.NextState().GetType() == ActiveState.GetType())
-            yield break;
+        AIStateTransition? localNextTransition = null;
+        if (type.IsSubclassOf(typeof(AIStateTransition)))
+        {
+            localNextTransition = (AIStateTransition)Activator.CreateInstance(type);
+            InitializeStateTransition(localNextTransition, self);
+
+            if (localNextTransition.NextState().GetType() == ActiveState.GetType())
+                yield break;
+        }
+        else if (!type.IsSubclassOf(typeof(AIBehaviorState)))
+            throw new ArgumentException($"The first argument 'string stateOrTransitionName' {stateOrTransitionName} is neither an {nameof(AIStateTransition)} or an {nameof(AIBehaviorState)}!");
 
         //LogMessage(stateName);
         DebugLog($"{__getTypeName()} #{self.thisEnemyIndex} is Exiting:  {ActiveState}");
         yield return StartCoroutine(ActiveState.OnStateExit());
-        DebugLog(
-            $"{__getTypeName()} #{self.thisEnemyIndex} is Transitioning via:  {localNextTransition}"
-        );
-        ActiveState = localNextTransition.NextState();
+        if (localNextTransition is not null)
+        {
+            DebugLog($"{__getTypeName()} #{self.thisEnemyIndex} is Transitioning via:  {localNextTransition}");
+            ActiveState = localNextTransition.NextState();
+        }
+        else
+        {
+            DebugLog($"{__getTypeName()} #{self.thisEnemyIndex} is Transitioning via: State Override");
+            ActiveState = (AIBehaviorState)Activator.CreateInstance(type);
+        }
         DebugLog($"{__getTypeName()} #{self.thisEnemyIndex} is Entering:  {ActiveState}");
         StartCoroutine(InitializeState(ActiveState, self, new(randomSeed)));
 

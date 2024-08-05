@@ -49,6 +49,7 @@ public partial class ModEnemyAI<T> : EnemyAI
         public Animator creatureAnimator = null!;
         public abstract bool CanTransitionBeTaken();
         public abstract AIBehaviorState NextState();
+        public virtual void OnCollideWithPlayer(Collider other) { }
     }
 
     public enum PlayerState
@@ -169,6 +170,11 @@ public partial class ModEnemyAI<T> : EnemyAI
     {
         base.OnCollideWithPlayer(other);
         ActiveState.OnCollideWithPlayer(other);
+        foreach (AIStateTransition TransitionToCheck in AllTransitions)
+        {
+            InitializeStateTransition(TransitionToCheck, self);
+            TransitionToCheck.OnCollideWithPlayer(other);
+        }
     }
 
     private IEnumerator InitializeState(AIBehaviorState ActiveState, T self, System.Random enemyRandom)
@@ -183,6 +189,10 @@ public partial class ModEnemyAI<T> : EnemyAI
 
     private void InitializeStateTransition(AIStateTransition transition, T self)
     {
+        // We can assume everything is initialized if this is
+        if (transition.self is not null)
+            return;
+
         transition.self = self;
         transition.agent = self.agent;
         transition.enemyRandom = self.enemyRandom;

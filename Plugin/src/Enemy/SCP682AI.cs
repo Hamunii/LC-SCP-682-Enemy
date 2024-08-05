@@ -146,11 +146,11 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             return;
 
         PlayerControllerB? player = self.MeetsStandardPlayerCollisionConditions(other);
-        if (player is not null)
-        {
-            self.StartCoroutine(WaitAndDealDamage(player));
-            attackCooldown = defaultAttackCooldown;
-        }
+        if (player is null)
+            return;
+
+        self.StartCoroutine(WaitAndDealDamage(player));
+        attackCooldown = defaultAttackCooldown;
     }
 
     private IEnumerator WaitAndDealDamage(PlayerControllerB player)
@@ -288,7 +288,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     private class FromAmbushJumpPlayerState : AIBehaviorState
     {
         public override List<AIStateTransition> Transitions { get; set; } =
-            [new LostPlayerTransition()];
+            [new TouchPlayerAndStartDraggingTransition(), new LostPlayerTransition()];
 
         public override IEnumerator OnStateEntered()
         {
@@ -302,13 +302,30 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         {
             self.targetPlayer = self.FindNearestPlayer();
             self.SetDestinationToPosition(self.targetPlayer.transform.position);
-            // TODO: if touched player, go into new DragPlayerState();
         }
 
         public override IEnumerator OnStateExit()
         {
             self.SetAgentSpeedAndAnimations(Speed.Walking);
             yield break;
+        }
+
+        private class TouchPlayerAndStartDraggingTransition : AIStateTransition
+        {
+            bool _touchingPlayer = false;
+
+            public override bool CanTransitionBeTaken() => _touchingPlayer;
+            public override AIBehaviorState NextState() => new DragPlayerState();
+
+            public override void OnCollideWithPlayer(Collider other)
+            {
+                base.OnCollideWithPlayer(other);
+                var player = self.MeetsStandardPlayerCollisionConditions(other);
+                if (player == null)
+                    _touchingPlayer = false;
+                else
+                    _touchingPlayer = true;
+            }
         }
     }
 

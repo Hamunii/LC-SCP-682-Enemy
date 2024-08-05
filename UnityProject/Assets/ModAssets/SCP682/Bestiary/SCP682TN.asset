@@ -15,7 +15,7 @@ MonoBehaviour:
   displayText: 'SCP-682/Hard to destroy reptile
 
 
-    Sigurd''s danger level: Run
+    Carl''s danger level: Run
 
 
     Im
@@ -30,7 +30,7 @@ MonoBehaviour:
     bit of time, it woke back up even angrier, at some point when we where in the
     ship it tried to wait for us to get out, no idea what it is planing, but it is
     very intelligent but also very fierce, If you see this thing i would recommend
-    just flying away. -Sigurd'
+    just flying away. -Carl'
   terminalEvent: 
   clearPreviousText: 1
   maxCharactersToType: 35

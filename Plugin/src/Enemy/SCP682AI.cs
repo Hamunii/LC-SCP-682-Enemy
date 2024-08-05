@@ -140,13 +140,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     }
 #endif
 
-    public override void OnCollideWithPlayer(Collider other)
-    {
-        base.OnCollideWithPlayer(other);
-        if (ActiveState is AttackPlayerState or InvestigatePlayerState)
-            AttackCollideWithPlayer(other);
-    }
-
     internal void AttackCollideWithPlayer(Collider other)
     {
         if (attackCooldown > 0)
@@ -544,6 +537,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             self.SetDestinationToPosition(self.targetPlayer.transform.position);
         }
 
+        public override void OnCollideWithPlayer(Collider other) =>
+            self.AttackCollideWithPlayer(other);
+
         public override IEnumerator OnStateExit() { yield break; }
     }
 
@@ -563,6 +559,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             self.targetPlayer = self.FindNearestPlayer();
             self.SetDestinationToPosition(self.targetPlayer.transform.position);
         }
+
+        public override void OnCollideWithPlayer(Collider other) =>
+            self.AttackCollideWithPlayer(other);
 
         public override IEnumerator OnStateExit()
         {

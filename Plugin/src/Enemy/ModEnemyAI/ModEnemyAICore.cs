@@ -33,6 +33,8 @@ public partial class ModEnemyAI<T> : EnemyAI
         /// <summary>Runs at <c>DoAIInterval</c>, which the interval depends on EnemyAI's <c>AIIntervalTime</c>.</summary>
         public virtual void AIInterval() { }
 
+        public virtual void OnCollideWithPlayer(Collider other) { }
+
         public abstract IEnumerator OnStateExit();
 
         /// <summary>All the transitions that can be made from current State, excluding global transitions.</summary>
@@ -161,6 +163,12 @@ public partial class ModEnemyAI<T> : EnemyAI
         base.DoAIInterval();
         if (transitionCoroutineInProgress is not null) return;
         ActiveState.AIInterval();
+    }
+
+    public override void OnCollideWithPlayer(Collider other)
+    {
+        base.OnCollideWithPlayer(other);
+        ActiveState.OnCollideWithPlayer(other);
     }
 
     private IEnumerator InitializeState(AIBehaviorState ActiveState, T self, System.Random enemyRandom)

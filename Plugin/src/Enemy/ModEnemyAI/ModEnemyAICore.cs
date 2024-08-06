@@ -27,8 +27,10 @@ public partial class ModEnemyAI<T> : EnemyAI
         public Animator creatureAnimator = null!;
         public abstract IEnumerator OnStateEntered();
 
-        /// <summary>Runs every frame.</summary>
-        public virtual void UpdateBehavior() { }
+        /// <summary>Runs every frame, but never before OnStateEntered not after OnStateExit.</summary>
+        public virtual void Update() { }
+        /// <summary>Runs every frame after the normal Update methods, but never before OnStateEntered nor after OnStateExit.</summary>
+        public virtual void LateUpdate() { }
 
         /// <summary>Runs at <c>DoAIInterval</c>, which the interval depends on EnemyAI's <c>AIIntervalTime</c>.</summary>
         public virtual void AIInterval() { }
@@ -134,7 +136,7 @@ public partial class ModEnemyAI<T> : EnemyAI
         AITimer += Time.deltaTime;
 
         if (transitionCoroutineInProgress is not null) return;
-        bool RunUpdate = true;
+        bool currentlyNotTransitioningState = true;
 
         //Reset transition list to match all those in our current state, along with any global transitions that exist regardless of state (stunned, mostly)
         AllTransitions.Clear();
@@ -146,17 +148,22 @@ public partial class ModEnemyAI<T> : EnemyAI
             InitializeStateTransition(TransitionToCheck, self);
             if (TransitionToCheck.CanTransitionBeTaken() && base.IsOwner)
             {
-                RunUpdate = false;
+                currentlyNotTransitioningState = false;
                 nextTransition = TransitionToCheck;
                 TransitionStateServerRpc(nextTransition.ToString());
                 return;
             }
         }
 
-        if (RunUpdate)
+        if (currentlyNotTransitioningState)
         {
-            ActiveState.UpdateBehavior();
+            ActiveState.Update();
         }
+    }
+
+    internal void LateUpdate()
+    {
+        ActiveState.LateUpdate();
     }
 
     public override void DoAIInterval()

@@ -176,8 +176,11 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         player.DamagePlayer(damageToDeal);
     }
 
-    internal bool IsCollidingWithPlayer(PlayerControllerB player, Collider collider)
+    internal bool IsCollidingWithPlayer(PlayerControllerB? player, Collider collider)
     {
+        if (player == null)
+            return false;
+
         int playerLayer = 1 << 3; // The player layer is the 3rd layer in the game, can be checked from Asset Ripper output.
         Collider[] colliders = Physics.OverlapBox(
                                     collider.bounds.center,
@@ -321,7 +324,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     private class FromAmbushJumpPlayerState : AIBehaviorState
     {
         public override List<AIStateTransition> Transitions { get; set; } =
-            [new TouchPlayerAndStartDraggingTransition(), new LostPlayerTransition()];
+            [new TouchTargetPlayerAndStartDraggingTransition(), new LostPlayerTransition()];
 
         public override IEnumerator OnStateEntered()
         {
@@ -343,22 +346,11 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             yield break;
         }
 
-        private class TouchPlayerAndStartDraggingTransition : AIStateTransition
+        private class TouchTargetPlayerAndStartDraggingTransition : AIStateTransition
         {
-            bool _touchingPlayer = false;
-
-            public override bool CanTransitionBeTaken() => _touchingPlayer;
+            // I dunno how bad this is for performance
+            public override bool CanTransitionBeTaken() => self.IsCollidingWithPlayer(self.targetPlayer, self.mainCollider);
             public override AIBehaviorState NextState() => new DragPlayerState();
-
-            public override void OnCollideWithPlayer(Collider other)
-            {
-                base.OnCollideWithPlayer(other);
-                var player = self.MeetsStandardPlayerCollisionConditions(other);
-                if (player == null)
-                    _touchingPlayer = false;
-                else
-                    _touchingPlayer = true;
-            }
         }
     }
 
@@ -367,12 +359,38 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         public override List<AIStateTransition> Transitions { get; set; } =
             [new DraggedPlayerEnoughTransition()];
 
+        EntranceTeleport? facilityEntrance = null;
         public override IEnumerator OnStateEntered()
         {
+            self.targetPlayer = self.FindNearestPlayer();
+            self.EnterSpecialAnimationWithPlayer(self.targetPlayer);
+
+            facilityEntrance = RoundManager.FindMainEntranceScript(self.isOutside);
+            if (facilityEntrance == null)
+            {
+                PLog.LogError("Can't pathfind to entrance because it doesn't exist.");
+                yield break;
+            }
+
+            if (!self.SetDestinationToPosition(facilityEntrance.entrancePoint.position, true))
+                PLog.LogError("Facility door is unreachable!");
             yield break;
         }
 
-        public override IEnumerator OnStateExit() { yield break; }
+        public override void LateUpdate()
+        {
+            if (self.inSpecialAnimationWithPlayer != GameNetworkManager.Instance.localPlayerController)
+                return;
+
+            self.inSpecialAnimationWithPlayer.transform.position =
+                self.creatureVoice.transform.position; // creatureVoice is positioned in the mouth
+        }
+
+        public override IEnumerator OnStateExit()
+        {
+            self.CancelSpecialAnimationWithPlayer();
+            yield break;
+        }
 
         private class DraggedPlayerEnoughTransition : AIStateTransition
         {

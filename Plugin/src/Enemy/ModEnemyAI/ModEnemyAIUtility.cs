@@ -286,4 +286,15 @@ public partial class ModEnemyAI<T> : EnemyAI
         entrance.entrancePointAudio.PlayOneShot(entrance.doorAudios[0]);
         WalkieTalkie.TransmitOneShotAudio(entrance.entrancePointAudio, entrance.doorAudios[0]);
     }
+
+    internal void EnterSpecialAnimationWithPlayer(PlayerControllerB player)
+    {
+        if (player.inSpecialInteractAnimation && player.currentTriggerInAnimationWith != null)
+            player.currentTriggerInAnimationWith.CancelAnimationExternally();
+
+        player.inSpecialInteractAnimation = true;
+        player.inAnimationWithEnemy = self;
+        self.inSpecialAnimation = true;
+        self.inSpecialAnimationWithPlayer = player;
+    }
 }

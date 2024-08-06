@@ -64,6 +64,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     Vector3 posOnTopOfShip;
     JesterAI? targetJester = null!;
     LineRenderer lineRenderer = null!;
+    BoxCollider mainCollider = null!;
 
     const float defaultAttackCooldown = 5f;
     float attackCooldown = defaultAttackCooldown;
@@ -88,13 +89,14 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
     public override void Start()
     {
-        posOnTopOfShip =
-            StartOfRound.Instance.insideShipPositions[0].position + new Vector3(-2, 5, 3); // temporary
-        lineRenderer = gameObject.AddComponent<LineRenderer>();
-
         self = this;
         SCP682Objects.Add(gameObject);
         InitialState = new WanderToShipState();
+
+        posOnTopOfShip = StartOfRound.Instance.insideShipPositions[0].position + new Vector3(-2, 5, 3); // temporary
+        lineRenderer = gameObject.AddComponent<LineRenderer>();
+        mainCollider = gameObject.GetComponentInChildren<BoxCollider>();
+
         if (enemyType.isOutsideEnemy)
         {
             var scale = 4f;
@@ -157,14 +159,45 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     {
         self.creatureSFX.PlayOneShot(SFX.bite.FromRandom(enemyRandom));
         yield return new WaitForSeconds(0.8f);
+
         creatureAnimator.SetTrigger(Anim.doBite);
         yield return new WaitForSeconds(0.2f);
+
+        if (!IsCollidingWithPlayer(player, mainCollider))
+            yield break;
+
+        // Deal enough damage to set health to 30, doing 15 damage at minimum.
+        // Examples: 100 => 30, 45 => 30, 40 => 25, 30 => 15.
         int damageToDeal;
-        if (player.health > 45) // At min do 15 damage
-            damageToDeal = player.health - 30; // Set health to 30
-        else
+        if (player.health <= 30 + 15)
             damageToDeal = 15;
+        else
+            damageToDeal = player.health - 30; // Set health to 30.
         player.DamagePlayer(damageToDeal);
+    }
+
+    internal bool IsCollidingWithPlayer(PlayerControllerB player, Collider collider)
+    {
+        int playerLayer = 1 << 3; // The player layer is the 3rd layer in the game, can be checked from Asset Ripper output.
+        Collider[] colliders = Physics.OverlapBox(
+                                    collider.bounds.center,
+                                    collider.bounds.extents / 2,
+                                    Quaternion.identity,
+                                    playerLayer);
+
+        foreach (Collider collided in colliders)
+        {
+            if (!collided.CompareTag("Player"))
+                continue;
+
+            PlayerControllerB collidedPlayer = MeetsStandardPlayerCollisionConditions(collided);
+            if (collidedPlayer == null)
+                continue;
+
+            if (collidedPlayer == player)
+                return true;
+        }
+        return false;
     }
 
     public override void HitEnemy(

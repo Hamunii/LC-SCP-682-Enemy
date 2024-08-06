@@ -20,6 +20,35 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         Running = 7
     }
 
+    static class Anim
+    {
+        // do: trigger
+        // is: boolean
+        internal const string doKillEnemy = "KillEnemy"; // base game thing, gets called automatically
+        internal const string isMoving = "isMoving";
+        internal const string isMovingInverted = "isMovingInverted";
+        internal const string isRunning = "isRunning";
+        internal const string isOnShip = "isOnShip";
+        internal const string doBite = "doBite";
+    }
+
+    const float defaultBoredOfWanderingFacilityTimer = 120f;
+    float boredOfWanderingFacilityTimer = defaultBoredOfWanderingFacilityTimer;
+    Vector3 posOnTopOfShip;
+    JesterAI? targetJester = null!;
+    LineRenderer lineRenderer = null!;
+    BoxCollider mainCollider = null!;
+
+    const float defaultAttackCooldown = 5f;
+    float attackCooldown = defaultAttackCooldown;
+
+
+#if DEBUG
+    const bool IS_DEBUG_BEHAVIOR = true;
+#else
+    const bool IS_DEBUG_BEHAVIOR = false;
+#endif
+
     public void SetAgentSpeedAndAnimations(Speed speed)
     {
         agent.speed = (int)speed;
@@ -58,34 +87,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
         SetAgentSpeedAndAnimations(Speed.Running);
     }
-
-    const float defaultBoredOfWanderingFacilityTimer = 120f;
-    float boredOfWanderingFacilityTimer = defaultBoredOfWanderingFacilityTimer;
-    Vector3 posOnTopOfShip;
-    JesterAI? targetJester = null!;
-    LineRenderer lineRenderer = null!;
-    BoxCollider mainCollider = null!;
-
-    const float defaultAttackCooldown = 5f;
-    float attackCooldown = defaultAttackCooldown;
-
-    static class Anim
-    {
-        // do: trigger
-        // is: boolean
-        internal const string doKillEnemy = "KillEnemy"; // base game thing, gets called automatically
-        internal const string isMoving = "isMoving";
-        internal const string isMovingInverted = "isMovingInverted";
-        internal const string isRunning = "isRunning";
-        internal const string isOnShip = "isOnShip";
-        internal const string doBite = "doBite";
-    }
-
-#if DEBUG
-    const bool IS_DEBUG_BEHAVIOR = true;
-#else
-    const bool IS_DEBUG_BEHAVIOR = false;
-#endif
 
     public override void Start()
     {

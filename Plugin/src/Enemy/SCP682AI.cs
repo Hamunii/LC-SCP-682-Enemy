@@ -10,6 +10,7 @@ namespace SCP682.SCPEnemy;
 
 class SCP682AI : ModEnemyAI<SCP682AI>
 {
+    #region Initialization
     // We use this list to destroy loaded game objects when plugin is reloaded
     internal static List<GameObject> SCP682Objects = [];
 
@@ -51,45 +52,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
     internal override SCP682AI GetThis() => this;
     internal override AIBehaviorState GetInitialState() => new WanderToShipState();
-
-    public void SetAgentSpeedAndAnimations(Speed speed)
-    {
-        agent.speed = (int)speed;
-
-        if (speed == Speed.Stopped)
-        {
-            creatureAnimator.SetBool(Anim.isRunning, false);
-            creatureAnimator.SetBool(Anim.isMoving, false);
-            return;
-        }
-
-        creatureAnimator.SetBool(Anim.isMoving, true);
-
-        bool newIsRunning = speed == Speed.Running;
-        if (creatureAnimator.GetBool(Anim.isRunning) != newIsRunning)
-        {
-            creatureAnimator.SetBool(Anim.isRunning, newIsRunning);
-
-            if (speed == Speed.Walking)
-                creatureSFX.clip = SFX.walk.FromRandom(enemyRandom);
-            else
-                creatureSFX.clip = SFX.run.FromRandom(enemyRandom);
-        }
-    }
-
-    internal IEnumerator RoarAndRunCoroutine()
-    {
-        // self.SetAgentSpeedAndAnimations(Speed.Stopped); // We need Anim.isRunning to be enabled, but we must not move because of things our Animator does
-        agent.speed = 0;
-        creatureAnimator.SetBool(Anim.isMoving, true);
-        creatureAnimator.SetBool(Anim.isRunning, true);
-
-        yield return new WaitForSeconds(1);
-        creatureSFX.PlayOneShot(SFX.roar.FromRandom(enemyRandom));
-        yield return new WaitForSeconds(1.5f);
-
-        SetAgentSpeedAndAnimations(Speed.Running);
-    }
 
     public override void Start()
     {
@@ -144,39 +106,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     }
 #endif
 
-    internal void AttackCollideWithPlayer(Collider other)
-    {
-        if (attackCooldown > 0)
-            return;
-
-        if (!self.TryGetValidPlayerFromCollision(other, out var player))
-            return;
-
-        self.StartCoroutine(WaitAndDealDamage(player));
-        attackCooldown = defaultAttackCooldown;
-    }
-
-    private IEnumerator WaitAndDealDamage(PlayerControllerB player)
-    {
-        self.creatureSFX.PlayOneShot(SFX.bite.FromRandom(enemyRandom));
-        yield return new WaitForSeconds(0.8f);
-
-        creatureAnimator.SetTrigger(Anim.doBite);
-        yield return new WaitForSeconds(0.2f);
-
-        if (!IsPlayerInsideCollider(player, mainCollider))
-            yield break;
-
-        // Deal enough damage to set health to 30, doing 15 damage at minimum.
-        // Examples: 100 => 30, 45 => 30, 40 => 25, 30 => 15.
-        int damageToDeal;
-        if (player.health <= 30 + 15)
-            damageToDeal = 15;
-        else
-            damageToDeal = player.health - 30; // Set health to 30.
-        player.DamagePlayer(damageToDeal);
-    }
-
     public override void HitEnemy(
         int force = 1,
         PlayerControllerB? playerWhoHit = null,
@@ -207,6 +136,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             OverrideState(new AttackPlayerState());
     }
 
+    #endregion
     #region Outside States
 
     private class WanderToShipState : AIBehaviorState
@@ -672,6 +602,81 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             else
                 return new AtFacilityWanderingState();
         }
+    }
+
+    #endregion
+    #region General Methods
+
+    public void SetAgentSpeedAndAnimations(Speed speed)
+    {
+        agent.speed = (int)speed;
+
+        if (speed == Speed.Stopped)
+        {
+            creatureAnimator.SetBool(Anim.isRunning, false);
+            creatureAnimator.SetBool(Anim.isMoving, false);
+            return;
+        }
+
+        creatureAnimator.SetBool(Anim.isMoving, true);
+
+        bool newIsRunning = speed == Speed.Running;
+        if (creatureAnimator.GetBool(Anim.isRunning) != newIsRunning)
+        {
+            creatureAnimator.SetBool(Anim.isRunning, newIsRunning);
+
+            if (speed == Speed.Walking)
+                creatureSFX.clip = SFX.walk.FromRandom(enemyRandom);
+            else
+                creatureSFX.clip = SFX.run.FromRandom(enemyRandom);
+        }
+    }
+
+    internal IEnumerator RoarAndRunCoroutine()
+    {
+        // self.SetAgentSpeedAndAnimations(Speed.Stopped); // We need Anim.isRunning to be enabled, but we must not move because of things our Animator does
+        agent.speed = 0;
+        creatureAnimator.SetBool(Anim.isMoving, true);
+        creatureAnimator.SetBool(Anim.isRunning, true);
+
+        yield return new WaitForSeconds(1);
+        creatureSFX.PlayOneShot(SFX.roar.FromRandom(enemyRandom));
+        yield return new WaitForSeconds(1.5f);
+
+        SetAgentSpeedAndAnimations(Speed.Running);
+    }
+
+    internal void AttackCollideWithPlayer(Collider other)
+    {
+        if (attackCooldown > 0)
+            return;
+
+        if (!self.TryGetValidPlayerFromCollision(other, out var player))
+            return;
+
+        self.StartCoroutine(WaitAndDealDamage(player));
+        attackCooldown = defaultAttackCooldown;
+    }
+
+    private IEnumerator WaitAndDealDamage(PlayerControllerB player)
+    {
+        self.creatureSFX.PlayOneShot(SFX.bite.FromRandom(enemyRandom));
+        yield return new WaitForSeconds(0.8f);
+
+        creatureAnimator.SetTrigger(Anim.doBite);
+        yield return new WaitForSeconds(0.2f);
+
+        if (!IsPlayerInsideCollider(player, mainCollider))
+            yield break;
+
+        // Deal enough damage to set health to 30, doing 15 damage at minimum.
+        // Examples: 100 => 30, 45 => 30, 40 => 25, 30 => 15.
+        int damageToDeal;
+        if (player.health <= 30 + 15)
+            damageToDeal = 15;
+        else
+            damageToDeal = player.health - 30; // Set health to 30.
+        player.DamagePlayer(damageToDeal);
     }
 
     #endregion

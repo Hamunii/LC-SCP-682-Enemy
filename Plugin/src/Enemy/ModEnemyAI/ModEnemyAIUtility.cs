@@ -17,6 +17,40 @@ namespace SCP682.SCPEnemy;
 public partial class ModEnemyAI<T> : EnemyAI
     where T : ModEnemyAI<T>
 {
+    internal bool AnimationIsFinished(string AnimName, int layerIndex)
+    {
+        if (!creatureAnimator.GetCurrentAnimatorStateInfo(layerIndex).IsName(AnimName))
+        {
+            DebugLog(
+                __getTypeName()
+                    + ": Checking for animation "
+                    + AnimName
+                    + ", but current animation is "
+                    + creatureAnimator.GetCurrentAnimatorClipInfo(layerIndex)[0].clip.name
+            );
+            return true;
+        }
+        return creatureAnimator.GetCurrentAnimatorStateInfo(layerIndex).normalizedTime >= 1f;
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    internal void SetAnimTriggerOnServerRpc(string name)
+    {
+        if (IsServer)
+        {
+            creatureAnimator.SetTrigger(name);
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    internal void SetAnimBoolOnServerRpc(string name, bool state)
+    {
+        if (IsServer)
+        {
+            creatureAnimator.SetBool(name, state);
+        }
+    }
+
     internal bool PlayerCanBeTargeted(PlayerControllerB myPlayer) =>
         GetPlayerState(myPlayer) == MyValidState;
 

@@ -14,7 +14,7 @@ using UnityEngine.AI;
 namespace SCP682.SCPEnemy;
 
 // Heavily based on WelcomeToOoblterra's WTOEnemy class
-public partial class ModEnemyAI<T> : EnemyAI
+public abstract partial class ModEnemyAI<T> : EnemyAI
     where T : ModEnemyAI<T>
 {
     internal bool AnimationIsFinished(string AnimName, int layerIndex)

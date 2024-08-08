@@ -16,7 +16,7 @@ using UnityEngine.AI;
 namespace SCP682.SCPEnemy;
 
 // Heavily based on WelcomeToOoblterra's WTOEnemy class
-public partial class ModEnemyAI<T> : EnemyAI
+public abstract partial class ModEnemyAI<T> : EnemyAI
     where T : ModEnemyAI<T>
 {
     public abstract class AIBehaviorState
@@ -62,7 +62,6 @@ public partial class ModEnemyAI<T> : EnemyAI
         Ship
     }
 
-    internal AIBehaviorState InitialState = null!;
     internal AIBehaviorState ActiveState = null!;
     internal System.Random enemyRandom = null!;
     internal float AITimer;
@@ -71,8 +70,16 @@ public partial class ModEnemyAI<T> : EnemyAI
     internal AIStateTransition nextTransition = null!;
     internal List<AIStateTransition> GlobalTransitions = new List<AIStateTransition>();
     internal List<AIStateTransition> AllTransitions = new List<AIStateTransition>();
+    /// <summary>
+    /// The instance of this enemy.
+    /// </summary>
     internal T self = default!;
     private PlayerControllerB? _lastSyncedTargetPlayer;
+
+    /// <summary>
+    /// A property that works as a networked wrapper for the base-game's
+    /// <see cref="EnemyAI.targetPlayer"/> field.
+    /// </summary>
     public new PlayerControllerB? targetPlayer
     {
         get
@@ -99,6 +106,18 @@ public partial class ModEnemyAI<T> : EnemyAI
     private Coroutine? _transitionCoroutineInProgress = null;
     private Dictionary<string, Type> _typeNameToType = [];
 
+    /// <summary>
+    /// A method to get the instance of the enemy class.
+    /// </summary>
+    /// <returns><see langword="this"/></returns>
+    internal abstract T GetThis();
+
+    /// <summary>
+    /// Used for setting the initial <see cref="AIBehaviorState"/> for the state machine.
+    /// </summary>
+    /// <returns></returns>
+    internal abstract AIBehaviorState GetInitialState();
+
     public override string __getTypeName()
     {
         return GetType().Name;
@@ -107,7 +126,8 @@ public partial class ModEnemyAI<T> : EnemyAI
     public override void Start()
     {
         //Initializers
-        ActiveState = InitialState;
+        self = GetThis();
+        ActiveState = GetInitialState();
         enemyRandom = new System.Random(StartOfRound.Instance.randomMapSeed + thisEnemyIndex);
 
         MyValidState = enemyType.isOutsideEnemy ? PlayerState.Outside : PlayerState.Inside;

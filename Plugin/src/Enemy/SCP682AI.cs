@@ -49,6 +49,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     const bool IS_DEBUG_BEHAVIOR = false;
 #endif
 
+    internal override SCP682AI GetThis() => this;
+    internal override AIBehaviorState GetInitialState() => new WanderToShipState();
+
     public void SetAgentSpeedAndAnimations(Speed speed)
     {
         agent.speed = (int)speed;
@@ -90,9 +93,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
     public override void Start()
     {
-        self = this;
         SCP682Objects.Add(gameObject);
-        InitialState = new WanderToShipState();
 
         posOnTopOfShip = StartOfRound.Instance.insideShipPositions[0].position + new Vector3(-2, 5, 3); // temporary
         lineRenderer = gameObject.AddComponent<LineRenderer>();

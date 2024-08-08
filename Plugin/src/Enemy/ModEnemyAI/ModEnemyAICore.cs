@@ -96,7 +96,8 @@ public partial class ModEnemyAI<T> : EnemyAI
                 SetTargetServerRpc(-1);
         }
     }
-    private Coroutine? transitionCoroutineInProgress = null;
+    private Coroutine? _transitionCoroutineInProgress = null;
+    private Dictionary<string, Type> _typeNameToType = [];
 
     public override string __getTypeName()
     {
@@ -123,7 +124,7 @@ public partial class ModEnemyAI<T> : EnemyAI
             KillEnemyOnOwnerClient();
         }
 
-        transitionCoroutineInProgress = StartCoroutine(InitializeState(ActiveState, self, enemyRandom));
+        _transitionCoroutineInProgress = StartCoroutine(InitializeState(ActiveState, self, enemyRandom));
     }
 
     public override void Update()
@@ -135,7 +136,7 @@ public partial class ModEnemyAI<T> : EnemyAI
         base.Update();
         AITimer += Time.deltaTime;
 
-        if (transitionCoroutineInProgress is not null) return;
+        if (_transitionCoroutineInProgress is not null) return;
         bool currentlyNotTransitioningState = true;
 
         //Reset transition list to match all those in our current state, along with any global transitions that exist regardless of state (stunned, mostly)
@@ -169,7 +170,7 @@ public partial class ModEnemyAI<T> : EnemyAI
     public override void DoAIInterval()
     {
         base.DoAIInterval();
-        if (transitionCoroutineInProgress is not null) return;
+        if (_transitionCoroutineInProgress is not null) return;
         ActiveState.AIInterval();
     }
 
@@ -191,7 +192,7 @@ public partial class ModEnemyAI<T> : EnemyAI
         ActiveState.enemyRandom = enemyRandom;
         ActiveState.creatureAnimator = self.creatureAnimator;
         yield return StartCoroutine(ActiveState.OnStateEntered());
-        transitionCoroutineInProgress = null;
+        _transitionCoroutineInProgress = null;
     }
 
     private void InitializeStateTransition(AIStateTransition transition, T self)
@@ -260,28 +261,38 @@ public partial class ModEnemyAI<T> : EnemyAI
 
     [ClientRpc]
     internal void TransitionStateClientRpc(string stateName, int randomSeed) =>
-        transitionCoroutineInProgress = StartCoroutine(TransitionState(stateName, randomSeed));
+        _transitionCoroutineInProgress = StartCoroutine(TransitionState(stateName, randomSeed));
 
     internal IEnumerator TransitionState(string stateOrTransitionName, int randomSeed)
     {
-        //Jesus fuck I can't believe I have to do this
-        Type type = Type.GetType(stateOrTransitionName);
-
         AIStateTransition? localNextTransition = null;
-        if (type.IsSubclassOf(typeof(AIStateTransition)))
+        if (!_typeNameToType.TryGetValue(stateOrTransitionName, out Type? transitionOrBehaviorType))
         {
-            localNextTransition = (AIStateTransition)Activator.CreateInstance(type);
-            InitializeStateTransition(localNextTransition, self);
+            transitionOrBehaviorType = Type.GetType(stateOrTransitionName);
 
+            if (transitionOrBehaviorType is null)
+                throw new ArgumentException($"'{stateOrTransitionName}' wasn't found as a type!",
+                    nameof(stateOrTransitionName));
+
+            _typeNameToType.Add(stateOrTransitionName, transitionOrBehaviorType);
+        }
+
+        if (transitionOrBehaviorType.IsSubclassOf(typeof(AIStateTransition)))
+        {
+            localNextTransition = (AIStateTransition)Activator.CreateInstance(transitionOrBehaviorType);
+            InitializeStateTransition(localNextTransition, self);
             if (localNextTransition.NextState().GetType() == ActiveState.GetType())
                 yield break;
         }
-        else if (!type.IsSubclassOf(typeof(AIBehaviorState)))
-            throw new ArgumentException($"The first argument 'string stateOrTransitionName' {stateOrTransitionName} is neither an {nameof(AIStateTransition)} or an {nameof(AIBehaviorState)}!");
+        else if (!transitionOrBehaviorType.IsSubclassOf(typeof(AIBehaviorState)))
+            throw new ArgumentException(
+                $"'{stateOrTransitionName}' is neither an {nameof(AIStateTransition)} nor an {nameof(AIBehaviorState)}!",
+                nameof(stateOrTransitionName));
 
         //LogMessage(stateName);
         DebugLog($"{__getTypeName()} #{self.thisEnemyIndex} is Exiting:  {ActiveState}");
         yield return StartCoroutine(ActiveState.OnStateExit());
+
         if (localNextTransition is not null)
         {
             DebugLog($"{__getTypeName()} #{self.thisEnemyIndex} is Transitioning via:  {localNextTransition}");
@@ -290,8 +301,9 @@ public partial class ModEnemyAI<T> : EnemyAI
         else
         {
             DebugLog($"{__getTypeName()} #{self.thisEnemyIndex} is Transitioning via: State Override");
-            ActiveState = (AIBehaviorState)Activator.CreateInstance(type);
+            ActiveState = (AIBehaviorState)Activator.CreateInstance(transitionOrBehaviorType);
         }
+
         DebugLog($"{__getTypeName()} #{self.thisEnemyIndex} is Entering:  {ActiveState}");
         StartCoroutine(InitializeState(ActiveState, self, new(randomSeed)));
 

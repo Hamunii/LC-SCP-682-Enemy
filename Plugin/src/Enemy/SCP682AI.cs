@@ -148,8 +148,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         if (attackCooldown > 0)
             return;
 
-        PlayerControllerB? player = self.MeetsStandardPlayerCollisionConditions(other);
-        if (player is null)
+        if (!self.TryGetValidPlayerFromCollision(other, out var player))
             return;
 
         self.StartCoroutine(WaitAndDealDamage(player));
@@ -164,7 +163,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         creatureAnimator.SetTrigger(Anim.doBite);
         yield return new WaitForSeconds(0.2f);
 
-        if (!IsCollidingWithPlayer(player, mainCollider))
+        if (!IsPlayerInsideCollider(player, mainCollider))
             yield break;
 
         // Deal enough damage to set health to 30, doing 15 damage at minimum.
@@ -175,33 +174,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         else
             damageToDeal = player.health - 30; // Set health to 30.
         player.DamagePlayer(damageToDeal);
-    }
-
-    internal bool IsCollidingWithPlayer(PlayerControllerB? player, Collider collider)
-    {
-        if (player == null)
-            return false;
-
-        int playerLayer = 1 << 3; // The player layer is the 3rd layer in the game, can be checked from Asset Ripper output.
-        Collider[] colliders = Physics.OverlapBox(
-                                    collider.bounds.center,
-                                    collider.bounds.extents / 2,
-                                    Quaternion.identity,
-                                    playerLayer);
-
-        foreach (Collider collided in colliders)
-        {
-            if (!collided.CompareTag("Player"))
-                continue;
-
-            PlayerControllerB collidedPlayer = MeetsStandardPlayerCollisionConditions(collided);
-            if (collidedPlayer == null)
-                continue;
-
-            if (collidedPlayer == player)
-                return true;
-        }
-        return false;
     }
 
     public override void HitEnemy(
@@ -350,7 +322,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         private class TouchTargetPlayerAndStartDraggingTransition : AIStateTransition
         {
             // I dunno how bad this is for performance
-            public override bool CanTransitionBeTaken() => self.IsCollidingWithPlayer(self.targetPlayer, self.mainCollider);
+            public override bool CanTransitionBeTaken() => self.IsPlayerInsideCollider(self.targetPlayer, self.mainCollider);
             public override AIBehaviorState NextState() => new DragPlayerState();
         }
     }
@@ -443,7 +415,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
                 _et ??= RoundManager.FindMainEntranceScript(self.isOutside);
                 if (Vector3.Distance(_et.entrancePoint.position, self.gameObject.transform.position) < 3)
                 {
-                    self.TeleportSelfToOtherEntranceClientRpc(!self.isOutside);
+                    self.TeleportSelfToOtherEntranceClientRpc(self.isOutside);
                     return true;
                 }
                 return false;

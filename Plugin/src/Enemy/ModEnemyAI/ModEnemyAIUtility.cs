@@ -5,6 +5,7 @@
  * This class has been modified, and is licensed under the MIT license
 */
 
+using System.Diagnostics.CodeAnalysis;
 using GameNetcodeStuff;
 using Unity.Netcode;
 using UnityEngine;
@@ -252,9 +253,9 @@ public partial class ModEnemyAI<T> : EnemyAI
     }
 
     [ClientRpc]
-    public void TeleportSelfToOtherEntranceClientRpc(bool wasInside)
+    public void TeleportSelfToOtherEntranceClientRpc(bool isOutside)
     {
-        TeleportSelfToOtherEntrance(!wasInside);
+        TeleportSelfToOtherEntrance(isOutside);
     }
 
     private void TeleportSelfToOtherEntrance(bool isOutside)
@@ -296,5 +297,46 @@ public partial class ModEnemyAI<T> : EnemyAI
         player.inAnimationWithEnemy = self;
         self.inSpecialAnimation = true;
         self.inSpecialAnimationWithPlayer = player;
+    }
+
+    /// <summary>
+    /// A TryGet wrapper for <see cref="EnemyAI.MeetsStandardPlayerCollisionConditions(Collider, bool, bool)"/>
+    /// </summary>
+    /// <returns><see langword="true"/> if "other" is a valid player, otherwise <see langword="false"/>.</returns>
+    internal bool TryGetValidPlayerFromCollision(Collider other, [NotNullWhen(returnValue: true)] out PlayerControllerB? player)
+    {
+        player = MeetsStandardPlayerCollisionConditions(other);
+
+        if (player is not null)
+            return true;
+
+        return false;
+    }
+
+    internal bool IsPlayerInsideCollider(PlayerControllerB? player, Collider collider)
+    {
+        if (player == null)
+            return false;
+
+        int playerLayer = 1 << 3; // The player layer is the 3rd layer in the game, can be checked from Asset Ripper output.
+        Collider[] colliders =
+            Physics.OverlapBox(
+                collider.bounds.center,
+                collider.bounds.extents / 2,
+                Quaternion.identity,
+                playerLayer);
+
+        foreach (Collider collided in colliders)
+        {
+            if (!collided.CompareTag("Player"))
+                continue;
+
+            if (!TryGetValidPlayerFromCollision(collided, out var collidedPlayer))
+                continue;
+
+            if (collidedPlayer == player)
+                return true;
+        }
+        return false;
     }
 }

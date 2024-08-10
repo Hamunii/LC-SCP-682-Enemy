@@ -11,6 +11,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using GameNetcodeStuff;
 using Unity.Netcode;
 using UnityEngine;
@@ -110,6 +111,14 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
         public virtual void OnCollideWithPlayer(Collider other) { }
     }
 
+    private class TransitionType(Type type, bool isTransition)
+    {
+        internal readonly Type type = type;
+        internal readonly bool isTransition = isTransition;
+    }
+
+    private static readonly Dictionary<(string, T), TransitionType> _typeNameAndInstanceToTransitionType = [];
+
     public enum PlayerState
     {
         Dead,
@@ -166,7 +175,6 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
         }
     }
     private Coroutine? _transitionCoroutineInProgress = null;
-    private readonly Dictionary<string, Type> _typeNameToType = [];
 
     /// <summary>
     /// A method to get the instance of the enemy class.
@@ -325,28 +333,17 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
     internal IEnumerator TransitionState(string stateOrTransitionName, int randomSeed)
     {
         AIStateTransition? localNextTransition = null;
-        if (!_typeNameToType.TryGetValue(stateOrTransitionName, out Type? transitionOrBehaviorType))
+
+        if (!_typeNameAndInstanceToTransitionType.TryGetValue((stateOrTransitionName, self), out TransitionType? transitionOrBehavior))
+            ValidateAndCacheTransitionType(stateOrTransitionName, ref transitionOrBehavior);
+        
+        if (transitionOrBehavior.isTransition)
         {
-            transitionOrBehaviorType = Type.GetType(stateOrTransitionName);
-
-            if (transitionOrBehaviorType is null)
-                throw new ArgumentException($"'{stateOrTransitionName}' wasn't found as a type!",
-                    nameof(stateOrTransitionName));
-
-            _typeNameToType.Add(stateOrTransitionName, transitionOrBehaviorType);
-        }
-
-        if (transitionOrBehaviorType.IsSubclassOf(typeof(AIStateTransition)))
-        {
-            localNextTransition = (AIStateTransition)Activator.CreateInstance(transitionOrBehaviorType);
+            localNextTransition = (AIStateTransition)Activator.CreateInstance(transitionOrBehavior.type);
             InitializeStateTransitionIfNeeded(localNextTransition, self);
             if (localNextTransition.NextState().GetType() == activeState.GetType())
                 yield break;
         }
-        else if (!transitionOrBehaviorType.IsSubclassOf(typeof(AIBehaviorState)))
-            throw new ArgumentException(
-                $"'{stateOrTransitionName}' is neither an {nameof(AIStateTransition)} nor an {nameof(AIBehaviorState)}!",
-                nameof(stateOrTransitionName));
 
         //LogMessage(stateName);
         DebugLog($"{__getTypeName()} #{self.thisEnemyIndex} is Exiting:  {activeState}");
@@ -360,7 +357,7 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
         else
         {
             DebugLog($"{__getTypeName()} #{self.thisEnemyIndex} is Transitioning via: State Override");
-            activeState = (AIBehaviorState)Activator.CreateInstance(transitionOrBehaviorType);
+            activeState = (AIBehaviorState)Activator.CreateInstance(transitionOrBehavior.type);
         }
 
         DebugLog($"{__getTypeName()} #{self.thisEnemyIndex} is Entering:  {activeState}");
@@ -374,6 +371,31 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
         DebugLog(
             $"CREATURE: {enemyType.name} #{self.thisEnemyIndex} STATE: {activeState} ON PLAYER: #{value} ({StartOfRound.Instance.allPlayerScripts[value].playerUsername})"
         );
+    }
+
+    /// <exception cref="ArgumentException"/>
+    private void ValidateAndCacheTransitionType(string stateOrTransitionName, [NotNull] ref TransitionType? transitionOrBehavior)
+    {
+        Type newType = Type.GetType(stateOrTransitionName)
+            ?? throw new ArgumentException($"'{stateOrTransitionName}' wasn't found as a type!",
+                nameof(stateOrTransitionName));
+
+        if (newType.IsSubclassOf(typeof(AIStateTransition)))
+        {
+            transitionOrBehavior = new TransitionType(newType, isTransition: true);
+            _typeNameAndInstanceToTransitionType.Add((stateOrTransitionName, self), transitionOrBehavior);
+            return;
+        }
+        else if (newType.IsSubclassOf(typeof(AIBehaviorState)))
+        {
+            transitionOrBehavior = new TransitionType(newType, isTransition: false);
+            _typeNameAndInstanceToTransitionType.Add((stateOrTransitionName, self), transitionOrBehavior);
+            return;
+        }
+
+        throw new ArgumentException(
+            $"'{stateOrTransitionName}' is neither an {nameof(AIStateTransition)} nor an {nameof(AIBehaviorState)}!",
+            nameof(stateOrTransitionName));
     }
 
     [ServerRpc]

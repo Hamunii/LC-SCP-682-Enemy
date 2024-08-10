@@ -1,8 +1,11 @@
 /*
- * https://github.com/Skull220/Welcome_To_Ooblterra/blob/master/Enemies/WTOEnemy.cs
- * Copyright (c) 2023 Skull
- * Skull has given the permission to use this file for the base of our Mod AI class
- * This class has been modified, and is licensed under the MIT license
+ * This class is based on WTOEnemy from Welcome To Ooblterra:
+ * https://github.com/Skeleton-Studios/Welcome_To_Ooblterra/blob/master/Enemies/WTOEnemy.cs
+ *
+ * Welcome To Ooblterra is licensed under the MIT license, which can be found here:
+ * https://github.com/Skeleton-Studios/Welcome_To_Ooblterra/blob/master/LICENSE
+ *
+ * This class has been modified, and is licensed under the MIT license.
 */
 
 using System;

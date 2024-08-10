@@ -146,7 +146,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
         public override IEnumerator OnStateEntered()
         {
-            creatureAnimator.SetBool(Anim.isMoving, true);
+            CreatureAnimator.SetBool(Anim.isMoving, true);
             yield break;
         }
 
@@ -165,10 +165,10 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
         public override IEnumerator OnStateEntered()
         {
-            creatureAnimator.SetBool(Anim.isMoving, false);
-            creatureAnimator.SetBool(Anim.isOnShip, true);
+            CreatureAnimator.SetBool(Anim.isMoving, false);
+            CreatureAnimator.SetBool(Anim.isOnShip, true);
 
-            agent.enabled = false;
+            Agent.enabled = false;
             // TODO: Jump animation
             self.gameObject.transform.position = self.posOnTopOfShip;
             yield break;
@@ -176,10 +176,10 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
         public override IEnumerator OnStateExit()
         {
-            creatureAnimator.SetBool(Anim.isMoving, true);
-            creatureAnimator.SetBool(Anim.isOnShip, false);
+            CreatureAnimator.SetBool(Anim.isMoving, true);
+            CreatureAnimator.SetBool(Anim.isOnShip, false);
 
-            agent.enabled = true;
+            Agent.enabled = true;
             yield break;
         }
 
@@ -199,9 +199,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         {
             public override bool CanTransitionBeTaken()
             {
-                self.targetPlayer = self.FindNearestPlayer();
+                TargetPlayer = self.FindNearestPlayer();
                 // TODO: make it better
-                if (self.TargetPlayerWithinRange(15))
+                if (self.PlayerWithinRange(TargetPlayer, 15))
                     return true;
                 return false;
             }
@@ -240,8 +240,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
         public override void AIInterval()
         {
-            self.targetPlayer = self.FindNearestPlayer();
-            self.SetDestinationToPosition(self.targetPlayer.transform.position);
+            TargetPlayer = self.FindNearestPlayer();
+            self.SetDestinationToPosition(TargetPlayer.transform.position);
         }
 
         public override IEnumerator OnStateExit()
@@ -253,7 +253,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         private class TouchTargetPlayerAndStartDraggingTransition : AIStateTransition
         {
             // I dunno how bad this is for performance
-            public override bool CanTransitionBeTaken() => self.IsPlayerInsideCollider(self.targetPlayer, self.mainCollider);
+            public override bool CanTransitionBeTaken() => self.IsPlayerInsideCollider(TargetPlayer, self.mainCollider);
             public override AIBehaviorState NextState() => new DragPlayerState();
         }
     }
@@ -266,8 +266,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         EntranceTeleport? facilityEntrance = null;
         public override IEnumerator OnStateEntered()
         {
-            self.targetPlayer = self.FindNearestPlayer();
-            self.EnterSpecialAnimationWithPlayer(self.targetPlayer);
+            TargetPlayer = self.FindNearestPlayer();
+            self.EnterSpecialAnimationWithPlayer(TargetPlayer);
 
             facilityEntrance = RoundManager.FindMainEntranceScript(self.isOutside);
             if (facilityEntrance == null)
@@ -287,7 +287,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
                 return;
 
             self.inSpecialAnimationWithPlayer.transform.position =
-                self.creatureVoice.transform.position; // creatureVoice is positioned in the mouth
+                CreatureVoice.transform.position; // creatureVoice is positioned in the mouth
         }
 
         public override IEnumerator OnStateExit()
@@ -320,7 +320,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
         public override IEnumerator OnStateEntered()
         {
-            creatureAnimator.SetBool(Anim.isMoving, true);
+            CreatureAnimator.SetBool(Anim.isMoving, true);
 
             facilityEntrance = RoundManager.FindMainEntranceScript(self.isOutside);
             Transitions.Add(new EnterEntranceTransition());
@@ -376,7 +376,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
         public override IEnumerator OnStateEntered()
         {
-            creatureAnimator.SetBool(Anim.isMoving, true);
+            CreatureAnimator.SetBool(Anim.isMoving, true);
 
             self.StartSearch(self.transform.position);
             yield break;
@@ -428,7 +428,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
         public override IEnumerator OnStateEntered()
         {
-            creatureAnimator.SetBool(Anim.isMoving, true);
+            CreatureAnimator.SetBool(Anim.isMoving, true);
             self.SetAgentSpeedAndAnimations(Speed.Running);
             yield break;
         }
@@ -499,14 +499,14 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
         public override IEnumerator OnStateEntered()
         {
-            creatureAnimator.SetBool(Anim.isMoving, true);
+            CreatureAnimator.SetBool(Anim.isMoving, true);
             yield break;
         }
 
         public override void AIInterval()
         {
-            self.targetPlayer = self.FindNearestPlayer();
-            self.SetDestinationToPosition(self.targetPlayer.transform.position);
+            TargetPlayer = self.FindNearestPlayer();
+            self.SetDestinationToPosition(TargetPlayer.transform.position);
         }
 
         public override void OnCollideWithPlayer(Collider other) =>
@@ -528,8 +528,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
         public override void AIInterval()
         {
-            self.targetPlayer = self.FindNearestPlayer();
-            self.SetDestinationToPosition(self.targetPlayer.transform.position);
+            TargetPlayer = self.FindNearestPlayer();
+            self.SetDestinationToPosition(TargetPlayer.transform.position);
         }
 
         public override void OnCollideWithPlayer(Collider other) =>
@@ -660,7 +660,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
     private IEnumerator WaitAndDealDamage(PlayerControllerB player)
     {
-        self.creatureSFX.PlayOneShot(SFX.bite.FromRandom(enemyRandom));
+        creatureSFX.PlayOneShot(SFX.bite.FromRandom(enemyRandom));
         yield return new WaitForSeconds(0.8f);
 
         creatureAnimator.SetTrigger(Anim.doBite);

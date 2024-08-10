@@ -242,13 +242,6 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
         return DistanceFromShip;
     }
 
-    internal bool TargetPlayerWithinRange(float range, bool includeYAxis = true)
-    {
-        var distance = DistanceFromTargetPlayer(includeYAxis);
-        // DebugLog($"Distance from target player: {distance}");
-        return distance <= range;
-    }
-
     internal bool PlayerWithinRange(PlayerControllerB player, float range, bool includeYAxis = true)
     {
         return DistanceFromPlayer(player, includeYAxis) <= range;

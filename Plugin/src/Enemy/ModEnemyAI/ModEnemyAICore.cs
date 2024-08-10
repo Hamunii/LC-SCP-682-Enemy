@@ -23,20 +23,13 @@ namespace SCP682.SCPEnemy;
 public abstract partial class ModEnemyAI<T> : EnemyAI
     where T : ModEnemyAI<T>
 {
-    public abstract class AIBehaviorState
+    /// <summary>
+    /// The base class for behavior states. Only one behavior state can be active at once,<br/>
+    /// and new behavior states can be transitioned to from <see cref="AIStateTransition"/>s in the<br/>
+    /// <see cref="Transitions"/> list.
+    /// </summary>
+    public abstract class AIBehaviorState : AIBase
     {
-        /// <inheritdoc cref="ModEnemyAI{T}.self"/>
-        public T self = default!;
-
-        /// <summary>
-        /// The NavMeshAgent of this enemy.
-        /// </summary>
-        public NavMeshAgent agent = null!;
-
-        /// <inheritdoc cref="ModEnemyAI{T}.enemyRandom"/>
-        public System.Random enemyRandom = null!;
-        public Animator creatureAnimator = null!;
-
         /// <summary>
         /// Called when this state is entered.
         /// </summary>
@@ -75,22 +68,18 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
         /// </summary>
         public abstract IEnumerator OnStateExit();
 
-        /// <summary>All the transitions that can be made from current State, excluding global transitions.</summary>
+        /// <summary>
+        /// All the transitions that can be made from current State, excluding global transitions.
+        /// </summary>
         public abstract List<AIStateTransition> Transitions { get; set; }
     }
 
-    public abstract class AIStateTransition
+    /// <summary>
+    /// The base class for state transitions. A single behavior state can have multiple transitions,<br/>
+    /// and the first that satisfies the transition conditions will decide the next <see cref="AIBehaviorState"/>.
+    /// </summary>
+    public abstract class AIStateTransition : AIBase
     {
-        /// <inheritdoc cref="ModEnemyAI{T}.self"/>
-        public T self = default!;
-
-        /// <inheritdoc cref="AIBehaviorState.agent"/>
-        public NavMeshAgent agent = null!;
-
-        /// <inheritdoc cref="ModEnemyAI{T}.enemyRandom"/>
-        public System.Random enemyRandom = null!;
-        public Animator creatureAnimator = null!;
-
         /// <summary>
         /// A method called by the state machine manager to check if this transition can be executed.
         /// </summary>
@@ -109,6 +98,31 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
 
         /// <inheritdoc cref="AIBehaviorState.OnCollideWithPlayer(Collider)"/>
         public virtual void OnCollideWithPlayer(Collider other) { }
+    }
+
+    /// <summary>
+    /// A base class for <see cref="AIBehaviorState"/> and <see cref="AIStateTransition"/>
+    /// that provides an instance of the enemy,<br/>
+    /// and some "shortcuts" to commonly used fields via properties.
+    /// </summary>
+    public abstract class AIBase
+    {
+        /// <inheritdoc cref="ModEnemyAI{T}.self"/>
+        public T self = default!;
+
+        /// <summary>
+        /// The NavMeshAgent of this enemy.
+        /// </summary>
+        public NavMeshAgent Agent => self.agent;
+
+        /// <inheritdoc cref="ModEnemyAI{T}.targetPlayer"/>
+        public PlayerControllerB? TargetPlayer { get => self.targetPlayer; set => self.targetPlayer = value; }
+
+        /// <inheritdoc cref="ModEnemyAI{T}.enemyRandom"/>
+        public System.Random EnemyRandom => self.enemyRandom;
+        public Animator CreatureAnimator => self.creatureAnimator;
+        public AudioSource CreatureSFX => self.creatureSFX;
+        public AudioSource CreatureVoice => self.creatureVoice;
     }
 
     private class TransitionType(Type type, bool isTransition)
@@ -275,13 +289,13 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
     {
         foreach (AIStateTransition transition in globalTransitions)
         {
-            InitializeStateTransitionIfNeeded(transition, self);
+            InitializeStateTransition(transition, self);
             yield return transition;
         }
 
         foreach (AIStateTransition transition in activeState.Transitions)
         {
-            InitializeStateTransitionIfNeeded(transition, self);
+            InitializeStateTransition(transition, self);
             yield return transition;
         }
     }
@@ -289,24 +303,12 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
     private IEnumerator InitializeAndEnterState(AIBehaviorState activeState, T self, System.Random enemyRandom)
     {
         activeState.self = self;
-        activeState.agent = self.agent;
-        activeState.enemyRandom = enemyRandom;
-        activeState.creatureAnimator = self.creatureAnimator;
         yield return StartCoroutine(activeState.OnStateEntered());
         _transitionCoroutineInProgress = null;
     }
 
-    private void InitializeStateTransitionIfNeeded(AIStateTransition transition, T self)
-    {
-        // We can assume everything is initialized if this is
-        if (transition.self is not null)
-            return;
-
+    private void InitializeStateTransition(AIStateTransition transition, T self) =>
         transition.self = self;
-        transition.agent = self.agent;
-        transition.enemyRandom = self.enemyRandom;
-        transition.creatureAnimator = self.creatureAnimator;
-    }
 
     internal void DebugLog(object data)
     {
@@ -340,7 +342,7 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
         if (transitionOrBehavior.isTransition)
         {
             localNextTransition = (AIStateTransition)Activator.CreateInstance(transitionOrBehavior.type);
-            InitializeStateTransitionIfNeeded(localNextTransition, self);
+            InitializeStateTransition(localNextTransition, self);
             if (localNextTransition.NextState().GetType() == activeState.GetType())
                 yield break;
         }

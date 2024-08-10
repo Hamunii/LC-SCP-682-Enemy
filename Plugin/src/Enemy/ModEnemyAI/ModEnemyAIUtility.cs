@@ -52,7 +52,7 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
     }
 
     internal bool PlayerCanBeTargeted(PlayerControllerB myPlayer) =>
-        GetPlayerState(myPlayer) == MyValidState;
+        GetPlayerState(myPlayer) == myValidState;
 
     internal PlayerState GetPlayerState(PlayerControllerB myPlayer)
     {
@@ -276,12 +276,12 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
     {
         if (toOutside)
         {
-            MyValidState = PlayerState.Outside;
+            myValidState = PlayerState.Outside;
             base.SetEnemyOutside(true);
         }
         else
         {
-            MyValidState = PlayerState.Inside;
+            myValidState = PlayerState.Inside;
             base.SetEnemyOutside(false);
         }
     }

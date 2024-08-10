@@ -33,7 +33,7 @@ static class ModMenuAPICompatibility
     {
         protected override void OnClick()
         {
-            PLog.Log($"Current State: {self.ActiveState}");
+            PLog.Log($"Current State: {self.activeState}");
         }
     }
 

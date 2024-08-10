@@ -68,12 +68,12 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         }
         if (IS_DEBUG_BEHAVIOR)
         {
-            PrintDebugs = true;
+            printDebugs = true;
             enemyType.isOutsideEnemy = !GameNetworkManager
                 .Instance
                 .localPlayerController
                 .isInsideFactory;
-            MyValidState = GetPlayerState(GameNetworkManager.Instance.localPlayerController);
+            myValidState = GetPlayerState(GameNetworkManager.Instance.localPlayerController);
         }
 
         // creatureSFX.clip = SFX.walk.FromRandom(enemyRandom);
@@ -132,7 +132,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             KillEnemyOnOwnerClient();
         }
 
-        if (ActiveState is not AttackPlayerState)
+        if (activeState is not AttackPlayerState)
             OverrideState(new AttackPlayerState());
     }
 
@@ -549,7 +549,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     {
         public override bool CanTransitionBeTaken()
         {
-            if (self.ActiveState is AttackPlayerState)
+            if (self.activeState is AttackPlayerState)
                 return false;
 
             if (self.CheckLineOfSightForPlayer(45, 60, 6))

@@ -21,22 +21,54 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
 {
     public abstract class AIBehaviorState
     {
+        /// <inheritdoc cref="ModEnemyAI{T}.self"/>
         public T self = default!;
+
+        /// <summary>
+        /// The NavMeshAgent of this enemy.
+        /// </summary>
         public NavMeshAgent agent = null!;
+
+        /// <inheritdoc cref="ModEnemyAI{T}.enemyRandom"/>
         public System.Random enemyRandom = null!;
         public Animator creatureAnimator = null!;
+
+        /// <summary>
+        /// Called when this state is entered.
+        /// </summary>
+        /// <remarks>
+        /// While this method is still running, <see cref="AIStateTransition"/>s,
+        /// and other methods in this <see cref="AIBehaviorState"/> aren't processed.
+        /// </remarks>
         public abstract IEnumerator OnStateEntered();
 
-        /// <summary>Runs every frame, but never before OnStateEntered not after OnStateExit.</summary>
+        /// <summary>
+        /// Runs every frame, but never before OnStateEntered not after OnStateExit.
+        /// </summary>
         public virtual void Update() { }
-        /// <summary>Runs every frame after the normal Update methods, but never before OnStateEntered nor after OnStateExit.</summary>
+
+        /// <summary>
+        /// Runs every frame after the normal Update methods, but never before OnStateEntered nor after OnStateExit.
+        /// </summary>
         public virtual void LateUpdate() { }
 
-        /// <summary>Runs at <c>DoAIInterval</c>, which the interval depends on EnemyAI's <c>AIIntervalTime</c>.</summary>
+        /// <summary>Runs at <see cref="EnemyAI.DoAIInterval"/>, which the interval is <see cref="EnemyAI.AIIntervalTime"/>.</summary>
         public virtual void AIInterval() { }
 
+        /// <summary>
+        /// Called when a GameObject with a player tag collides with a
+        /// GameObject with an EnemyAICollisionDetect script.<br/>
+        /// You can use <see cref="ModEnemyAI.TryGetValidPlayerFromCollision(Collider, out PlayerControllerB?)"/>
+        /// to get a player from the collider.
+        /// </summary>
+        /// <remarks>
+        /// This will get called even if a state transition is in progress.
+        /// </remarks>
         public virtual void OnCollideWithPlayer(Collider other) { }
 
+        /// <summary>
+        /// Called after a <see cref="AIStateTransition.CanTransitionBeTaken"/> method has returned <see langword="true"/>.
+        /// </summary>
         public abstract IEnumerator OnStateExit();
 
         /// <summary>All the transitions that can be made from current State, excluding global transitions.</summary>
@@ -45,12 +77,33 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
 
     public abstract class AIStateTransition
     {
+        /// <inheritdoc cref="ModEnemyAI{T}.self"/>
         public T self = default!;
+
+        /// <inheritdoc cref="AIBehaviorState.agent"/>
         public NavMeshAgent agent = null!;
+
+        /// <inheritdoc cref="ModEnemyAI{T}.enemyRandom"/>
         public System.Random enemyRandom = null!;
         public Animator creatureAnimator = null!;
+
+        /// <summary>
+        /// A method called by the state machine manager to check if this transition can be executed.
+        /// </summary>
+        /// <remarks>
+        /// Called every frame, except during state enter or exit.<br/>
+        /// If true is returned, <see cref="NextState"/> is called and returns the next state.
+        /// </remarks>
+        /// <returns><see langword="true"/> if transition should be executed, <see langword="false"/> otherwise.</returns>
         public abstract bool CanTransitionBeTaken();
+
+        /// <summary>
+        /// Returns the next state for the state machine.
+        /// </summary>
+        /// <returns>The next <see cref="AIBehaviorState"/>.</returns>
         public abstract AIBehaviorState NextState();
+
+        /// <inheritdoc cref="AIBehaviorState.OnCollideWithPlayer(Collider)"/>
         public virtual void OnCollideWithPlayer(Collider other) { }
     }
 
@@ -62,14 +115,17 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
         Ship
     }
 
-    internal AIBehaviorState ActiveState = null!;
+    internal AIBehaviorState activeState = null!;
+
+    /// <summary>
+    /// A seeded random number generator, that's synced each time state is changed.
+    /// </summary>
     internal System.Random enemyRandom = null!;
     internal float AITimer;
-    internal bool PrintDebugs = false;
-    internal PlayerState MyValidState = PlayerState.Inside;
+    internal bool printDebugs = false;
+    internal PlayerState myValidState = PlayerState.Inside;
     internal AIStateTransition nextTransition = null!;
-    internal List<AIStateTransition> GlobalTransitions = new List<AIStateTransition>();
-    internal List<AIStateTransition> AllTransitions = new List<AIStateTransition>();
+    internal List<AIStateTransition> globalTransitions = [];
     /// <summary>
     /// The instance of this enemy.
     /// </summary>
@@ -80,7 +136,10 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
     /// A property that works as a networked wrapper for the base-game's
     /// <see cref="EnemyAI.targetPlayer"/> field.
     /// </summary>
+#pragma warning disable IDE1006 // Naming Styles
+    // We want this to work as a seamless replacement for the 'targetPlayer' field.
     public new PlayerControllerB? targetPlayer
+#pragma warning restore IDE1006 // Naming Styles
     {
         get
         {
@@ -104,7 +163,7 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
         }
     }
     private Coroutine? _transitionCoroutineInProgress = null;
-    private Dictionary<string, Type> _typeNameToType = [];
+    private readonly Dictionary<string, Type> _typeNameToType = [];
 
     /// <summary>
     /// A method to get the instance of the enemy class.
@@ -127,10 +186,10 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
     {
         //Initializers
         self = GetThis();
-        ActiveState = GetInitialState();
+        activeState = GetInitialState();
         enemyRandom = new System.Random(StartOfRound.Instance.randomMapSeed + thisEnemyIndex);
 
-        MyValidState = enemyType.isOutsideEnemy ? PlayerState.Outside : PlayerState.Inside;
+        myValidState = enemyType.isOutsideEnemy ? PlayerState.Outside : PlayerState.Inside;
 
         //Fix for the animator sometimes deciding to just not work
         creatureAnimator.Rebind();
@@ -144,7 +203,7 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
             KillEnemyOnOwnerClient();
         }
 
-        _transitionCoroutineInProgress = StartCoroutine(InitializeState(ActiveState, self, enemyRandom));
+        _transitionCoroutineInProgress = StartCoroutine(InitializeAndEnterState(activeState, self, enemyRandom));
     }
 
     public override void Update()
@@ -156,66 +215,77 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
         base.Update();
         AITimer += Time.deltaTime;
 
-        if (_transitionCoroutineInProgress is not null) return;
-        bool currentlyNotTransitioningState = true;
+        if (_transitionCoroutineInProgress is not null)
+            return;
 
-        //Reset transition list to match all those in our current state, along with any global transitions that exist regardless of state (stunned, mostly)
-        AllTransitions.Clear();
-        AllTransitions.AddRange(GlobalTransitions);
-        AllTransitions.AddRange(ActiveState.Transitions);
-
-        foreach (AIStateTransition TransitionToCheck in AllTransitions)
+        foreach (AIStateTransition TransitionToCheck in GetAllTransitions())
         {
-            InitializeStateTransition(TransitionToCheck, self);
             if (TransitionToCheck.CanTransitionBeTaken() && base.IsOwner)
             {
-                currentlyNotTransitioningState = false;
                 nextTransition = TransitionToCheck;
                 TransitionStateServerRpc(nextTransition.ToString());
                 return;
             }
         }
 
-        if (currentlyNotTransitioningState)
-        {
-            ActiveState.Update();
-        }
+        activeState.Update();
     }
 
     internal void LateUpdate()
     {
-        ActiveState.LateUpdate();
+        if (_transitionCoroutineInProgress is not null)
+            return;
+
+        activeState.LateUpdate();
     }
 
     public override void DoAIInterval()
     {
         base.DoAIInterval();
-        if (_transitionCoroutineInProgress is not null) return;
-        ActiveState.AIInterval();
+
+        if (_transitionCoroutineInProgress is not null)
+            return;
+
+        activeState.AIInterval();
     }
 
     public override void OnCollideWithPlayer(Collider other)
     {
         base.OnCollideWithPlayer(other);
-        ActiveState.OnCollideWithPlayer(other);
-        foreach (AIStateTransition TransitionToCheck in AllTransitions)
+
+        activeState.OnCollideWithPlayer(other);
+        foreach (AIStateTransition transitionToCheck in GetAllTransitions())
         {
-            InitializeStateTransition(TransitionToCheck, self);
-            TransitionToCheck.OnCollideWithPlayer(other);
+            transitionToCheck.OnCollideWithPlayer(other);
         }
     }
 
-    private IEnumerator InitializeState(AIBehaviorState ActiveState, T self, System.Random enemyRandom)
+    private IEnumerable<AIStateTransition> GetAllTransitions()
     {
-        ActiveState.self = self;
-        ActiveState.agent = self.agent;
-        ActiveState.enemyRandom = enemyRandom;
-        ActiveState.creatureAnimator = self.creatureAnimator;
-        yield return StartCoroutine(ActiveState.OnStateEntered());
+        foreach (AIStateTransition transition in globalTransitions)
+        {
+            InitializeStateTransitionIfNeeded(transition, self);
+            yield return transition;
+        }
+
+        foreach (AIStateTransition transition in activeState.Transitions)
+        {
+            InitializeStateTransitionIfNeeded(transition, self);
+            yield return transition;
+        }
+    }
+
+    private IEnumerator InitializeAndEnterState(AIBehaviorState activeState, T self, System.Random enemyRandom)
+    {
+        activeState.self = self;
+        activeState.agent = self.agent;
+        activeState.enemyRandom = enemyRandom;
+        activeState.creatureAnimator = self.creatureAnimator;
+        yield return StartCoroutine(activeState.OnStateEntered());
         _transitionCoroutineInProgress = null;
     }
 
-    private void InitializeStateTransition(AIStateTransition transition, T self)
+    private void InitializeStateTransitionIfNeeded(AIStateTransition transition, T self)
     {
         // We can assume everything is initialized if this is
         if (transition.self is not null)
@@ -229,7 +299,7 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
 
     internal void DebugLog(object data)
     {
-        if (PrintDebugs)
+        if (printDebugs)
             PLog.Log(data);
     }
 
@@ -266,8 +336,8 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
         if (transitionOrBehaviorType.IsSubclassOf(typeof(AIStateTransition)))
         {
             localNextTransition = (AIStateTransition)Activator.CreateInstance(transitionOrBehaviorType);
-            InitializeStateTransition(localNextTransition, self);
-            if (localNextTransition.NextState().GetType() == ActiveState.GetType())
+            InitializeStateTransitionIfNeeded(localNextTransition, self);
+            if (localNextTransition.NextState().GetType() == activeState.GetType())
                 yield break;
         }
         else if (!transitionOrBehaviorType.IsSubclassOf(typeof(AIBehaviorState)))
@@ -276,22 +346,22 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
                 nameof(stateOrTransitionName));
 
         //LogMessage(stateName);
-        DebugLog($"{__getTypeName()} #{self.thisEnemyIndex} is Exiting:  {ActiveState}");
-        yield return StartCoroutine(ActiveState.OnStateExit());
+        DebugLog($"{__getTypeName()} #{self.thisEnemyIndex} is Exiting:  {activeState}");
+        yield return StartCoroutine(activeState.OnStateExit());
 
         if (localNextTransition is not null)
         {
             DebugLog($"{__getTypeName()} #{self.thisEnemyIndex} is Transitioning via:  {localNextTransition}");
-            ActiveState = localNextTransition.NextState();
+            activeState = localNextTransition.NextState();
         }
         else
         {
             DebugLog($"{__getTypeName()} #{self.thisEnemyIndex} is Transitioning via: State Override");
-            ActiveState = (AIBehaviorState)Activator.CreateInstance(transitionOrBehaviorType);
+            activeState = (AIBehaviorState)Activator.CreateInstance(transitionOrBehaviorType);
         }
 
-        DebugLog($"{__getTypeName()} #{self.thisEnemyIndex} is Entering:  {ActiveState}");
-        StartCoroutine(InitializeState(ActiveState, self, new(randomSeed)));
+        DebugLog($"{__getTypeName()} #{self.thisEnemyIndex} is Entering:  {activeState}");
+        StartCoroutine(InitializeAndEnterState(activeState, self, new(randomSeed)));
 
         //Debug Prints
         StartOfRound.Instance.ClientPlayerList.TryGetValue(
@@ -299,7 +369,7 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
             out var value
         );
         DebugLog(
-            $"CREATURE: {enemyType.name} #{self.thisEnemyIndex} STATE: {ActiveState} ON PLAYER: #{value} ({StartOfRound.Instance.allPlayerScripts[value].playerUsername})"
+            $"CREATURE: {enemyType.name} #{self.thisEnemyIndex} STATE: {activeState} ON PLAYER: #{value} ({StartOfRound.Instance.allPlayerScripts[value].playerUsername})"
         );
     }
 

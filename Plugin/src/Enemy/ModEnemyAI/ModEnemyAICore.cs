@@ -336,7 +336,7 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
 
         if (!_typeNameAndInstanceToTransitionType.TryGetValue((stateOrTransitionName, self), out TransitionType? transitionOrBehavior))
             ValidateAndCacheTransitionType(stateOrTransitionName, ref transitionOrBehavior);
-        
+
         if (transitionOrBehavior.isTransition)
         {
             localNextTransition = (AIStateTransition)Activator.CreateInstance(transitionOrBehavior.type);

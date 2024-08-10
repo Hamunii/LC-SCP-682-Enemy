@@ -131,7 +131,7 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
         internal readonly bool isTransition = isTransition;
     }
 
-    private static readonly Dictionary<(string, T), TransitionType> _typeNameAndInstanceToTransitionType = [];
+    private static readonly Dictionary<(string, Type), TransitionType> _typeNameAndInstanceTypeToTransitionType = [];
 
     public enum PlayerState
     {
@@ -336,7 +336,7 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
     {
         AIStateTransition? localNextTransition = null;
 
-        if (!_typeNameAndInstanceToTransitionType.TryGetValue((stateOrTransitionName, self), out TransitionType? transitionOrBehavior))
+        if (!_typeNameAndInstanceTypeToTransitionType.TryGetValue((stateOrTransitionName, self.GetType()), out TransitionType? transitionOrBehavior))
             ValidateAndCacheTransitionType(stateOrTransitionName, ref transitionOrBehavior);
 
         if (transitionOrBehavior.isTransition)
@@ -385,13 +385,13 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
         if (newType.IsSubclassOf(typeof(AIStateTransition)))
         {
             transitionOrBehavior = new TransitionType(newType, isTransition: true);
-            _typeNameAndInstanceToTransitionType.Add((stateOrTransitionName, self), transitionOrBehavior);
+            _typeNameAndInstanceTypeToTransitionType.Add((stateOrTransitionName, self.GetType()), transitionOrBehavior);
             return;
         }
         else if (newType.IsSubclassOf(typeof(AIBehaviorState)))
         {
             transitionOrBehavior = new TransitionType(newType, isTransition: false);
-            _typeNameAndInstanceToTransitionType.Add((stateOrTransitionName, self), transitionOrBehavior);
+            _typeNameAndInstanceTypeToTransitionType.Add((stateOrTransitionName, self.GetType()), transitionOrBehavior);
             return;
         }
 

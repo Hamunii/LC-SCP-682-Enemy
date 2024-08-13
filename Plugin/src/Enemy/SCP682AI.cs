@@ -232,8 +232,52 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
         public override IEnumerator OnStateEntered()
         {
-            // TODO: Implement jump animation
-            yield return new NotImplementedException();
+            if (TargetPlayer == null)
+            {
+                Plugin.Logger.LogError("Trying to ambush player, but targetPlayer is null! Attacking player instead.");
+                self.OverrideState(new AttackPlayerState());
+                yield break;
+            }
+
+            Vector3 positionBehindPlayer;
+
+            {
+                Vector3 targetPositionBehindPlayer = TargetPlayer.transform.position - Vector3.Scale(new Vector3(5, 0, 5), TargetPlayer.transform.forward);
+                
+                if (!NavMesh.SamplePosition(targetPositionBehindPlayer, out NavMeshHit navHit, maxDistance: 10f, NavMesh.AllAreas))
+                {
+                    Plugin.Logger.LogWarning("Trying to ambush player, but didn't find NavMesh near target player! Attacking player instead.");
+                    self.OverrideState(new AttackPlayerState());
+                    yield break;
+                }
+
+                positionBehindPlayer = navHit.position;
+            }
+
+            Vector3 positionInBetweenInAir = (positionBehindPlayer + positionBehindPlayer) / 2 + (Vector3.up * 5f);
+            Vector3 originalPosition = self.transform.position;
+
+            self.SetAgentSpeedAndAnimations(Speed.Stopped);
+            self.agent.enabled = false;
+
+            // Everything is now validated and set up, we can perform the jump animation.
+            float normalizedTimer = 0f;
+            while (normalizedTimer <= 1f)
+            {
+                float scaledDeltaTime = Time.deltaTime * 0.5f;
+                normalizedTimer += scaledDeltaTime;
+
+                // This is a Bezier curve.
+                Vector3 m1 = Vector3.Lerp(originalPosition, positionInBetweenInAir, normalizedTimer);
+                Vector3 m2 = Vector3.Lerp(positionInBetweenInAir, positionBehindPlayer, normalizedTimer);
+                self.transform.position = Vector3.Lerp(m1, m2, normalizedTimer);
+
+                self.transform.Rotate(0, 180 / scaledDeltaTime, 0, Space.World);
+                yield return null;
+            }
+
+            self.agent.enabled = true;
+
             self.StartCoroutine(self.RoarAndRunCoroutine());
             yield break;
         }

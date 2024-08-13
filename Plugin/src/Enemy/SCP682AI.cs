@@ -327,6 +327,13 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
         public override void LateUpdate()
         {
+            if (self.inSpecialAnimationWithPlayer.inAnimationWithEnemy != self)
+            {
+                Plugin.Logger.LogWarning("Player is no longer in special animation with this enemy!");
+                self.OverrideState(new AttackPlayerState());
+                return;
+            }
+
             if (self.inSpecialAnimationWithPlayer != GameNetworkManager.Instance.localPlayerController)
                 return;
 

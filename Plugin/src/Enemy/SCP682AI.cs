@@ -43,6 +43,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     const float defaultAttackCooldown = 5f;
     float attackCooldown = defaultAttackCooldown;
 
+    private int _defaultHealth;
+
 
 #if DEBUG
     const bool IS_DEBUG_BEHAVIOR = true;
@@ -56,6 +58,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     public override void Start()
     {
         SCP682Objects.Add(gameObject);
+
+        _defaultHealth = enemyHP;
 
         posOnTopOfShip = StartOfRound.Instance.insideShipPositions[0].position + new Vector3(-2, 5, 3); // temporary
         lineRenderer = gameObject.AddComponent<LineRenderer>();
@@ -123,13 +127,11 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         enemyHP -= force;
         if (enemyHP <= 0 && !isEnemyDead)
         {
-            // Our death sound will be played through creatureVoice when KillEnemy() is called.
-            // KillEnemy() will also attempt to call creatureAnimator.SetTrigger("KillEnemy"),
-            // so we don't need to call a death animation ourselves.
+            // This enemy never dies for real.
+            // KillEnemyOnOwnerClient();
 
-            // We need to stop our search coroutine, because the game does not do that by default.
-            StopCoroutine(searchCoroutine);
-            KillEnemyOnOwnerClient();
+            OverrideState(new DeadTemporarilyState());
+            return;
         }
 
         if (activeState is not AttackPlayerState)
@@ -537,6 +539,55 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             public override bool CanTransitionBeTaken() => self.targetJester is null;
 
             public override AIBehaviorState NextState() => new AtFacilityWanderingState();
+        }
+    }
+
+    #endregion
+    #region  Special States
+
+    private class DeadTemporarilyState : AIBehaviorState
+    {
+        public override List<AIStateTransition> Transitions { get; set; } =
+            [new DeadTemporarilyUntilAwakeTransition()];
+
+        public override IEnumerator OnStateEntered()
+        {
+            CreatureVoice.PlayOneShot(SFX.defeated.FromRandom(EnemyRandom));
+
+            Agent.enabled = false;
+            CreatureAnimator.SetTrigger(Anim.doKillEnemy);
+            yield break;
+        }
+
+        public override IEnumerator OnStateExit()
+        {
+            self.enemyHP = self._defaultHealth;
+
+            Agent.enabled = true;
+
+            // Reset the animator
+            CreatureAnimator.Rebind();
+            CreatureAnimator.Update(0f);
+
+            self.SetAgentSpeedAndAnimations(Speed.Walking);
+            yield break;
+        }
+
+        private class DeadTemporarilyUntilAwakeTransition : AIStateTransition
+        {
+            float timer = 0f;
+
+            public override bool CanTransitionBeTaken()
+            {
+                timer += Time.deltaTime;
+
+                if (timer > 60f)
+                    return true;
+
+                return false;
+            }
+
+            public override AIBehaviorState NextState() => new WanderThroughEntranceState();
         }
     }
 

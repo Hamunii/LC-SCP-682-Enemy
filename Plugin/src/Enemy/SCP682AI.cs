@@ -170,8 +170,13 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             CreatureAnimator.SetBool(Anim.isMoving, false);
             CreatureAnimator.SetBool(Anim.isOnShip, true);
 
+            // Make sure we aren't still pathfinding anywhere else
+            // this probably doesn't even work, but it's for testing anyways
+            Agent.SetDestination(Agent.transform.position);
+            self.destination = Agent.transform.position;
+
             Agent.enabled = false;
-            // TODO: Jump animation
+
             self.gameObject.transform.position = self.posOnTopOfShip;
             yield break;
         }
@@ -260,7 +265,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             Vector3 originalPosition = self.transform.position;
 
             self.SetAgentSpeedAndAnimations(Speed.Stopped);
-            self.agent.enabled = false;
+            Agent.enabled = false;
 
             // Everything is now validated and set up, we can perform the jump animation.
             float normalizedTimer = 0f;
@@ -274,11 +279,12 @@ class SCP682AI : ModEnemyAI<SCP682AI>
                 Vector3 m2 = Vector3.Lerp(positionInBetweenInAir, positionBehindPlayer, normalizedTimer);
                 self.transform.position = Vector3.Lerp(m1, m2, normalizedTimer);
 
-                self.transform.Rotate(0, 180 / scaledDeltaTime, 0, Space.World);
+                // self.transform.Rotate(0, 180 / scaledDeltaTime, 0, Space.World);
                 yield return null;
             }
 
-            self.agent.enabled = true;
+            self.transform.position = positionBehindPlayer;
+            Agent.enabled = true;
 
             self.StartCoroutine(self.RoarAndRunCoroutine());
             yield break;
@@ -309,11 +315,11 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         public override List<AIStateTransition> Transitions { get; set; } =
             [new DraggedPlayerEnoughTransition()];
 
-        EntranceTeleport? facilityEntrance = null;
+        EntranceTeleport facilityEntrance = null!;
         public override IEnumerator OnStateEntered()
         {
             TargetPlayer = self.FindNearestPlayer();
-            self.EnterSpecialAnimationWithPlayer(TargetPlayer);
+            self.EnterSpecialAnimationWithPlayer(TargetPlayer, stopMovementCalculations: false);
 
             facilityEntrance = RoundManager.FindMainEntranceScript(self.isOutside);
             if (facilityEntrance == null)
@@ -327,7 +333,14 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             yield break;
         }
 
-        public override void LateUpdate()
+        public override void AIInterval()
+        {
+            if (!self.SetDestinationToPosition(facilityEntrance.entrancePoint.position, true))
+                PLog.LogError("Facility door is unreachable!");
+        }
+
+        // Works better than LateUpdate, that one fucks up the helmet overlay thingy position
+        public override void Update()
         {
             if (self.inSpecialAnimationWithPlayer.inAnimationWithEnemy != self)
             {
@@ -340,7 +353,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
                 return;
 
             self.inSpecialAnimationWithPlayer.transform.position =
-                CreatureVoice.transform.position; // creatureVoice is positioned in the mouth
+                CreatureVoice.transform.position + new Vector3(0, -1f, 0); // creatureVoice is positioned in the mouth
         }
 
         public override IEnumerator OnStateExit()
@@ -355,7 +368,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             public override bool CanTransitionBeTaken()
             {
                 draggedPlayerTimer += Time.deltaTime;
-                if (draggedPlayerTimer > 10)
+                if (draggedPlayerTimer > 15)
                     return true;
                 return false;
             }
@@ -768,8 +781,13 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         creatureAnimator.SetTrigger(Anim.doBite);
         yield return new WaitForSeconds(0.2f);
 
-        if (!IsPlayerInsideCollider(player, mainCollider))
-            yield break;
+        // TODO: This check doesn't seem to work properly, at least the scale.
+        // Player just doesn't seem to get hit easily.
+        // if (!IsPlayerInsideCollider(player, mainCollider, colliderScale: 100f))
+        // {
+        //     PLog.Log("Missed bite!");
+        //     yield break;
+        // }
 
         // Deal enough damage to set health to 30, doing 15 damage at minimum.
         // Examples: 100 => 30, 45 => 30, 40 => 25, 30 => 15.

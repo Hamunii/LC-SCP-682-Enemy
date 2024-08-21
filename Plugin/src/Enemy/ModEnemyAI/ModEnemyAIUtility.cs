@@ -318,15 +318,17 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
         WalkieTalkie.TransmitOneShotAudio(entrance.entrancePointAudio, entrance.doorAudios[0]);
     }
 
-    internal void EnterSpecialAnimationWithPlayer(PlayerControllerB player)
+    internal void EnterSpecialAnimationWithPlayer(PlayerControllerB player, bool stopMovementCalculations = true)
     {
         if (player.inSpecialInteractAnimation && player.currentTriggerInAnimationWith != null)
             player.currentTriggerInAnimationWith.CancelAnimationExternally();
 
         player.inSpecialInteractAnimation = true;
         player.inAnimationWithEnemy = self;
-        self.inSpecialAnimation = true;
         self.inSpecialAnimationWithPlayer = player;
+
+        if (stopMovementCalculations)
+            self.inSpecialAnimation = true;
     }
 
     /// <summary>
@@ -343,7 +345,7 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
         return false;
     }
 
-    internal bool IsPlayerInsideCollider(PlayerControllerB? player, Collider collider)
+    internal bool IsPlayerInsideCollider(PlayerControllerB? player, Collider collider, float colliderScale = 1f)
     {
         if (player == null)
             return false;
@@ -352,7 +354,7 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
         Collider[] colliders =
             Physics.OverlapBox(
                 collider.bounds.center,
-                collider.bounds.extents / 2,
+                collider.bounds.extents / 2 * colliderScale,
                 Quaternion.identity,
                 playerLayer);
 

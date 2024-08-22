@@ -285,6 +285,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
             self.transform.position = positionBehindPlayer;
             Agent.enabled = true;
+            Agent.Warp(positionBehindPlayer);
 
             self.StartCoroutine(self.RoarAndRunCoroutine());
             yield break;

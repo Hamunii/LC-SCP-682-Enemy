@@ -296,7 +296,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
                 positionBehindPlayer = navHit.position;
             }
 
-            Vector3 positionInBetweenInAir = (positionBehindPlayer + positionBehindPlayer) / 2 + (Vector3.up * 5f);
+            Vector3 positionInBetweenInAir = (positionBehindPlayer + positionBehindPlayer) / 2 + (Vector3.up * 10f);
             Vector3 originalPosition = self.transform.position;
 
             self.SetAgentSpeedAndAnimations(Speed.Stopped);

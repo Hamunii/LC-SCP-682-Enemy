@@ -62,7 +62,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 #endif
 
     internal override SCP682AI GetThis() => this;
-    internal override AIBehaviorState GetInitialState() => new WanderToShipState();
+    internal override AIBehaviorState GetInitialState() => new WanderThroughEntranceState();
 
     public override void Start()
     {

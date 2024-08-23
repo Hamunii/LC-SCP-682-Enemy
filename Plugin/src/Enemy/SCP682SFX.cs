@@ -24,8 +24,30 @@ public static class SFX
                 case "swimDown": swimDown.Add(clip); break;
                 case "wakeUp": wakeUp.Add(clip); break;
                 case "spawn": spawn.Add(clip); break;
-                default: Plugin.Logger.LogError($"AudioClip with name '{clip.name}' was not identified!"); break;
+                default: InitializeVoiceLine(clip); break;
+                // Plugin.Logger.LogError($"AudioClip with name '{clip.name}' was not identified!"); break;
             }
+        }
+    }
+
+    private static void InitializeVoiceLine(AudioClip clip)
+    {
+        switch (clip.name)
+        {
+            case "Worms_SCP682": Voice.Worms_EngageIndoorEnemies = clip; break;
+            // case "Worms_SCP682": Voice.Bothersome_EngageBaboonHawk = clip; break; // Didn't find clip
+            case "Silence_SCP682": Voice.Silence_ChargeJester = clip; break;
+            case "Abomination_SCP682": Voice.Abomination_EngageForestGiant = clip; break;
+            case "Disgrace_SCP682": Voice.Disgrace_EngageEyelessDog = clip; break;
+            case "Pathetic_SCP682": Voice.Pathetic_HitByPlayerFirstTime = clip; break;
+            case "LoathsomeParasites_SCP682": Voice.LoathsomeParasites_MultiplePlayersAttacking = clip; break;
+            // case "Worms_SCP682": Voice.FullRant_UponRevival = clip; break; // Didn't find clip
+            case "PerversionOfExistence_SCP682": Voice.PerversionOfExistence_Flamingos = clip; break;
+            case "TearYouApart_SCP682": Voice.TearYouApart_DraggingPlayer = clip; break;
+            case "Disgusting_SCP682": Voice.Disgusting_KilledPlayer = clip; break;
+            case "Useless_SCP682": Voice.Useless_ChasingPlayerForSomeTime = clip; break;
+            case "Cowards_SCP682": Voice.Cowards_LostPlayer = clip; break;
+            default: Plugin.Logger.LogError($"AudioClip with name '{clip.name}' was not identified!"); break;
         }
     }
 
@@ -41,6 +63,23 @@ public static class SFX
     public static List<AudioClip> swimDown = [];
     public static List<AudioClip> wakeUp = [];
     public static List<AudioClip> spawn = [];
+
+    public static class Voice
+    {
+        public static AudioClip Worms_EngageIndoorEnemies = null!;
+        public static AudioClip Bothersome_EngageBaboonHawk = null!;
+        public static AudioClip Silence_ChargeJester = null!;
+        public static AudioClip Abomination_EngageForestGiant = null!;
+        public static AudioClip Disgrace_EngageEyelessDog = null!;
+        public static AudioClip Pathetic_HitByPlayerFirstTime = null!;
+        public static AudioClip LoathsomeParasites_MultiplePlayersAttacking = null!;
+        public static AudioClip FullRant_UponRevival = null!;
+        public static AudioClip PerversionOfExistence_Flamingos = null!;
+        public static AudioClip TearYouApart_DraggingPlayer = null!;
+        public static AudioClip Disgusting_KilledPlayer = null!;
+        public static AudioClip Useless_ChasingPlayerForSomeTime = null!;
+        public static AudioClip Cowards_LostPlayer = null!;
+    }
 
     public static AudioClip FromRandom(this List<AudioClip> clips, System.Random random)
         => clips[random.Next(clips.Count)];

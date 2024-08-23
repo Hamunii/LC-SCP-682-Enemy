@@ -29,6 +29,7 @@ static class AddEnemyScript
         ai.enemyHP = 18;
 
         ai.turnCompass = pref.transform.Find("TurnCompass").GetComponent<Transform>();
+        ai.crocodileModel = pref.transform.Find("CrocodileModel");
         // ai.attackArea = pref.transform.Find("AttackArea").GetComponent<Transform>();
 
         // Other

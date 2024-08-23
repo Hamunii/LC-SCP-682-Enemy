@@ -21,6 +21,12 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         Running = 7
     }
 
+    public enum EnemyScale
+    {
+        Small = 0,
+        Big = 1,
+    }
+
     static class Anim
     {
         // do: trigger
@@ -41,6 +47,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     BoxCollider mainCollider = null!;
 
     internal Transform turnCompass = null!;
+    internal Transform crocodileModel = null!;
     const float defaultAttackCooldown = 5f;
     float attackCooldown = defaultAttackCooldown;
 
@@ -66,11 +73,14 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         lineRenderer = gameObject.AddComponent<LineRenderer>();
         mainCollider = gameObject.GetComponentInChildren<BoxCollider>();
 
+        var scale = 4f;
+        crocodileModel.localScale = new(scale, scale, scale);
+
         if (enemyType.isOutsideEnemy)
-        {
-            var scale = 4f;
-            gameObject.transform.Find("CrocodileModel").localScale = new(scale, scale, scale);
-        }
+            StartCoroutine(ChangeEnemyScaleTo(EnemyScale.Big));
+        else
+            StartCoroutine(ChangeEnemyScaleTo(EnemyScale.Small));
+
         if (IS_DEBUG_BEHAVIOR)
         {
             printDebugs = true;
@@ -179,6 +189,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             Agent.enabled = false;
 
             self.gameObject.transform.position = self.posOnTopOfShip;
+
+            self.StartCoroutine(self.ChangeEnemyScaleTo(EnemyScale.Small));
             yield break;
         }
 
@@ -200,6 +212,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             CreatureAnimator.SetBool(Anim.isOnShip, false);
 
             Agent.enabled = true;
+
+            self.StartCoroutine(self.ChangeEnemyScaleTo(EnemyScale.Big));
             yield break;
         }
 
@@ -415,7 +429,16 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             
         }
 
-        public override IEnumerator OnStateExit() { yield break; }
+        public override IEnumerator OnStateExit()
+        {
+            // isOutside has already been updated, so we change scale according to that.
+            if (self.isOutside)
+                self.StartCoroutine(self.ChangeEnemyScaleTo(EnemyScale.Big));
+            else
+                self.StartCoroutine(self.ChangeEnemyScaleTo(EnemyScale.Small));
+
+            yield break;
+        }
 
         public class EnterEntranceTransition : AIStateTransition
         {
@@ -812,6 +835,40 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             damageToDeal = player.health - 30; // Set health to 30.
         player.DamagePlayer(damageToDeal);
     }
+
+    internal IEnumerator ChangeEnemyScaleTo(EnemyScale enemyScale)
+    {
+        float targetScale = GetTargetScale(enemyScale);
+
+        if (targetScale < transform.localScale.x)
+        {
+            // Shrink.
+            while (transform.localScale.x > targetScale)
+            {
+                float nextScale = Mathf.Lerp(transform.localScale.x, targetScale, Time.deltaTime);
+                transform.localScale = new Vector3(nextScale, nextScale, nextScale);
+                yield return null;
+            }
+        }
+        if (targetScale > transform.localScale.x)
+        {
+            // Grow.
+            while (transform.localScale.x < targetScale)
+            {
+                float nextScale = Mathf.Lerp(transform.localScale.x, targetScale, Time.deltaTime);
+                transform.localScale = new Vector3(nextScale, nextScale, nextScale);
+                yield return null;
+            }
+        }
+    }
+
+    private static float GetTargetScale(EnemyScale enemyScale) => enemyScale switch
+    {
+        // This is stupid code.
+        EnemyScale.Small => 4f,
+        EnemyScale.Big => 5.5f,
+        _ => throw new ArgumentOutOfRangeException("invalid scale value")
+    };
 
     #endregion
     #region Debug Stuff

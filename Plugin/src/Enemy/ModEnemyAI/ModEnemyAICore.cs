@@ -115,8 +115,8 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
         /// </summary>
         public NavMeshAgent Agent => self.agent;
 
-        /// <inheritdoc cref="ModEnemyAI{T}.targetPlayer"/>
-        public PlayerControllerB? TargetPlayer { get => self.targetPlayer; set => self.targetPlayer = value; }
+        /// <inheritdoc cref="ModEnemyAI{T}.TargetPlayer"/>
+        public PlayerControllerB? TargetPlayer { get => self.TargetPlayer; set => self.TargetPlayer = value; }
 
         /// <inheritdoc cref="ModEnemyAI{T}.enemyRandom"/>
         public System.Random EnemyRandom => self.enemyRandom;
@@ -158,34 +158,36 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
     internal T self = default!;
     private PlayerControllerB? _lastSyncedTargetPlayer;
 
+    public ModEnemyAINetcode Netcode = null!;
+
     /// <summary>
     /// A property that works as a networked wrapper for the base-game's
     /// <see cref="EnemyAI.targetPlayer"/> field.
     /// </summary>
 #pragma warning disable IDE1006 // Naming Styles
     // We want this to work as a seamless replacement for the 'targetPlayer' field.
-    public new PlayerControllerB? targetPlayer
+    public PlayerControllerB? TargetPlayer
 #pragma warning restore IDE1006 // Naming Styles
     {
         get
         {
-            if (IsOwner && base.targetPlayer != _lastSyncedTargetPlayer)
+            if (IsOwner && base.targetPlayer != Netcode.LastSyncedTargetPlayer)
             {
                 if (base.targetPlayer is not null)
-                    SetTargetServerRpc((int)base.targetPlayer.actualClientId);
+                    Netcode.SetTargetServerRpc((int)base.targetPlayer.actualClientId);
                 else
-                    SetTargetServerRpc(-1);
+                    Netcode.SetTargetServerRpc(-1);
             }
             return base.targetPlayer;
         }
         set
         {
-            if (value == _lastSyncedTargetPlayer && _lastSyncedTargetPlayer == base.targetPlayer)
+            if (value == Netcode.LastSyncedTargetPlayer && Netcode.LastSyncedTargetPlayer == base.targetPlayer)
                 return;
             if (value is not null)
-                SetTargetServerRpc((int)value.actualClientId);
+                Netcode.SetTargetServerRpc((int)value.actualClientId);
             else
-                SetTargetServerRpc(-1);
+                Netcode.SetTargetServerRpc(-1);
         }
     }
     private Coroutine? _transitionCoroutineInProgress = null;
@@ -212,6 +214,13 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
         //Initializers
         self = GetThis();
         activeState = GetInitialState();
+        if (self is SCP682AI scp)
+        {
+            Netcode.ModEnemyAI = scp;
+        }
+        else
+            PLog.LogError("self isn't SCP682AI!");
+
         enemyRandom = new System.Random(StartOfRound.Instance.randomMapSeed + thisEnemyIndex);
 
         myValidState = enemyType.isOutsideEnemy ? PlayerState.Outside : PlayerState.Inside;
@@ -248,7 +257,7 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
             if (TransitionToCheck.CanTransitionBeTaken() && base.IsOwner)
             {
                 nextTransition = TransitionToCheck;
-                TransitionStateServerRpc(nextTransition.ToString());
+                Netcode.TransitionStateServerRpc(nextTransition.ToString());
                 return;
             }
         }
@@ -321,15 +330,13 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
         if (isEnemyDead)
             return;
 
-        TransitionStateServerRpc(state.ToString());
+        Netcode.TransitionStateServerRpc(state.ToString());
     }
 
-    [ServerRpc]
-    internal void TransitionStateServerRpc(string stateName) =>
-        TransitionStateClientRpc(stateName, enemyRandom.Next());
+    internal void TransitionStateServerRpcFromNetcode(string stateName) =>
+        Netcode.TransitionStateClientRpc(stateName, enemyRandom.Next());
 
-    [ClientRpc]
-    internal void TransitionStateClientRpc(string stateName, int randomSeed) =>
+    internal void TransitionStateClientRpcFromNetcode(string stateName, int randomSeed) =>
         _transitionCoroutineInProgress = StartCoroutine(TransitionState(stateName, randomSeed));
 
     internal IEnumerator TransitionState(string stateOrTransitionName, int randomSeed)
@@ -400,29 +407,23 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
             nameof(stateOrTransitionName));
     }
 
-    [ServerRpc]
-    private void SetTargetServerRpc(int PlayerID)
-    {
-        SetTargetClientRpc(PlayerID);
-    }
-
-    [ClientRpc]
-    private void SetTargetClientRpc(int PlayerID)
+    internal void SetTargetClientRpcFromNetcode(int PlayerID)
     {
         if (PlayerID == -1)
         {
             base.targetPlayer = null;
-            _lastSyncedTargetPlayer = null;
-            DebugLog($"Clearing target on {this}");
+            Netcode.LastSyncedTargetPlayer = null;
+            PLog.Log($"Clearing target on {this}");
             return;
         }
         if (StartOfRound.Instance.allPlayerScripts[PlayerID] == null)
         {
-            DebugLog($"Index invalid! {this}");
+            PLog.Log($"Index invalid! {this}");
             return;
         }
+        PlayerControllerB targetPlayer = StartOfRound.Instance.allPlayerScripts[PlayerID];
         base.targetPlayer = StartOfRound.Instance.allPlayerScripts[PlayerID];
-        _lastSyncedTargetPlayer = base.targetPlayer;
-        DebugLog($"{this} setting target to: {base.targetPlayer.playerUsername}");
+        Netcode.LastSyncedTargetPlayer = base.targetPlayer;
+        PLog.Log($"{this} setting target to: {base.targetPlayer.playerUsername}");
     }
 }

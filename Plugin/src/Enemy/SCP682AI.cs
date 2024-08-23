@@ -459,7 +459,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>
                 _et ??= RoundManager.FindMainEntranceScript(self.isOutside);
                 if (Vector3.Distance(_et.entrancePoint.position, self.gameObject.transform.position) < 3)
                 {
-                    self.TeleportSelfToOtherEntranceClientRpc(self.isOutside);
+                    if (self.IsOwner)
+                        self.Netcode.TeleportSelfToOtherEntranceClientRpc(self.isOutside);
+
                     return true;
                 }
                 return false;

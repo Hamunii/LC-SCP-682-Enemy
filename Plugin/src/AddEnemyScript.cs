@@ -28,6 +28,8 @@ static class AddEnemyScript
         ai.syncMovementSpeed = 0.22f;
         ai.enemyHP = 18;
 
+        ai.Netcode = pref.AddComponent<ModEnemyAINetcode>();
+
         // Other
         pref.GetComponentInChildren<EnemyAICollisionDetect>().mainScript = ai;
     }

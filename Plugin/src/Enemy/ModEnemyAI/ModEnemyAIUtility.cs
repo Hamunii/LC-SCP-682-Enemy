@@ -151,7 +151,7 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
         int proximityAwareness = -1, bool DoLinecast = true, bool PrintResults = false
     )
     {
-        if (targetPlayer == null)
+        if (TargetPlayer == null)
         {
             DebugLog(
                 $"{this.__getTypeName()} called Target Player LOS check called with"
@@ -160,7 +160,7 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
             return false;
         }
         return IsTargetPlayerWithinLOS(
-            targetPlayer, range, width,
+            TargetPlayer, range, width,
             proximityAwareness, DoLinecast, PrintResults
         );
     }
@@ -198,12 +198,12 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
 
     internal bool IsPlayerReachable()
     {
-        if (targetPlayer == null)
+        if (TargetPlayer == null)
         {
             PLog.LogError("Player Reach Test has no target player or passed in argument!");
             return false;
         }
-        return IsPlayerReachable(targetPlayer);
+        return IsPlayerReachable(TargetPlayer);
     }
 
     internal bool IsPlayerReachable(PlayerControllerB? playerToCheck)
@@ -249,12 +249,12 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
 
     private float DistanceFromTargetPlayer(bool IncludeYAxis)
     {
-        if (targetPlayer == null)
+        if (TargetPlayer == null)
         {
             PLog.LogError($"{this} attempted DistanceFromTargetPlayer with null target; returning -1!");
             return -1f;
         }
-        return DistanceFromPlayer(targetPlayer, IncludeYAxis);
+        return DistanceFromPlayer(TargetPlayer, IncludeYAxis);
     }
 
     private float DistanceFromPlayer(PlayerControllerB player, bool IncludeYAxis)
@@ -282,8 +282,7 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
         }
     }
 
-    [ClientRpc]
-    public void TeleportSelfToOtherEntranceClientRpc(bool isOutside)
+    public void TeleportSelfToOtherEntranceClientRpcFromNetcode(bool isOutside)
     {
         TeleportSelfToOtherEntrance(isOutside);
     }

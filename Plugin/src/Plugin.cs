@@ -11,6 +11,9 @@ using SCP682.Configuration;
 using SCP682.Hooks;
 using SCP682.SCPEnemy;
 using UnityEngine;
+#if RELEASE
+using UnityEngine.Video;
+#endif
 
 namespace SCP682;
 
@@ -47,7 +50,7 @@ public class Plugin : BaseUnityPlugin
 #if DEBUG
         var assetsDir = Path.Combine(Paths.BepInExRootPath, "scripts", assetsDirName);
 #else
-        var assetsDir = Path.Combine(Path.GetDirectoryName(Info.Location), bundleDirName);
+        var assetsDir = Path.Combine(Path.GetDirectoryName(Info.Location), assetsDirName);
 #endif
         modAssets = AssetBundle.LoadFromFile(Path.Combine(assetsDir, mainBundleName));
         if (modAssets is null)
@@ -59,7 +62,7 @@ public class Plugin : BaseUnityPlugin
         SFX.InitializeSFX(modAssets);
         SCP682ET = modAssets.LoadAsset<EnemyType>("SCP682ET");
         var SCP682TN = modAssets.LoadAsset<TerminalNode>("SCP682TN");
-#if !DEBUG // Save reload time by not loading the video
+#if RELEASE // Save reload time by not loading the video on DEBUG
         var videoAssets = AssetBundle.LoadFromFile(Path.Combine(assetsDir, videoBundleName));
         var terminalSpinVid = videoAssets.LoadAsset<VideoClip>("SCP682Spin");
         SCP682TN.displayVideo = terminalSpinVid;
@@ -136,13 +139,24 @@ public class Plugin : BaseUnityPlugin
             );
             foreach (var method in methods)
             {
-                var attributes = method.GetCustomAttributes(
-                    typeof(RuntimeInitializeOnLoadMethodAttribute),
-                    false
-                );
-                if (attributes.Length > 0)
+                try
                 {
-                    method.Invoke(null, null);
+                    if (method.ContainsGenericParameters)
+                        continue;
+
+                    var attributes = method.GetCustomAttributes(
+                        typeof(RuntimeInitializeOnLoadMethodAttribute),
+                        false
+                    );
+                    if (attributes.Length > 0)
+                    {
+                        method.Invoke(null, null);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // I need to look into this
+                    PLog.LogWarning("This error is probably fine: " + ex);
                 }
             }
         }

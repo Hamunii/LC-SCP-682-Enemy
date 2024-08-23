@@ -40,6 +40,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     LineRenderer lineRenderer = null!;
     BoxCollider mainCollider = null!;
 
+    internal Transform turnCompass = null!;
     const float defaultAttackCooldown = 5f;
     float attackCooldown = defaultAttackCooldown;
 
@@ -179,6 +180,18 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
             self.gameObject.transform.position = self.posOnTopOfShip;
             yield break;
+        }
+
+        public override void Update()
+        {
+            if (TargetPlayer == null)
+                return;
+
+            self.turnCompass.LookAt(TargetPlayer.transform);
+            self.transform.rotation = Quaternion.Lerp(
+                self.transform.rotation,
+                Quaternion.Euler(new Vector3(0f, self.turnCompass.eulerAngles.y, 0f)),
+                1f * Time.deltaTime);
         }
 
         public override IEnumerator OnStateExit()

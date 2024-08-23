@@ -28,7 +28,7 @@ static class AddEnemyScript
         ai.syncMovementSpeed = 0.22f;
         ai.enemyHP = 18;
 
-        // ai.turnCompass = pref.transform.Find("TurnCompass").GetComponent<Transform>();
+        ai.turnCompass = pref.transform.Find("TurnCompass").GetComponent<Transform>();
         // ai.attackArea = pref.transform.Find("AttackArea").GetComponent<Transform>();
 
         // Other

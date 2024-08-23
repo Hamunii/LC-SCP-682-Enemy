@@ -18,7 +18,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     {
         Stopped = 0,
         Walking = 3,
-        Running = 7
+        Running = 9
     }
 
     public enum EnemyScale
@@ -50,6 +50,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     internal Transform crocodileModel = null!;
     const float defaultAttackCooldown = 5f;
     float attackCooldown = defaultAttackCooldown;
+    Coroutine? changeScaleCoroutine;
 
     private int _defaultHealth;
 
@@ -73,13 +74,11 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         lineRenderer = gameObject.AddComponent<LineRenderer>();
         mainCollider = gameObject.GetComponentInChildren<BoxCollider>();
 
-        var scale = 4f;
-        crocodileModel.localScale = new(scale, scale, scale);
+        turnCompass = transform.Find("TurnCompass").GetComponent<Transform>();
+        crocodileModel = transform.Find("CrocodileModel");
 
-        if (enemyType.isOutsideEnemy)
-            StartCoroutine(ChangeEnemyScaleTo(EnemyScale.Big));
-        else
-            StartCoroutine(ChangeEnemyScaleTo(EnemyScale.Small));
+        var scale = 1f;
+        crocodileModel.localScale = new(scale, scale, scale);
 
         if (IS_DEBUG_BEHAVIOR)
         {
@@ -90,6 +89,11 @@ class SCP682AI : ModEnemyAI<SCP682AI>
                 .isInsideFactory;
             myValidState = GetPlayerState(GameNetworkManager.Instance.localPlayerController);
         }
+
+        if (enemyType.isOutsideEnemy)
+            changeScaleCoroutine = StartCoroutine(ChangeEnemyScaleTo(EnemyScale.Big));
+        else
+            changeScaleCoroutine = StartCoroutine(ChangeEnemyScaleTo(EnemyScale.Small));
 
         // creatureSFX.clip = SFX.walk.FromRandom(enemyRandom);
         // creatureSFX.loop = true;
@@ -190,6 +194,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
             self.gameObject.transform.position = self.posOnTopOfShip;
 
+            if (self.changeScaleCoroutine != null)
+                self.StopCoroutine(self.changeScaleCoroutine);
             self.StartCoroutine(self.ChangeEnemyScaleTo(EnemyScale.Small));
             yield break;
         }
@@ -212,7 +218,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             CreatureAnimator.SetBool(Anim.isOnShip, false);
 
             Agent.enabled = true;
-
+            
+            if (self.changeScaleCoroutine != null)
+                self.StopCoroutine(self.changeScaleCoroutine);
             self.StartCoroutine(self.ChangeEnemyScaleTo(EnemyScale.Big));
             yield break;
         }
@@ -276,7 +284,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             Vector3 positionBehindPlayer;
 
             {
-                Vector3 targetPositionBehindPlayer = TargetPlayer.transform.position - Vector3.Scale(new Vector3(5, 0, 5), TargetPlayer.transform.forward);
+                Vector3 targetPositionBehindPlayer = TargetPlayer.transform.position - Vector3.Scale(new Vector3(10, 0, 10), TargetPlayer.transform.forward);
                 
                 if (!NavMesh.SamplePosition(targetPositionBehindPlayer, out NavMeshHit navHit, maxDistance: 10f, NavMesh.AllAreas))
                 {
@@ -298,7 +306,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             float normalizedTimer = 0f;
             while (normalizedTimer <= 1f)
             {
-                float scaledDeltaTime = Time.deltaTime * 0.5f;
+                float scaledDeltaTime = Time.deltaTime / 1.5f; // Jump lasts for <divider> seconds.
                 normalizedTimer += scaledDeltaTime;
 
                 // This is a Bezier curve.
@@ -431,6 +439,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
         public override IEnumerator OnStateExit()
         {
+            if (self.changeScaleCoroutine != null)
+                self.StopCoroutine(self.changeScaleCoroutine);
             // isOutside has already been updated, so we change scale according to that.
             if (self.isOutside)
                 self.StartCoroutine(self.ChangeEnemyScaleTo(EnemyScale.Big));
@@ -704,7 +714,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             if (self.activeState is AttackPlayerState)
                 return false;
 
-            if (self.CheckLineOfSightForPlayer(45, 60, 6))
+            if (self.CheckLineOfSightForPlayer(45, 60, 10))
                 return true;
             return false;
         }
@@ -793,7 +803,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
         yield return new WaitForSeconds(1);
         creatureSFX.PlayOneShot(SFX.roar.FromRandom(enemyRandom));
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSeconds(1.1f);
 
         SetAgentSpeedAndAnimations(Speed.Running);
     }
@@ -840,23 +850,25 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     {
         float targetScale = GetTargetScale(enemyScale);
 
-        if (targetScale < transform.localScale.x)
+        if (transform.localScale.x + 0.1f > targetScale)
         {
             // Shrink.
-            while (transform.localScale.x > targetScale)
+            while (transform.localScale.x - 0.1f > targetScale)
             {
                 float nextScale = Mathf.Lerp(transform.localScale.x, targetScale, Time.deltaTime);
                 transform.localScale = new Vector3(nextScale, nextScale, nextScale);
+                // PLog.Log("Shrinking: " + transform.localScale.x);
                 yield return null;
             }
         }
-        if (targetScale > transform.localScale.x)
+        if (transform.localScale.x - 0.1f < targetScale)
         {
             // Grow.
-            while (transform.localScale.x < targetScale)
+            while (transform.localScale.x + 0.1f < targetScale )
             {
                 float nextScale = Mathf.Lerp(transform.localScale.x, targetScale, Time.deltaTime);
                 transform.localScale = new Vector3(nextScale, nextScale, nextScale);
+                // PLog.Log("Growing: " + transform.localScale.x);
                 yield return null;
             }
         }
@@ -865,8 +877,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     private static float GetTargetScale(EnemyScale enemyScale) => enemyScale switch
     {
         // This is stupid code.
-        EnemyScale.Small => 4f,
-        EnemyScale.Big => 5.5f,
+        EnemyScale.Small => 2.3f,
+        EnemyScale.Big => 4f,
         _ => throw new ArgumentOutOfRangeException("invalid scale value")
     };
 

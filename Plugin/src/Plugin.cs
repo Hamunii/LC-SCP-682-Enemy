@@ -99,6 +99,7 @@ public class Plugin : BaseUnityPlugin
         Logger.LogInfo($"{PluginInfo.PLUGIN_GUID} loaded in {watch.ElapsedMilliseconds}ms!");
     }
 
+#if DEBUG
     // We should clean up our resources when reloading the plugin.
     private void OnDestroy()
     {
@@ -109,12 +110,11 @@ public class Plugin : BaseUnityPlugin
         SCP682AI.SCP682Objects.Clear();
 
         HookEndpointManager.RemoveAllOwnedBy(Assembly.GetExecutingAssembly());
-#if DEBUG
         if (ModMenuAPICompatibility.Enabled)
             ModMenuAPICompatibility.ClearMenus();
-#endif
         Logger.LogInfo("Cleaned all resources!");
     }
+#endif
 
     private static void InitializeNetworkBehaviours()
     {

@@ -42,12 +42,12 @@ static class ModMenuAPICompatibility
         protected override void OnClick() => self.StartSearch(self.transform.position);
     }
 
-    class DebugOverrideState(SCP682AI self, string state) : MMButtonAction($"{state}")
+    class DebugOverrideState(SCP682AI self, string state) : MMButtonAction($"{state.Split('+')[1]}")
     {
         protected override void OnClick()
         {
             if (self.isEnemyDead) return;
-            self.TransitionStateServerRpc(state);
+            self.TransitionStateServerRpc(state, new System.Random().Next());
         }
     }
 }

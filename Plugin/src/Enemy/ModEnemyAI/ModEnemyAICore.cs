@@ -20,7 +20,7 @@ using UnityEngine.AI;
 namespace SCP682.SCPEnemy;
 
 // Heavily based on WelcomeToOoblterra's WTOEnemy class
-public abstract partial class ModEnemyAI<T> : EnemyAI
+public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
     where T : ModEnemyAI<T>
 {
     /// <summary>
@@ -188,7 +188,6 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
                 SetTargetServerRpc(-1);
         }
     }
-    private Coroutine? _transitionCoroutineInProgress = null;
 
     /// <summary>
     /// A method to get the instance of the enemy class.
@@ -248,7 +247,7 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
             if (TransitionToCheck.CanTransitionBeTaken() && base.IsOwner)
             {
                 nextTransition = TransitionToCheck;
-                TransitionStateServerRpc(nextTransition.ToString());
+                TransitionStateServerRpc(nextTransition.ToString(), enemyRandom.Next());
                 return;
             }
         }
@@ -321,18 +320,10 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
         if (isEnemyDead)
             return;
 
-        TransitionStateServerRpc(state.ToString());
+        TransitionStateServerRpc(state.ToString(), enemyRandom.Next());
     }
 
-    [ServerRpc]
-    internal void TransitionStateServerRpc(string stateName) =>
-        TransitionStateClientRpc(stateName, enemyRandom.Next());
-
-    [ClientRpc]
-    internal void TransitionStateClientRpc(string stateName, int randomSeed) =>
-        _transitionCoroutineInProgress = StartCoroutine(TransitionState(stateName, randomSeed));
-
-    internal IEnumerator TransitionState(string stateOrTransitionName, int randomSeed)
+    internal override IEnumerator TransitionState(string stateOrTransitionName, int randomSeed)
     {
         AIStateTransition? localNextTransition = null;
 
@@ -400,14 +391,7 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
             nameof(stateOrTransitionName));
     }
 
-    [ServerRpc]
-    private void SetTargetServerRpc(int PlayerID)
-    {
-        SetTargetClientRpc(PlayerID);
-    }
-
-    [ClientRpc]
-    private void SetTargetClientRpc(int PlayerID)
+    protected override void SetTarget(int PlayerID)
     {
         if (PlayerID == -1)
         {

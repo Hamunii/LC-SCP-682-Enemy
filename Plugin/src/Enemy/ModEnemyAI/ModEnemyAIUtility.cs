@@ -17,7 +17,7 @@ using UnityEngine.AI;
 namespace SCP682.SCPEnemy;
 
 // Heavily based on WelcomeToOoblterra's WTOEnemy class
-public abstract partial class ModEnemyAI<T> : EnemyAI
+public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
     where T : ModEnemyAI<T>
 {
     internal bool AnimationIsFinished(string AnimName, int layerIndex)
@@ -34,24 +34,6 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
             return true;
         }
         return creatureAnimator.GetCurrentAnimatorStateInfo(layerIndex).normalizedTime >= 1f;
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    internal void SetAnimTriggerOnServerRpc(string name)
-    {
-        if (IsServer)
-        {
-            creatureAnimator.SetTrigger(name);
-        }
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    internal void SetAnimBoolOnServerRpc(string name, bool state)
-    {
-        if (IsServer)
-        {
-            creatureAnimator.SetBool(name, state);
-        }
     }
 
     internal bool PlayerCanBeTargeted(PlayerControllerB myPlayer) =>
@@ -282,13 +264,7 @@ public abstract partial class ModEnemyAI<T> : EnemyAI
         }
     }
 
-    [ClientRpc]
-    public void TeleportSelfToOtherEntranceClientRpc(bool isOutside)
-    {
-        TeleportSelfToOtherEntrance(isOutside);
-    }
-
-    private void TeleportSelfToOtherEntrance(bool isOutside)
+    protected override void TeleportSelfToOtherEntrance(bool isOutside)
     {
         var targetEntrance = RoundManager.FindMainEntranceScript(!isOutside);
 

@@ -257,7 +257,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
         private class BoredOfAmbushTransition : AIStateTransition
         {
-            float boredOfAmbushTimer = 20f;
+            float boredOfAmbushTimer = 35f;
 
             public override bool CanTransitionBeTaken()
             {

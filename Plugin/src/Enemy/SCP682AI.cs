@@ -132,6 +132,10 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         int hitID = -1
     )
     {
+        // We don't want the enemy to wake up instantly if it's already 'dead'.
+        if (enemyHP == 0 && activeState is DeadTemporarilyState)
+            return;
+
         base.HitEnemy(force, playerWhoHit, playHitSFX, hitID);
         if (isEnemyDead)
             return;
@@ -218,7 +222,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             CreatureAnimator.SetBool(Anim.isOnShip, false);
 
             Agent.enabled = true;
-            
+
             if (self.changeScaleCoroutine != null)
                 self.StopCoroutine(self.changeScaleCoroutine);
             self.StartCoroutine(self.ChangeEnemyScaleTo(EnemyScale.Big));
@@ -285,7 +289,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
             {
                 Vector3 targetPositionBehindPlayer = TargetPlayer.transform.position - Vector3.Scale(new Vector3(10, 0, 10), TargetPlayer.transform.forward);
-                
+
                 if (!NavMesh.SamplePosition(targetPositionBehindPlayer, out NavMeshHit navHit, maxDistance: 10f, NavMesh.AllAreas))
                 {
                     Plugin.Logger.LogWarning("Trying to ambush player, but didn't find NavMesh near target player! Attacking player instead.");
@@ -434,7 +438,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             // TODO: More interesting pathing
             if (!self.SetDestinationToPosition(facilityEntrance.entrancePoint.position, true)) // when checkForPath is true, pathfinding is a little better (can path to the half-obstructed door in test level)
                 PLog.LogWarning("Facility door is unreachable!");
-            
+
         }
 
         public override IEnumerator OnStateExit()
@@ -864,7 +868,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         if (transform.localScale.x - 0.1f < targetScale)
         {
             // Grow.
-            while (transform.localScale.x + 0.1f < targetScale )
+            while (transform.localScale.x + 0.1f < targetScale)
             {
                 float nextScale = Mathf.Lerp(transform.localScale.x, targetScale, Time.deltaTime);
                 transform.localScale = new Vector3(nextScale, nextScale, nextScale);

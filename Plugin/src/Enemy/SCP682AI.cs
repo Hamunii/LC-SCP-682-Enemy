@@ -43,6 +43,21 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     float boredOfWanderingFacilityTimer = defaultBoredOfWanderingFacilityTimer;
     Vector3 posOnTopOfShip;
     JesterAI? targetJester = null!;
+
+    internal PlayerControllerB? PlayerHeardFromNoise
+    {
+        get
+        {
+            if (_playerHeardFromNoiseTimer > 1)
+                return null;
+
+            return _playerHeardFromNoise;
+        }
+        set => _playerHeardFromNoise = value;
+    }
+    private PlayerControllerB? _playerHeardFromNoise;
+    private float _playerHeardFromNoiseTimer = 0f;
+
     LineRenderer lineRenderer = null!;
     BoxCollider mainCollider = null!;
 
@@ -114,6 +129,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     public override void Update()
     {
         attackCooldown -= Time.deltaTime;
+        _playerHeardFromNoiseTimer += Time.deltaTime;
         base.Update();
     }
 
@@ -155,6 +171,27 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
         if (activeState is not AttackPlayerState)
             OverrideState(new AttackPlayerState());
+    }
+
+    public override void DetectNoise(Vector3 noisePosition, float noiseLoudness, int timesPlayedInOneSpot = 0, int noiseID = 0)
+    {
+        base.DetectNoise(noisePosition, noiseLoudness, timesPlayedInOneSpot, noiseID);
+
+        if (noiseLoudness < 0.4f)
+            return;
+
+        foreach (PlayerControllerB player in StartOfRound.Instance.allPlayerScripts)
+        {
+            if (player.isPlayerDead || !player.isPlayerControlled)
+                continue;
+
+            if (Vector3.Distance(noisePosition, player.transform.position) < 3)
+            {
+                PlayerHeardFromNoise = player;
+                _playerHeardFromNoiseTimer = 0f;
+                return;
+            }
+        }
     }
 
     #endregion
@@ -245,11 +282,18 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         {
             public override bool CanTransitionBeTaken()
             {
-                TargetPlayer = self.FindNearestPlayer();
-                // TODO: make it better
-                if (self.PlayerWithinRange(TargetPlayer, 15))
-                    return true;
-                return false;
+                TargetPlayer = self.PlayerHeardFromNoise;
+
+                // Assign target player anyways so the enemy visually looks towards the closest player
+                TargetPlayer ??= self.FindNearestPlayer();
+
+                if (self.PlayerHeardFromNoise == null)
+                    return false;
+
+                if (!self.PlayerWithinRange(TargetPlayer, 12))
+                    return false;
+
+                return true;
             }
 
             public override AIBehaviorState NextState() => new FromAmbushJumpPlayerState();
@@ -281,6 +325,13 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             if (TargetPlayer == null)
             {
                 Plugin.Logger.LogError("Trying to ambush player, but targetPlayer is null! Attacking player instead.");
+                self.OverrideState(new AttackPlayerState());
+                yield break;
+            }
+
+            if (TargetPlayer.isInHangarShipRoom)
+            {
+                self.DebugLog("TargetPlayer is inside ship, attacking without a jump.");
                 self.OverrideState(new AttackPlayerState());
                 yield break;
             }

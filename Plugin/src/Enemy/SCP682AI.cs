@@ -684,6 +684,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             CreatureAnimator.Rebind();
             CreatureAnimator.Update(0f);
 
+            CreatureSFX.PlayOneShot(SFX.spawn.FromRandom(EnemyRandom));
+
             self.SetAgentSpeedAndAnimations(Speed.Walking);
             yield break;
         }

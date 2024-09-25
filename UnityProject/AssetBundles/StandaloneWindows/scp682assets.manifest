@@ -1,15 +1,15 @@
 ManifestFileVersion: 0
-CRC: 4082227750
+CRC: 3942692247
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 78bff8d8ba6c33ab1365f9f9bd99cc92
+    Hash: c3a05af7a860c4ff74d28ba2e5877034
   TypeTreeHash:
     serializedVersion: 2
-    Hash: 55458a5399f4728193b6b1c14df7cf3f
+    Hash: a4098c6f306afbfdb7c01a2b49dd1ff8
   IncrementalBuildHash:
     serializedVersion: 2
-    Hash: 78bff8d8ba6c33ab1365f9f9bd99cc92
+    Hash: c3a05af7a860c4ff74d28ba2e5877034
 HashAppended: 0
 ClassTypes:
 - Class: 1
@@ -47,6 +47,8 @@ ClassTypes:
 - Class: 114
   Script: {fileID: 11500000, guid: 04f75356a7e9c978bddc7d568e58a50b, type: 3}
 - Class: 114
+  Script: {fileID: 11500000, guid: c5a15fd86cfe211173eb68d9b08fcff2, type: 3}
+- Class: 114
   Script: {fileID: 11500000, guid: 3c36d0a92cbb1f26a39169ef0eae393a, type: 3}
 - Class: 114
   Script: {fileID: 11500000, guid: 6d7127b8f98ca8ec9896b384a71d39a2, type: 3}
@@ -63,6 +65,10 @@ ClassTypes:
 SerializeReferenceClassIdentifiers:
 - AssemblyName: Assembly-CSharp
   ClassName: NavSizeLimit
+- AssemblyName: UnityEngine.CoreModule
+  ClassName: UnityEngine.Events.PersistentCallGroup
+- AssemblyName: UnityEngine.CoreModule
+  ClassName: UnityEngine.Events.UnityEvent
 Assets:
 - Assets/ModAssets/SCP682/Audio/Voice/Useless_SCP682.ogg
 - Assets/ModAssets/SCP682/Audio/SFX/run/runSFX.ogg
@@ -72,10 +78,10 @@ Assets:
 - Assets/ModAssets/SCP682/Audio/SFX/swimDownSFX.ogg
 - Assets/ModAssets/SCP682/Audio/SFX/run/runSFX_4.ogg
 - Assets/ModAssets/SCP682/Audio/Voice/Silence_SCP682.ogg
-- Assets/ModAssets/SCP682/Audio/SFX/walk/walkSFX.ogg
 - Assets/ModAssets/SCP682/Audio/SFX/run/runSFX_2.ogg
 - Assets/ModAssets/SCP682/Audio/SFX/bite/biteSFX_3.ogg
 - Assets/ModAssets/SCP682/Audio/SFX/hit/hitSFX_4.ogg
+- Assets/ModAssets/SCP682/Audio/SFX/walk/walkSFX_4.ogg
 - Assets/ModAssets/SCP682/Audio/Voice/GrowlyPurr_SCP682.ogg
 - Assets/ModAssets/SCP682/Audio/SFX/wakeUpSFX.ogg
 - Assets/ModAssets/SCP682/Audio/SFX/hit/hitSFX_3.ogg
@@ -84,15 +90,17 @@ Assets:
 - Assets/ModAssets/SCP682/Audio/SFX/roar/roarSFX_2.ogg
 - Assets/ModAssets/SCP682/Audio/SFX/jumpAttackSFX.ogg
 - Assets/ModAssets/SCP682/Audio/SFX/bite/biteSFX.ogg
-- Assets/ModAssets/SCP682/Audio/Voice/Cowards_SCP682.ogg
+- Assets/ModAssets/SCP682/Audio/SFX/walk/walkSFX_1.ogg
 - Assets/ModAssets/SCP682/Audio/SFX/hit/hitSFX.ogg
 - Assets/ModAssets/SCP682/Audio/Voice/Abomination_SCP682.ogg
 - Assets/ModAssets/SCP682/Audio/SFX/hit/hitSFX_2.ogg
 - Assets/ModAssets/SCP682/Audio/SFX/spawnSFX_48662__sea-fury__monster-compressed-mono.mp3
+- Assets/ModAssets/SCP682/Audio/SFX/walk/walkSFX_3.ogg
 - Assets/ModAssets/SCP682/Audio/Voice/Worms_SCP682.ogg
-- Assets/ModAssets/SCP682/Audio/Voice/PerversionOfExistence_SCP682.ogg
+- Assets/ModAssets/SCP682/Audio/Voice/Cowards_SCP682.ogg
 - Assets/ModAssets/SCP682/Audio/Voice/Disgusting_SCP682.ogg
 - Assets/ModAssets/SCP682/SCP682Animator.controller
+- Assets/ModAssets/SCP682/Audio/Voice/PerversionOfExistence_SCP682.ogg
 - Assets/ModAssets/SCP682/Bestiary/SCP682TN.asset
 - Assets/ModAssets/SCP682/Audio/SFX/run/runSFX_3.ogg
 - Assets/ModAssets/SCP682/Audio/Voice/TearYouApart_SCP682.ogg

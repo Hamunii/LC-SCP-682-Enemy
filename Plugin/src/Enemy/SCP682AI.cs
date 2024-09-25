@@ -116,7 +116,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         // agent.radius = 0.5f;
         base.Start();
 
-        // creatureSFX.PlayOneShot(SFX.spawn.FromRandom(enemyRandom));
+        creatureSFX.PlayOneShot(SFX.spawn.FromRandom(enemyRandom));
 
 #if DEBUG
         if (ModMenuAPICompatibility.Enabled)
@@ -856,9 +856,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         creatureAnimator.SetBool(Anim.isMoving, true);
         creatureAnimator.SetBool(Anim.isRunning, true);
 
-        yield return new WaitForSeconds(1);
-        creatureSFX.PlayOneShot(SFX.roar.FromRandom(enemyRandom));
-        yield return new WaitForSeconds(1.1f);
+        yield return new WaitForSeconds(2.1f);
+        // creatureSFX.PlayOneShot(SFX.roar.FromRandom(enemyRandom));
+        // yield return new WaitForSeconds(1.1f);
 
         SetAgentSpeedAndAnimations(Speed.Running);
     }

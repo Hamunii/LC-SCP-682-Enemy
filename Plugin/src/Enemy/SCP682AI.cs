@@ -90,7 +90,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         mainCollider = gameObject.GetComponentInChildren<BoxCollider>();
 
         turnCompass = transform.Find("TurnCompass").GetComponent<Transform>();
-        crocodileModel = transform.Find("CrocodileModel");
+        crocodileModel = transform.Find("ModelRoot");
 
         var scale = 1f;
         crocodileModel.localScale = new(scale, scale, scale);

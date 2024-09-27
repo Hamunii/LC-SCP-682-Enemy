@@ -47,7 +47,7 @@ public class Plugin : BaseUnityPlugin
 #if DEBUG
         var assetsDir = Path.Combine(Paths.BepInExRootPath, "scripts", assetsDirName);
 #else
-        var assetsDir = Path.Combine(Path.GetDirectoryName(Info.Location), bundleDirName);
+        var assetsDir = Path.Combine(Path.GetDirectoryName(Info.Location), assetsDirName);
 #endif
         modAssets = AssetBundle.LoadFromFile(Path.Combine(assetsDir, mainBundleName));
         if (modAssets is null)
@@ -61,7 +61,7 @@ public class Plugin : BaseUnityPlugin
         var SCP682TN = modAssets.LoadAsset<TerminalNode>("SCP682TN");
 #if !DEBUG // Save reload time by not loading the video
         var videoAssets = AssetBundle.LoadFromFile(Path.Combine(assetsDir, videoBundleName));
-        var terminalSpinVid = videoAssets.LoadAsset<VideoClip>("SCP682Spin");
+        var terminalSpinVid = videoAssets.LoadAsset<UnityEngine.Video.VideoClip>("SCP682Spin");
         SCP682TN.displayVideo = terminalSpinVid;
 #endif
 

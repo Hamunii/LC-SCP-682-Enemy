@@ -94,6 +94,7 @@ public class Plugin : BaseUnityPlugin
         }
 #endif
         JesterListHook.Init();
+        ApparatusTakenHook.Init();
 
         watch.Stop();
         Logger.LogInfo($"{PluginInfo.PLUGIN_GUID} loaded in {watch.ElapsedMilliseconds}ms!");

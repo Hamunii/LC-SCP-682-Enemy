@@ -841,14 +841,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
         bool newIsRunning = speed == Speed.Running;
         if (creatureAnimator.GetBool(Anim.isRunning) != newIsRunning)
-        {
             creatureAnimator.SetBool(Anim.isRunning, newIsRunning);
-
-            if (speed == Speed.Walking)
-                creatureSFX.clip = SFX.walk.FromRandom(enemyRandom);
-            else
-                creatureSFX.clip = SFX.run.FromRandom(enemyRandom);
-        }
     }
 
     internal IEnumerator RoarAndRunCoroutine()

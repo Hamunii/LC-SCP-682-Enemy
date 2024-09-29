@@ -1,3 +1,3 @@
-## 1.0.0
+## 0.3.0
 
-- Initial release
+- First beta release with Thunderstore metadata stuff.

@@ -315,15 +315,15 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         {
             if (TargetPlayer == null)
             {
-                Plugin.Logger.LogError("Trying to ambush player, but targetPlayer is null! Attacking player instead.");
-                self.OverrideState(new AttackPlayerState());
+                Plugin.Logger.LogError("Trying to ambush player, but targetPlayer is null! Not jumping.");
+                self.StartCoroutine(self.RoarAndRunCoroutine());
                 yield break;
             }
 
             if (TargetPlayer.isInHangarShipRoom)
             {
                 self.DebugLog("TargetPlayer is inside ship, attacking without a jump.");
-                self.OverrideState(new AttackPlayerState());
+                self.StartCoroutine(self.RoarAndRunCoroutine());
                 yield break;
             }
 
@@ -334,8 +334,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
                 if (!NavMesh.SamplePosition(targetPositionBehindPlayer, out NavMeshHit navHit, maxDistance: 10f, NavMesh.AllAreas))
                 {
-                    Plugin.Logger.LogWarning("Trying to ambush player, but didn't find NavMesh near target player! Attacking player instead.");
-                    self.OverrideState(new AttackPlayerState());
+                    Plugin.Logger.LogWarning("Trying to ambush player, but didn't find NavMesh near target player! Not jumping.");
+                    self.StartCoroutine(self.RoarAndRunCoroutine());
                     yield break;
                 }
 

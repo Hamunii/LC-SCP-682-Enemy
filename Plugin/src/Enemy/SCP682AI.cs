@@ -777,9 +777,14 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         public override bool CanTransitionBeTaken()
         {
             aggressionTimer -= Time.deltaTime;
-            if (aggressionTimer <= 0)
-                return true;
-            return false;
+
+            if (aggressionTimer > 0)
+                return false;
+
+            if (!self.CheckLineOfSightForPlayer(45, 60, 10))
+                return false;
+
+            return true;
         }
 
         public override AIBehaviorState NextState() => new AttackPlayerState();

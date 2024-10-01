@@ -69,13 +69,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
     private int _defaultHealth;
 
-
-#if DEBUG
-    const bool IS_DEBUG_BEHAVIOR = true;
-#else
-    const bool IS_DEBUG_BEHAVIOR = false;
-#endif
-
     internal override SCP682AI GetThis() => this;
     internal override AIBehaviorState GetInitialState() => new WanderThroughEntranceState();
 
@@ -95,15 +88,20 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         var scale = 1f;
         crocodileModel.localScale = new(scale, scale, scale);
 
-        if (IS_DEBUG_BEHAVIOR)
-        {
-            printDebugs = true;
-            enemyType.isOutsideEnemy = !GameNetworkManager
-                .Instance
-                .localPlayerController
-                .isInsideFactory;
-            myValidState = GetPlayerState(GameNetworkManager.Instance.localPlayerController);
-        }
+#if DEBUG
+        printDebugs = true;
+        // Set the state to where the player is because we assume the enemy is spawned where the player is
+        enemyType.isOutsideEnemy = !GameNetworkManager
+            .Instance
+            .localPlayerController
+            .isInsideFactory;
+        myValidState = GetPlayerState(GameNetworkManager.Instance.localPlayerController);
+
+        if (ModMenuAPICompatibility.Enabled)
+            ModMenuAPICompatibility.InitDebug(this);
+        else
+            PLog.LogWarning("Hamunii.ModMenuAPI not installed, debug UI can't be shown!");
+#endif
 
         if (enemyType.isOutsideEnemy)
             changeScaleCoroutine = StartCoroutine(ChangeEnemyScaleTo(EnemyScale.Big));
@@ -117,13 +115,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         base.Start();
 
         creatureSFX.PlayOneShot(SFX.spawn.FromRandom(enemyRandom));
-
-#if DEBUG
-        if (ModMenuAPICompatibility.Enabled)
-            ModMenuAPICompatibility.InitDebug(this);
-        else
-            PLog.LogWarning("Hamunii.ModMenuAPI not installed, debug UI can't be shown!");
-#endif
     }
 
     public override void Update()

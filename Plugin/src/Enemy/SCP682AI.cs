@@ -781,7 +781,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             if (aggressionTimer > 0)
                 return false;
 
-            if (!self.CheckLineOfSightForPlayer(45, 60, 10))
+            PlayerControllerB playerInSight = self.CheckLineOfSightForPlayer(45, 60, 10);
+            if (playerInSight != null)
                 return false;
 
             return true;
@@ -792,13 +793,13 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
     private class LostPlayerTransition : AIStateTransition
     {
-        const float defaultPlayerLostTimer = 5;
+        const float defaultPlayerLostTimer = 9;
         float playerLostTimer = defaultPlayerLostTimer;
 
         public override bool CanTransitionBeTaken()
         {
-            var playerInSight = self.CheckLineOfSightForPlayer(45, 20, 6);
-            if (playerInSight is not null)
+            PlayerControllerB playerInSight = self.CheckLineOfSightForPlayer(45, 20, 6);
+            if (playerInSight != null)
             {
                 playerLostTimer = defaultPlayerLostTimer;
                 return false;

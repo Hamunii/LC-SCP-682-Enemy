@@ -58,6 +58,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     }
     private PlayerControllerB? _playerHeardFromNoise;
     private float _playerHeardFromNoiseTimer = 0f;
+    internal bool roarAttackInProgress = false;
 
     LineRenderer lineRenderer = null!;
     BoxCollider mainCollider = null!;
@@ -717,13 +718,21 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         public override void AIInterval()
         {
             TargetPlayer = self.FindNearestPlayer();
-            self.SetDestinationToPosition(TargetPlayer.transform.position);
+
+            if (!self.SetDestinationToPosition(TargetPlayer.transform.position, true))
+                self.DoRoarShockwaveAttackIfCan(Speed.Walking);
         }
 
         public override void OnCollideWithPlayer(Collider other) =>
             self.AttackCollideWithPlayer(other);
 
-        public override IEnumerator OnStateExit() { yield break; }
+        public override IEnumerator OnStateExit()
+        {
+            if (self.roarAttackInProgress)
+                self.StopCoroutine(self.RoarAndRunCoroutine());
+
+            yield break;
+        }
     }
 
     private class AttackPlayerState : AIBehaviorState
@@ -740,7 +749,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         public override void AIInterval()
         {
             TargetPlayer = self.FindNearestPlayer();
-            self.SetDestinationToPosition(TargetPlayer.transform.position);
+
+            if (!self.SetDestinationToPosition(TargetPlayer.transform.position, true))
+                self.DoRoarShockwaveAttackIfCan(Speed.Running);
         }
 
         public override void OnCollideWithPlayer(Collider other) =>
@@ -748,7 +759,11 @@ class SCP682AI : ModEnemyAI<SCP682AI>
 
         public override IEnumerator OnStateExit()
         {
+            if (self.roarAttackInProgress)
+                self.StopCoroutine(self.RoarAndRunCoroutine());
+
             self.SetAgentSpeedAndAnimations(Speed.Walking);
+
             yield break;
         }
     }
@@ -842,6 +857,15 @@ class SCP682AI : ModEnemyAI<SCP682AI>
             creatureAnimator.SetBool(Anim.isRunning, newIsRunning);
     }
 
+    internal void DoRoarShockwaveAttackIfCan(Speed speedAfterAttack)
+    {
+        if (targetPlayer == null)
+            return;
+
+        if (!self.roarAttackInProgress && self.PlayerWithinRange(targetPlayer, 10))
+            self.StartCoroutine(self.RoarShockwaveAttack(speedAfterAttack));
+    }
+
     internal IEnumerator RoarAndRunCoroutine()
     {
         // self.SetAgentSpeedAndAnimations(Speed.Stopped); // We need Anim.isRunning to be enabled, but we must not move because of things our Animator does
@@ -854,6 +878,33 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         // yield return new WaitForSeconds(1.1f);
 
         SetAgentSpeedAndAnimations(Speed.Running);
+    }
+
+    internal IEnumerator RoarShockwaveAttack(Speed speedAfterAttack)
+    {
+        if (roarAttackInProgress)
+        {
+            PLog.LogWarning($"Called {nameof(RoarShockwaveAttack)} even when a roar attack was in progress!");
+            yield break;
+        }
+
+        agent.speed = 0;
+        self.SetAnimTriggerOnServerRpc(Anim.doRoar);
+        yield return new WaitForSeconds(1f);
+
+        foreach (PlayerControllerB player in self.AllPlayers())
+        {
+            if (self.PlayerWithinRange(player, 10))
+            {
+                player.DamagePlayer(10, true, true, CauseOfDeath.Blast);
+            }
+        }
+        yield return new WaitForSeconds(1.1f);
+
+        SetAgentSpeedAndAnimations(speedAfterAttack);
+        yield return new WaitForSeconds(2f);
+
+        roarAttackInProgress = false;
     }
 
     internal void AttackCollideWithPlayer(Collider other)

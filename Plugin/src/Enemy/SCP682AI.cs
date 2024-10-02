@@ -37,6 +37,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>
         internal const string isRunning = "isRunning";
         internal const string isOnShip = "isOnShip";
         internal const string doBite = "doBite";
+        internal const string doRoar = "doRoar";
     }
 
     const float defaultBoredOfWanderingFacilityTimer = 120f;

@@ -8,9 +8,9 @@
  * This class has been modified, and is licensed under the MIT license.
 */
 
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using GameNetcodeStuff;
-using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -65,6 +65,17 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
             return;
         }
         Timer -= Time.deltaTime;
+    }
+
+    public IEnumerable<PlayerControllerB> AllPlayers()
+    {
+        foreach (PlayerControllerB player in StartOfRound.Instance.allPlayerScripts)
+        {
+            if (player.isPlayerDead || !player.isPlayerControlled)
+                continue;
+
+            yield return player;
+        }
     }
 
     public PlayerControllerB? IsAnyPlayerWithinLOS(

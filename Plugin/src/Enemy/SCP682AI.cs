@@ -8,7 +8,7 @@ using UnityEngine.AI;
 
 namespace SCP682.SCPEnemy;
 
-class SCP682AI : ModEnemyAI<SCP682AI>
+class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 {
     #region Initialization
     // We use this list to destroy loaded game objects when plugin is reloaded
@@ -70,6 +70,35 @@ class SCP682AI : ModEnemyAI<SCP682AI>
     Coroutine? changeScaleCoroutine;
 
     private int _defaultHealth;
+
+    // Unused in game?
+    ThreatType IVisibleThreat.type => ThreatType.RadMech;
+
+    // Something about how much other enemies are scared of this enemy.
+    // 10 taken as value because RadMechAI gives 10 at max.
+    int IVisibleThreat.GetThreatLevel(Vector3 seenByPosition) => 10;
+
+    // Seems to be unused by enemies, so we default to 0.
+    int IVisibleThreat.GetInterestLevel() => 0;
+
+    Transform IVisibleThreat.GetThreatLookTransform() => eye;
+
+    Transform IVisibleThreat.GetThreatTransform() => transform;
+
+    // This is basically used by other enemies (like the Baboon Hawk) to predict this enemy's future position.
+    Vector3 IVisibleThreat.GetThreatVelocity() => IsOwner ? agent.velocity : Vector3.zero;
+
+    // Basically, this is how well other enemies can sense this enemy.
+    float IVisibleThreat.GetVisibility()
+    {
+        if (enemyHP <= 0)
+            return 0f;
+
+        return 1f;
+    }
+
+    // Unused in game.
+    int IVisibleThreat.SendSpecialBehaviour(int id) => 0;
 
     internal override SCP682AI GetThis() => this;
     internal override AIBehaviorState GetInitialState() => new WanderThroughEntranceState();

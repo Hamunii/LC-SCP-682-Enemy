@@ -63,6 +63,8 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
         /// </remarks>
         public virtual void OnCollideWithPlayer(Collider other) { }
 
+        public virtual void OnCollideWithEnemy(Collider other, EnemyAI? collidedEnemy) { }
+
         /// <summary>
         /// Called after a <see cref="AIStateTransition.CanTransitionBeTaken"/> method has returned <see langword="true"/>.
         /// </summary>
@@ -89,6 +91,9 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
         /// </remarks>
         /// <returns><see langword="true"/> if transition should be executed, <see langword="false"/> otherwise.</returns>
         public abstract bool CanTransitionBeTaken();
+
+        /// <inheritdoc cref="AIBehaviorState.AIInterval"/>
+        public virtual void AIInterval() { }
 
         /// <summary>
         /// Returns the next state for the state machine.
@@ -142,6 +147,7 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
     }
 
     internal AIBehaviorState activeState = null!;
+    internal Type? previousStateType = null;
 
     /// <summary>
     /// A seeded random number generator, that's synced each time state is changed.
@@ -270,6 +276,11 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
         if (_transitionCoroutineInProgress is not null)
             return;
 
+        foreach (AIStateTransition transitionToCheck in GetAllTransitions())
+        {
+            transitionToCheck.AIInterval();
+        }
+
         activeState.AIInterval();
     }
 
@@ -282,6 +293,13 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
         {
             transitionToCheck.OnCollideWithPlayer(other);
         }
+    }
+
+    public override void OnCollideWithEnemy(Collider other, EnemyAI? collidedEnemy = null)
+    {
+        base.OnCollideWithEnemy(other, collidedEnemy);
+
+        activeState.OnCollideWithEnemy(other, collidedEnemy);
     }
 
     private IEnumerable<AIStateTransition> GetAllTransitions()
@@ -341,6 +359,8 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
         //LogMessage(stateName);
         DebugLog($"{__getTypeName()} #{self.thisEnemyIndex} is Exiting:  {activeState}");
         yield return StartCoroutine(activeState.OnStateExit());
+
+        previousStateType = activeState.GetType();
 
         if (localNextTransition is not null)
         {
@@ -408,5 +428,13 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
         base.targetPlayer = StartOfRound.Instance.allPlayerScripts[PlayerID];
         _lastSyncedTargetPlayer = base.targetPlayer;
         DebugLog($"{this} setting target to: {base.targetPlayer.playerUsername}");
+    }
+
+    internal AIBehaviorState? CreatePreviousState()
+    {
+        if (previousStateType is null)
+            return null;
+
+        return (AIBehaviorState)Activator.CreateInstance(previousStateType);
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using GameNetcodeStuff;
 using SCP682.Hooks;
 using UnityEngine;
@@ -43,7 +44,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     const float defaultBoredOfWanderingFacilityTimer = 120f;
     float boredOfWanderingFacilityTimer = defaultBoredOfWanderingFacilityTimer;
     Vector3 posOnTopOfShip;
-    JesterAI? targetJester = null!;
+    MonoBehaviour? targetEnemy = null!;
 
     internal PlayerControllerB? PlayerHeardFromNoise
     {
@@ -70,6 +71,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     Coroutine? changeScaleCoroutine;
 
     private int _defaultHealth;
+
+    /// <summary>Used for https://docs.unity3d.com/ScriptReference/Physics.OverlapSphereNonAlloc.html</summary>
+    internal static Collider[] tempCollisionArr = new Collider[20];
 
     // Unused in game?
     ThreatType IVisibleThreat.type => ThreatType.RadMech;
@@ -99,6 +103,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
     // Unused in game.
     int IVisibleThreat.SendSpecialBehaviour(int id) => 0;
+
+    // Defined in BaboonBirdAI and RadMechAI
+    internal const int visibleThreatsMask = 524296;
 
     internal override SCP682AI GetThis() => this;
     internal override AIBehaviorState GetInitialState() => new WanderThroughEntranceState();
@@ -222,7 +229,11 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     private class WanderToShipState : AIBehaviorState
     {
         public override List<AIStateTransition> Transitions { get; set; } =
-            [new OnShipAmbushState.ArrivedAtShipTransition(), new InvestigatePlayerTransition()];
+            [
+                new OnShipAmbushState.ArrivedAtShipTransition(),
+                new InvestigatePlayerTransition(),
+                new AttackEnemyState.TargetEnemyTransition()
+            ];
 
         public override IEnumerator OnStateEntered()
         {
@@ -494,7 +505,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     {
         // Note: We add one more transition to this afterwards!
         public override List<AIStateTransition> Transitions { get; set; } =
-            [new InvestigatePlayerTransition()];
+            [new InvestigatePlayerTransition(), new AttackEnemyState.TargetEnemyTransition()];
         EntranceTeleport facilityEntrance = null!;
 
         public override IEnumerator OnStateEntered()
@@ -561,7 +572,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             [
                 new BoredOfFacilityTransition(),
                 new AtFacilityEatNoisyJesterState.FindNoisyJesterTransition(),
-                new InvestigatePlayerTransition()
+                new InvestigatePlayerTransition(),
+                new AttackEnemyState.TargetEnemyTransition()
             ];
 
         public override IEnumerator OnStateEntered()
@@ -616,8 +628,16 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         public override List<AIStateTransition> Transitions { get; set; } =
             [new NoisyJesterEatenTransition()];
 
+        JesterAI targetJester = null!;
         public override IEnumerator OnStateEntered()
         {
+            if (self.targetEnemy is not JesterAI jester)
+            {
+                self.OverrideState(new AtFacilityWanderingState());
+                yield break;
+            }
+            targetJester = jester;
+
             CreatureAnimator.SetBool(Anim.isMoving, true);
             self.SetAgentSpeedAndAnimations(Speed.Running);
             yield break;
@@ -625,13 +645,16 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
         public override void AIInterval()
         {
-            if (self.targetJester is null)
+            if (self.targetEnemy == null)
                 return;
 
-            var jesterPos = self.targetJester.agent.transform.position;
+            var jesterPos = targetJester.agent.transform.position;
 
             if (Vector3.Distance(jesterPos, self.transform.position) < 3)
-                self.targetJester.KillEnemy(true);
+            {
+                if (self.IsHost)
+                    targetJester.KillEnemyClientRpc(true);
+            }
 
             self.SetDestinationToPosition(jesterPos);
         }
@@ -660,7 +683,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
                     }
                     if (jester.farAudio.isPlaying)
                     {
-                        self.targetJester = jester;
+                        self.targetEnemy = jester;
                         JesterListHook.jesterEnemies.RemoveAt(i);
                         return true;
                     }
@@ -673,7 +696,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
         private class NoisyJesterEatenTransition : AIStateTransition
         {
-            public override bool CanTransitionBeTaken() => self.targetJester is null;
+            public override bool CanTransitionBeTaken() => self.targetEnemy == null;
 
             public override AIBehaviorState NextState() => new AtFacilityWanderingState();
         }
@@ -727,6 +750,85 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             }
 
             public override AIBehaviorState NextState() => new WanderThroughEntranceState();
+        }
+    }
+
+    private class AttackEnemyState : AIBehaviorState
+    {
+        public override List<AIStateTransition> Transitions { get; set; } =
+            [new EnemyKilledTransition()];
+
+        public override IEnumerator OnStateEntered()
+        {
+            self.StartCoroutine(self.RoarAndRunCoroutine());
+            yield break;
+        }
+
+        public override void AIInterval()
+        {
+            if (self.targetEnemy == null)
+                return;
+
+            if (!self.SetDestinationToPosition(self.targetEnemy.transform.position, true))
+                PLog.LogWarning("Can't pathfind to target enemy!");
+        }
+
+        public override void OnCollideWithEnemy(Collider other, EnemyAI? collidedEnemy)
+        {
+            if (self.attackCooldown > 0)
+                return;
+
+            if (collidedEnemy == null || !self.IsOwner)
+                return;
+
+            if (!collidedEnemy.enemyType.canDie || collidedEnemy.isEnemyDead)
+                return;
+
+            self.SetAnimTriggerOnServerRpc(Anim.doBite);
+
+            collidedEnemy.HitEnemyServerRpc(force: 5, -1, true);
+
+            self.attackCooldown = SCP682AI.defaultAttackCooldown;
+        }
+
+        public override IEnumerator OnStateExit()
+        {
+            self.targetEnemy = null;
+
+            self.SetAgentSpeedAndAnimations(Speed.Walking);
+            yield break;
+        }
+
+        internal class TargetEnemyTransition : AIStateTransition
+        {
+            public override bool CanTransitionBeTaken() => self.targetEnemy != null;
+
+            public override void AIInterval()
+            {
+                if (self.TryTargetEnemyInProximity(out MonoBehaviour? enemy))
+                    self.targetEnemy = enemy;
+            }
+
+            public override AIBehaviorState NextState() => new AttackEnemyState();
+        }
+
+        private class EnemyKilledTransition : AIStateTransition
+        {
+            public override bool CanTransitionBeTaken()
+            {
+                if (self.targetEnemy == null)
+                    return true;
+
+                if (self.targetEnemy is EnemyAI enemyAI)
+                {
+                    if (enemyAI.isEnemyDead)
+                        return true;
+                }
+
+                return false;
+            }
+
+            public override AIBehaviorState NextState() => self.CreatePreviousState()!;
         }
     }
 
@@ -1009,6 +1111,47 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         EnemyScale.Big => 4f,
         _ => throw new ArgumentOutOfRangeException("invalid scale value")
     };
+
+    internal bool TryTargetEnemyInProximity([NotNullWhen(returnValue: true)] out MonoBehaviour? enemy)
+    {
+        foreach (Collider enemyCollider in GetEnemiesInProximity())
+        {
+            if (enemyCollider.TryGetComponent<EnemyAI>(out var enemyAI))
+            {
+                if (!enemyAI.enemyType.canDie)
+                    continue;
+
+                enemy = enemyAI;
+                return true;
+            }
+
+            // I'm relying on the enemy being able to be killed, and I don't know if the enemy is killable.
+            // if (enemyCollider.TryGetComponent<IVisibleThreat>(out var visibleThreat))
+            // {
+            //     // We already handle code for targeting a player, so we'll ignore this.
+            //     if (visibleThreat.type == ThreatType.Player)
+            //         continue;
+
+            //     continue;
+            // }
+        }
+        enemy = null;
+        return false;
+    }
+
+    internal IEnumerable<Collider> GetEnemiesInProximity()
+    {
+        int collisionsAmount = Physics.OverlapSphereNonAlloc(eye.position, 40f, SCP682AI.tempCollisionArr, SCP682AI.visibleThreatsMask, QueryTriggerInteraction.Collide);
+        for (int i = 0; i < collisionsAmount; i++)
+        {
+            Collider collided = SCP682AI.tempCollisionArr[i];
+
+            if (collided == mainCollider)
+                continue;
+
+            yield return collided;
+        }
+    }
 
     #endregion
     #region Debug Stuff

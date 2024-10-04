@@ -929,7 +929,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
                 return false;
 
             PlayerControllerB playerInSight = self.CheckLineOfSightForPlayer(45, 60, 10);
-            if (playerInSight != null)
+            if (playerInSight == null)
                 return false;
 
             return true;

@@ -1,0 +1,12 @@
+<Project>
+
+    <PropertyGroup>
+        <!-- The path to the game files -->
+        <GameDirectory>%programfiles(x86)%/Steam/steamapps/Common/Lethal Company/</GameDirectory>
+        <!-- The path to plugins directory -->
+        <PluginsDirectory>/my/path/to/BepInEx/plugins/</PluginsDirectory>
+        <!-- The path to where the assmeblies get copied to -->
+        <TestingDirectory>$(PluginsDirectory)../scripts/</TestingDirectory>
+    </PropertyGroup>
+
+</Project>

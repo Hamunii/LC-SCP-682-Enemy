@@ -89,7 +89,7 @@
         <ItemGroup>
             <MMHOOKFiles Include="$(MMHOOK)/**/MMHOOK_Assembly-CSharp.dll"/>
         </ItemGroup>
-        <Copy SourceFiles="@(MMHOOKFiles)" DestinationFolder="$(MSBuildProjectDirectory)/lib" SkipUnchangedFiles="true"/>
+        <Copy SourceFiles="@(MMHOOKFiles)" DestinationFolder="$(SolutionDir)/lib/" SkipUnchangedFiles="true"/>
     </Target>
 
     <!-- Allows us to use Rpc methods. See https://github.com/EvaisaDev/UnityNetcodePatcher -->
@@ -109,5 +109,18 @@
     <!-- For more information about tcli, see https://github.com/thunderstore-io/thunderstore-cli/wiki -->
     <Target Name="PackThunderstore" DependsOnTargets="NetcodePatch" AfterTargets="PostBuildEvent" Condition="$(Configuration) == 'Release'">
         <Exec Command="dotnet tcli build --config-path &quot;$(ProjectDir)Thunderstore/thunderstore.toml&quot; --package-version $(Version) --package-name $(Product) --package-namespace $(ThunderstoreTeam)"  />
+    </Target>
+
+    <!-- Our mod files get copied over after NetcodePatcher has processed our DLL -->
+    <Target Name="CopyToTestProfile" DependsOnTargets="NetcodePatch" AfterTargets="PostBuildEvent">
+        <MakeDir
+            Directories="$(SCPAssets)"
+            Condition="!Exists('$(SCPAssets)')"
+        />
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(TestingDirectory)"/>
+        <!-- We will copy the asset bundle named "modassets" over -->
+        <Copy SourceFiles="../../UnityProject/AssetBundles/StandaloneWindows/scp682assets" DestinationFolder="$(SCPAssets)" SkipUnchangedFiles="true"/>
+        <Copy SourceFiles="../../ExternalAssets/SCP682VideoBundle/scp682videobundle" DestinationFolder="$(SCPAssets)" SkipUnchangedFiles="true"/>
+        <Exec Command="echo '[csproj.user] Mod files copied to $(TestingDirectory)'" />
     </Target>
 </Project>

@@ -48,7 +48,7 @@ UpgradeLog.htm
 *.blend1
 
 # Thunderstore Packages
-Thunderstore/Packages/
+SCP682/Thunderstore/Packages/
 
 # Exclude stuff
 !Thunderstore/Packages/*.txt

@@ -41,4 +41,13 @@
         <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
     </ItemGroup>
 
+    <Target Name="CopyToTestProfile" AfterTargets="PostBuildEvent">
+        <MakeDir
+            Directories="$(SCPAssets)"
+            Condition="!Exists('$(SCPAssets)')"
+        />
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="../../UnityProject/Assets/Plugins/"/>
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(SCPAssets)"/>
+    </Target>
+
 </Project>

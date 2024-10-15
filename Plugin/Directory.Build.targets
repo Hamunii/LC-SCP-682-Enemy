@@ -1,0 +1,12 @@
+<Project>
+
+    <Import Project="$(SolutionDir)/SCP682.props.user" />
+
+    <!-- Constant Variables - Do Not modify -->
+    <PropertyGroup>
+        <ManagedDirectory>$(GameDirectory)Lethal Company_Data/Managed/</ManagedDirectory>
+        <MMHOOK>$(PluginsDirectory)MMHOOK/</MMHOOK>
+        <SCPAssets>$(TestingDirectory)SCP682Assets/</SCPAssets>
+    </PropertyGroup>
+
+</Project>

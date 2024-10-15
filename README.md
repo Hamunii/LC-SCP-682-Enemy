@@ -18,7 +18,7 @@ This is a readme modified from the LC-ExampleEnemy project and adjusted for this
 - Due to how ScriptEngine works, we can't add the AI script in Unity, we must add it programmatically.
 - When the mod is reloaded with ScriptEngine, it will spawn the enemy in front of you automatically. Unloading it will remove all game objects with the *now old* AI script. The asset bundle is also reloaded when a reload happens, so you can also work in Unity without having to restart the game.
 
-Also, this project is made on Unity 2022.3.20f1 because I had issues with getting Unity working at all. Anyways, everything should still work if you change the Unity version upon boot.
+Also, this project is made on Unity 2022.3.49f1 because it doesn't constantly crash on Linux on Vulkan on Nvidia drivers above version 545. Anyways, everything should still work if you change the Unity version upon boot.
 
 ## Setting Up The Project For Development
 

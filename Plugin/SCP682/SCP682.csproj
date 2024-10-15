@@ -82,7 +82,7 @@
 
     <!-- References - HookGen Assemblies -->
     <ItemGroup>
-        <Reference Include="$(MSBuildProjectDirectory)/lib/MMHOOK_Assembly-CSharp.dll"/>
+        <Reference Include="$(SolutionDir)lib/MMHOOK_Assembly-CSharp.dll"/>
     </ItemGroup>
 
     <Target Name="CopyMMHOOKFiles" AfterTargets="PreBuildEvent" Condition="$(CI) != 'true'">

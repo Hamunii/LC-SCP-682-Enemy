@@ -1,0 +1,9 @@
+/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/SCP682.UnityRef/bin/Debug/netstandard2.1/ProjectSCP.SCP682.UnityRef.deps.json
+/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/SCP682.UnityRef/bin/Debug/netstandard2.1/ProjectSCP.SCP682.UnityRef.dll
+/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/SCP682.UnityRef/obj/Debug/netstandard2.1/SCP682.UnityRef.csproj.AssemblyReference.cache
+/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/SCP682.UnityRef/obj/Debug/netstandard2.1/SCP682.UnityRef.GeneratedMSBuildEditorConfig.editorconfig
+/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/SCP682.UnityRef/obj/Debug/netstandard2.1/SCP682.UnityRef.AssemblyInfoInputs.cache
+/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/SCP682.UnityRef/obj/Debug/netstandard2.1/SCP682.UnityRef.AssemblyInfo.cs
+/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/SCP682.UnityRef/obj/Debug/netstandard2.1/SCP682.UnityRef.csproj.CoreCompileInputs.cache
+/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/SCP682.UnityRef/obj/Debug/netstandard2.1/SCP682.UnityRef.sourcelink.json
+/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/SCP682.UnityRef/obj/Debug/netstandard2.1/ProjectSCP.SCP682.UnityRef.dll

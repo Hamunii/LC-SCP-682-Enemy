@@ -58,8 +58,8 @@ This is the [SCP682.template.csproj.user](/Plugin/SCP682.template.csproj.user) t
         />
         <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(TestingDirectory)"/>
         <!-- We will copy the asset bundle named "modassets" over -->
-        <Copy SourceFiles="../UnityProject/AssetBundles/StandaloneWindows/scp682assets" DestinationFolder="$(SCPAssets)" SkipUnchangedFiles="true"/>
-        <Copy SourceFiles="../ExternalAssets/SCP682VideoBundle/scp682videobundle" DestinationFolder="$(SCPAssets)" SkipUnchangedFiles="true"/>
+        <Copy SourceFiles="../../UnityProject/AssetBundles/StandaloneWindows/scp682assets" DestinationFolder="$(SCPAssets)" SkipUnchangedFiles="true"/>
+        <Copy SourceFiles="../../ExternalAssets/SCP682VideoBundle/scp682videobundle" DestinationFolder="$(SCPAssets)" SkipUnchangedFiles="true"/>
         <Exec Command="echo '[csproj.user] Mod files copied to $(TestingDirectory)'" />
     </Target>
 </Project>

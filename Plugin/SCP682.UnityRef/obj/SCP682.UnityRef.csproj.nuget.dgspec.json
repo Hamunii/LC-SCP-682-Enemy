@@ -1,0 +1,68 @@
+{
+  "format": 1,
+  "restore": {
+    "/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/SCP682.UnityRef/SCP682.UnityRef.csproj": {}
+  },
+  "projects": {
+    "/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/SCP682.UnityRef/SCP682.UnityRef.csproj": {
+      "version": "0.1.0",
+      "restore": {
+        "projectUniqueName": "/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/SCP682.UnityRef/SCP682.UnityRef.csproj",
+        "projectName": "ProjectSCP.SCP682.UnityRef",
+        "projectPath": "/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/SCP682.UnityRef/SCP682.UnityRef.csproj",
+        "packagesPath": "/home/suni/.nuget/packages/",
+        "outputPath": "/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/SCP682.UnityRef/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/home/suni/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "netstandard2.1"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "netstandard2.1": {
+            "targetAlias": "netstandard2.1",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "netstandard2.1": {
+          "targetAlias": "netstandard2.1",
+          "dependencies": {
+            "UnityEngine.Modules": {
+              "include": "Compile",
+              "target": "Package",
+              "version": "[2022.3.9, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "NETStandard.Library": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/lib64/dotnet/sdk/8.0.108/RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

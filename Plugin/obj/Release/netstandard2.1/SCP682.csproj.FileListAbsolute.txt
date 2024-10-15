@@ -1,0 +1,28 @@
+/home/suni/Workspace/Lethal Company/HamuniiMods/LC-SCP-682-Enemy/Plugin/obj/Release/netstandard2.1/SCP682.csproj.AssemblyReference.cache
+/home/suni/Workspace/Lethal Company/HamuniiMods/LC-SCP-682-Enemy/Plugin/obj/Release/netstandard2.1/SCP682.IgnoresAccessChecksTo.cs
+/home/suni/Workspace/Lethal Company/HamuniiMods/LC-SCP-682-Enemy/Plugin/obj/Release/netstandard2.1/PluginInfo.cs
+/home/suni/Workspace/Lethal Company/HamuniiMods/LC-SCP-682-Enemy/Plugin/obj/Release/netstandard2.1/SCP682.GeneratedMSBuildEditorConfig.editorconfig
+/home/suni/Workspace/Lethal Company/HamuniiMods/LC-SCP-682-Enemy/Plugin/obj/Release/netstandard2.1/SCP682.AssemblyInfoInputs.cache
+/home/suni/Workspace/Lethal Company/HamuniiMods/LC-SCP-682-Enemy/Plugin/obj/Release/netstandard2.1/SCP682.AssemblyInfo.cs
+/home/suni/Workspace/Lethal Company/HamuniiMods/LC-SCP-682-Enemy/Plugin/obj/Release/netstandard2.1/SCP682.csproj.CoreCompileInputs.cache
+/home/suni/Workspace/Lethal Company/HamuniiMods/LC-SCP-682-Enemy/Plugin/obj/Release/netstandard2.1/SCP682.sourcelink.json
+/home/suni/Workspace/Lethal Company/HamuniiMods/LC-SCP-682-Enemy/Plugin/bin/Release/netstandard2.1/ProjectSCP.SCP682.deps.json
+/home/suni/Workspace/Lethal Company/HamuniiMods/LC-SCP-682-Enemy/Plugin/bin/Release/netstandard2.1/ProjectSCP.SCP682.dll
+/home/suni/Workspace/Lethal Company/HamuniiMods/LC-SCP-682-Enemy/Plugin/bin/Release/netstandard2.1/MMHOOK_Assembly-CSharp.dll
+/home/suni/Workspace/Lethal Company/HamuniiMods/LC-SCP-682-Enemy/Plugin/bin/Release/netstandard2.1/Unity.Netcode.Runtime.dll
+/home/suni/Workspace/Lethal Company/HamuniiMods/LC-SCP-682-Enemy/Plugin/obj/Release/netstandard2.1/SCP682.csproj.CopyComplete
+/home/suni/Workspace/Lethal Company/HamuniiMods/LC-SCP-682-Enemy/Plugin/obj/Release/netstandard2.1/ProjectSCP.SCP682.dll
+/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/obj/Release/netstandard2.1/SCP682.csproj.AssemblyReference.cache
+/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/obj/Release/netstandard2.1/SCP682.IgnoresAccessChecksTo.cs
+/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/obj/Release/netstandard2.1/PluginInfo.cs
+/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/obj/Release/netstandard2.1/SCP682.GeneratedMSBuildEditorConfig.editorconfig
+/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/obj/Release/netstandard2.1/SCP682.AssemblyInfoInputs.cache
+/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/obj/Release/netstandard2.1/SCP682.AssemblyInfo.cs
+/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/obj/Release/netstandard2.1/SCP682.csproj.CoreCompileInputs.cache
+/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/obj/Release/netstandard2.1/SCP682.sourcelink.json
+/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/obj/Release/netstandard2.1/ProjectSCP.SCP682.dll
+/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/bin/Release/netstandard2.1/ProjectSCP.SCP682.deps.json
+/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/bin/Release/netstandard2.1/ProjectSCP.SCP682.dll
+/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/bin/Release/netstandard2.1/MMHOOK_Assembly-CSharp.dll
+/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/bin/Release/netstandard2.1/Unity.Netcode.Runtime.dll
+/home/suni/Workspace/LethalCompany/LC-SCP-682-Enemy/Plugin/obj/Release/netstandard2.1/SCP682.csproj.CopyComplete

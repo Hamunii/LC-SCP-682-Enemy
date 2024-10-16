@@ -760,8 +760,27 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
         public override IEnumerator OnStateEntered()
         {
-            self.StartCoroutine(self.RoarAndRunCoroutine());
-            yield break;
+            if (self.targetEnemy == null)
+                yield break;
+
+            yield return self.StartCoroutine(self.RoarAndRunCoroutine());
+
+            void PlayVoice(AudioClip clip)
+                => self.StartCoroutine(self.PlayVoiceInSeconds(clip, 3f));
+
+            switch (self.targetEnemy)
+            {
+                case BaboonBirdAI _: PlayVoice(SFX.Voice.Bothersome_EngageBaboonHawk); break;
+                case ForestGiantAI _: PlayVoice(SFX.Voice.Abomination_EngageForestGiant); break;
+                case MouthDogAI _: PlayVoice(SFX.Voice.Disgrace_EngageEyelessDog); break;
+                default:
+                    if (self.targetEnemy is EnemyAI enemyAI)
+                    {
+                        if (!enemyAI.isOutside)
+                            PlayVoice(SFX.Voice.Worms_EngageIndoorEnemies);
+                    }
+                    break;
+            }
         }
 
         public override void AIInterval()
@@ -1074,6 +1093,12 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         else
             damageToDeal = player.health - 30; // Set health to 30.
         player.DamagePlayer(damageToDeal);
+    }
+
+    internal IEnumerator PlayVoiceInSeconds(AudioClip clip, float seconds)
+    {
+        yield return new WaitForSeconds(seconds);
+        creatureVoice.PlayOneShot(clip);
     }
 
     internal IEnumerator ChangeEnemyScaleTo(EnemyScale enemyScale)

@@ -473,7 +473,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
                 yield break;
             }
 
-            CreatureVoice.PlayOneShot(SFX.Voice.TearYouApart_DraggingPlayer);
+            self.PlayVoice(SFX.Voice.TearYouApart_DraggingPlayer);
         }
 
         public override void AIInterval()
@@ -757,7 +757,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             CreatureAnimator.Update(0f);
 
             CreatureSFX.PlayOneShot(SFX.spawn.FromRandom(EnemyRandom));
-            CreatureVoice.PlayOneShot(SFX.Voice.FullRant_UponRevival);
+            self.PlayVoice(SFX.Voice.FullRant_UponRevival);
 
             self.SetAgentSpeedAndAnimations(Speed.Walking);
             yield break;
@@ -979,7 +979,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             if (playerInSight == null)
                 return false;
 
-            CreatureVoice.PlayOneShot(SFX.Voice.Useless_ChasingPlayerForSomeTime);
+            self.PlayVoice(SFX.Voice.Useless_ChasingPlayerForSomeTime);
 
             return true;
         }
@@ -1004,7 +1004,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             playerLostTimer -= Time.deltaTime;
             if (playerLostTimer <= 0)
             {
-                CreatureVoice.PlayOneShot(SFX.Voice.Cowards_LostPlayer);
+                self.PlayVoice(SFX.Voice.Cowards_LostPlayer);
                 return true;
             }
 
@@ -1132,8 +1132,19 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             creatureVoice.PlayOneShot(SFX.Voice.Disgusting_KilledPlayer);
     }
 
+    internal void PlayVoice(AudioClip clip)
+    {
+        if (!Plugin.BoundConfig.doSpeaking.Value)
+            return;
+
+        creatureVoice.PlayOneShot(clip);
+    }
+
     internal IEnumerator PlayVoiceInSeconds(AudioClip clip, float seconds)
     {
+        if (!Plugin.BoundConfig.doSpeaking.Value)
+            yield break;
+
         yield return new WaitForSeconds(seconds);
         creatureVoice.PlayOneShot(clip);
     }

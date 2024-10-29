@@ -70,6 +70,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     float attackCooldown = defaultAttackCooldown;
     Coroutine? changeScaleCoroutine;
 
+    private List<PlayerControllerB> playersAttackedSelf = [];
+
     private int _defaultHealth;
 
     /// <summary>Used for https://docs.unity3d.com/ScriptReference/Physics.OverlapSphereNonAlloc.html</summary>
@@ -180,6 +182,19 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         // We don't want the enemy to wake up instantly if it's already 'dead'.
         if (enemyHP == 0 && activeState is DeadTemporarilyState)
             return;
+
+        if (playerWhoHit != null)
+        {
+            if (playersAttackedSelf.Count != 0 && !playersAttackedSelf.Contains(playerWhoHit))
+            {
+                creatureVoice.PlayOneShot(SFX.Voice.LoathsomeParasites_MultiplePlayersAttacking);
+            }
+            else
+            {
+                creatureVoice.PlayOneShot(SFX.Voice.Pathetic_HitByPlayerFirstTime);
+            }
+        }
+
 
         base.HitEnemy(force, playerWhoHit, playHitSFX, hitID);
         if (isEnemyDead)
@@ -453,8 +468,12 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             }
 
             if (!self.SetDestinationToPosition(facilityEntrance.entrancePoint.position, true))
+            {
                 PLog.LogError("Facility door is unreachable!");
-            yield break;
+                yield break;
+            }
+
+            CreatureVoice.PlayOneShot(SFX.Voice.TearYouApart_DraggingPlayer);
         }
 
         public override void AIInterval()
@@ -629,6 +648,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             [new NoisyJesterEatenTransition()];
 
         JesterAI targetJester = null!;
+        bool voiceClipPlayed = false;
+
         public override IEnumerator OnStateEntered()
         {
             if (self.targetEnemy is not JesterAI jester)
@@ -649,6 +670,12 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
                 return;
 
             var jesterPos = targetJester.agent.transform.position;
+
+            if (!voiceClipPlayed && Vector3.Distance(jesterPos, self.transform.position) < 20)
+            {
+                voiceClipPlayed = true;
+                CreatureSFX.PlayOneShot(SFX.Voice.Silence_ChargeJester);
+            }
 
             if (Vector3.Distance(jesterPos, self.transform.position) < 3)
             {
@@ -730,6 +757,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             CreatureAnimator.Update(0f);
 
             CreatureSFX.PlayOneShot(SFX.spawn.FromRandom(EnemyRandom));
+            CreatureVoice.PlayOneShot(SFX.Voice.FullRant_UponRevival);
 
             self.SetAgentSpeedAndAnimations(Speed.Walking);
             yield break;
@@ -951,6 +979,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             if (playerInSight == null)
                 return false;
 
+            CreatureVoice.PlayOneShot(SFX.Voice.Useless_ChasingPlayerForSomeTime);
+
             return true;
         }
 
@@ -973,7 +1003,11 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
             playerLostTimer -= Time.deltaTime;
             if (playerLostTimer <= 0)
+            {
+                CreatureVoice.PlayOneShot(SFX.Voice.Cowards_LostPlayer);
                 return true;
+            }
+
             return false;
         }
 
@@ -1093,6 +1127,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         else
             damageToDeal = player.health - 30; // Set health to 30.
         player.DamagePlayer(damageToDeal);
+
+        if (player.health <= 0)
+            creatureVoice.PlayOneShot(SFX.Voice.Disgusting_KilledPlayer);
     }
 
     internal IEnumerator PlayVoiceInSeconds(AudioClip clip, float seconds)

@@ -67,14 +67,14 @@ public static class SFX
     public static class Voice
     {
         public static AudioClip Worms_EngageIndoorEnemies = null!;
-        public static AudioClip Bothersome_EngageBaboonHawk = null!;
+        public static AudioClip Bothersome_EngageBaboonHawk = null!; // TODO: find clip
         public static AudioClip Silence_ChargeJester = null!;
         public static AudioClip Abomination_EngageForestGiant = null!;
         public static AudioClip Disgrace_EngageEyelessDog = null!;
         public static AudioClip Pathetic_HitByPlayerFirstTime = null!;
         public static AudioClip LoathsomeParasites_MultiplePlayersAttacking = null!;
-        public static AudioClip FullRant_UponRevival = null!;
-        public static AudioClip PerversionOfExistence_Flamingos = null!;
+        public static AudioClip FullRant_UponRevival = null!; // TODO: find clip
+        public static AudioClip PerversionOfExistence_Flamingos = null!; // TODO: do this
         public static AudioClip TearYouApart_DraggingPlayer = null!;
         public static AudioClip Disgusting_KilledPlayer = null!;
         public static AudioClip Useless_ChasingPlayerForSomeTime = null!;

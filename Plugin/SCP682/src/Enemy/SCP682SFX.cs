@@ -35,7 +35,7 @@ public static class SFX
         switch (clip.name)
         {
             case "Worms_SCP682": Voice.Worms_EngageIndoorEnemies = clip; break;
-            // case "Worms_SCP682": Voice.Bothersome_EngageBaboonHawk = clip; break; // Didn't find clip
+            case "Bothersome_SPC682": Voice.Bothersome_EngageBaboonHawk = clip; break;
             case "Silence_SCP682": Voice.Silence_ChargeJester = clip; break;
             case "Abomination_SCP682": Voice.Abomination_EngageForestGiant = clip; break;
             case "Disgrace_SCP682": Voice.Disgrace_EngageEyelessDog = clip; break;

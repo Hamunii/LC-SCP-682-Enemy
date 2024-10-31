@@ -42,3 +42,4 @@ This project is based off of the [LC-ExampleEnemy](https://github.com/Hamunii/LC
 - [SkullCrusher/Skull220](https://github.com/Skull220) - Creator of the WTOEnemy class which is for their project [Welcome To Ooblterra](https://thunderstore.io/c/lethal-company/p/Skeleton_Studios/Welcome_To_Ooblterra/), and is the base of this project's [ModEnemyAI](https://github.com/Hamunii/LC-SCP-682-Enemy/tree/main/Plugin/src/Enemy/ModEnemyAI) class
 - DBJ - Voice of SCP-682
 - s1ckboy - Sounds
+- [Proton studioo](https://www.fiverr.com/proton1233) - Modelling, rigging and animation

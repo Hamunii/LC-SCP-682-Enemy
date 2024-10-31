@@ -22,11 +22,15 @@ source = "../bin/Release/netstandard2.1/ProjectSCP.SCP682.dll"
 target = "plugins/SCP682/"
 
 [[build.copy]]
-source = "../../UnityProject/AssetBundles/StandaloneWindows/scp682assets"
+source = "../../SCP682.UnityRef/bin/Release/netstandard2.1/ProjectSCP.SCP682.UnityRef.dll"
 target = "plugins/SCP682/SCP682Assets/"
 
 [[build.copy]]
-source = "../../ExternalAssets/SCP682VideoBundle/scp682videobundle"
+source = "../../../UnityProject/AssetBundles/StandaloneWindows/scp682assets"
+target = "plugins/SCP682/SCP682Assets/"
+
+[[build.copy]]
+source = "../../../ExternalAssets/SCP682VideoBundle/scp682videobundle"
 target = "plugins/SCP682/SCP682Assets/"
 
 [[build.copy]]

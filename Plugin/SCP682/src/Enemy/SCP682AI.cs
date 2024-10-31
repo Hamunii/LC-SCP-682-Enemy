@@ -744,6 +744,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         {
             CreatureVoice.PlayOneShot(SFX.defeated.FromRandom(EnemyRandom));
 
+            Agent.isStopped = true;
             Agent.enabled = false;
             CreatureAnimator.SetTrigger(Anim.doKillEnemy);
             yield break;
@@ -754,6 +755,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             self.enemyHP = self._defaultHealth;
 
             Agent.enabled = true;
+            Agent.isStopped = false;
 
             // Reset the animator
             CreatureAnimator.Rebind();

@@ -76,7 +76,7 @@ public class Plugin : BaseUnityPlugin
 #endif
             Enemies.RegisterEnemy(
                 SCP682ET,
-                BoundConfig.doSpeaking.Value,
+                5,
                 Levels.LevelTypes.All,
                 SCP682TN
             );

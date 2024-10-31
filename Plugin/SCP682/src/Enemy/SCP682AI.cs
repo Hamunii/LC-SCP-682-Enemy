@@ -540,7 +540,10 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         {
             // TODO: More interesting pathing
             if (!self.SetDestinationToPosition(facilityEntrance.entrancePoint.position, true)) // when checkForPath is true, pathfinding is a little better (can path to the half-obstructed door in test level)
-                PLog.LogWarning("Facility door is unreachable!");
+            {
+                PLog.LogWarning("Facility door is unreachable! Wandering instead.");
+                self.OverrideState(new AtFacilityWanderingState());
+            }
 
         }
 
@@ -1071,6 +1074,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             PLog.LogWarning($"Called {nameof(RoarShockwaveAttack)} even when a roar attack was in progress!");
             yield break;
         }
+        roarAttackInProgress = true;
 
         agent.speed = 0;
         self.SetAnimTriggerOnServerRpc(Anim.doRoar);
@@ -1086,7 +1090,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         yield return new WaitForSeconds(1.1f);
 
         SetAgentSpeedAndAnimations(speedAfterAttack);
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(4f);
 
         roarAttackInProgress = false;
     }
@@ -1192,6 +1196,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             if (enemyCollider.TryGetComponent<EnemyAI>(out var enemyAI))
             {
                 if (!enemyAI.enemyType.canDie)
+                    continue;
+
+                if (enemyAI is MouthDogAI) // Can't collide with them.
                     continue;
 
                 enemy = enemyAI;

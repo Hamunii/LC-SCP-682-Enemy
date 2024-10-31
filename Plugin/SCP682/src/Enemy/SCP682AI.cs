@@ -182,13 +182,16 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
         if (playerWhoHit != null)
         {
-            if (playersAttackedSelf.Count != 0 && !playersAttackedSelf.Contains(playerWhoHit))
+            if (playersAttackedSelf.Count == 0)
             {
-                creatureVoice.PlayOneShot(SFX.Voice.LoathsomeParasites_MultiplePlayersAttacking);
-            }
-            else
-            {
+                playersAttackedSelf.Add(playerWhoHit);
                 creatureVoice.PlayOneShot(SFX.Voice.Pathetic_HitByPlayerFirstTime);
+                return;
+            }
+            else if (!playersAttackedSelf.Contains(playerWhoHit))
+            {
+                playersAttackedSelf.Add(playerWhoHit);
+                creatureVoice.PlayOneShot(SFX.Voice.LoathsomeParasites_MultiplePlayersAttacking);
             }
         }
 

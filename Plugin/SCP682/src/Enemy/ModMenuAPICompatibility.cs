@@ -3,7 +3,9 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using ModMenuAPI.ModMenuItems;
 using SCP682;
+using SCP682.Hooks;
 using SCP682.SCPEnemy;
+using UnityEngine;
 
 static class ModMenuAPICompatibility
 {
@@ -13,16 +15,22 @@ static class ModMenuAPICompatibility
     public static void InitDebug(SCP682AI instance)
     {
         MMButtonMenuInstantiable mmMenu = new("Override State >");
+        MMButtonMenuInstantiable mmMenu2 = new("Spawn 682 >");
 
         new ModMenu("SCP-682 Debug")
             .RegisterItem(new DebugNewSearchRoutineAction(instance))
             .RegisterItem(mmMenu)
-            .RegisterItem(new DebugPrintInfoAction(instance));
+            .RegisterItem(new DebugPrintInfoAction(instance))
+            .RegisterItem(mmMenu2)
+            .RegisterItem(new Kill682Action());
 
         mmMenu.MenuItems.Add(new DebugOverrideState(instance, "SCP682.SCPEnemy.SCP682AI+WanderToShipState"));
         mmMenu.MenuItems.Add(new DebugOverrideState(instance, "SCP682.SCPEnemy.SCP682AI+OnShipAmbushState"));
         mmMenu.MenuItems.Add(new DebugOverrideState(instance, "SCP682.SCPEnemy.SCP682AI+WanderThroughEntranceState"));
         mmMenu.MenuItems.Add(new DebugOverrideState(instance, "SCP682.SCPEnemy.SCP682AI+AtFacilityWanderingState"));
+
+        mmMenu2.MenuItems.Add(new SpawnSCP682Action(true));
+        mmMenu2.MenuItems.Add(new SpawnSCP682Action(false));
     }
 
     [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
@@ -48,6 +56,25 @@ static class ModMenuAPICompatibility
         {
             if (self.isEnemyDead) return;
             self.TransitionStateServerRpc(state, new System.Random().Next());
+        }
+    }
+
+    class SpawnSCP682Action(bool outside) : MMButtonAction($"Spawn " + (outside ? "outside" : "inside"))
+    {
+        protected override void OnClick()
+        {
+            new Kill682Action().CommonInvoke();
+            ApparatusTakenHook.SpawnSCP682(outside);
+        }
+    }
+
+    class Kill682Action() : MMButtonAction("Kill 682 instances")
+    {
+        protected override void OnClick()
+        {
+            SCP682AI.SCP682Objects.ForEach(Object.Destroy);
+            SCP682AI.SCP682Objects.Clear();
+            ClearMenus();
         }
     }
 }

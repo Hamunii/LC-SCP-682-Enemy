@@ -360,7 +360,7 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
         DebugLog($"{__getTypeName()} #{self.thisEnemyIndex} is Exiting:  {activeState}");
         yield return StartCoroutine(activeState.OnStateExit());
 
-        previousStateType = activeState.GetType();
+        Type nextPreviousStateType = activeState.GetType();
 
         if (localNextTransition is not null)
         {
@@ -372,6 +372,8 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
             DebugLog($"{__getTypeName()} #{self.thisEnemyIndex} is Transitioning via: State Override");
             activeState = (AIBehaviorState)Activator.CreateInstance(transitionOrBehavior.type);
         }
+
+        previousStateType = nextPreviousStateType;
 
         DebugLog($"{__getTypeName()} #{self.thisEnemyIndex} is Entering:  {activeState}");
         StartCoroutine(InitializeAndEnterState(activeState, self, new(randomSeed)));

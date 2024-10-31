@@ -19,7 +19,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     {
         Stopped = 0,
         Walking = 3,
-        Running = 9
+        Running = 10
     }
 
     public enum EnemyScale
@@ -130,12 +130,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
 #if DEBUG
         printDebugs = true;
-        // Set the state to where the player is because we assume the enemy is spawned where the player is
-        enemyType.isOutsideEnemy = !GameNetworkManager
-            .Instance
-            .localPlayerController
-            .isInsideFactory;
-        myValidState = GetPlayerState(GameNetworkManager.Instance.localPlayerController);
 
         if (ModMenuAPICompatibility.Enabled)
             ModMenuAPICompatibility.InitDebug(this);
@@ -155,6 +149,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         base.Start();
 
         creatureSFX.PlayOneShot(SFX.spawn.FromRandom(enemyRandom));
+
+        DebugLog($"Am I an outside enemy? {enemyType.isOutsideEnemy}");
     }
 
     public override void Update()
@@ -1198,10 +1194,14 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
                 if (!enemyAI.enemyType.canDie)
                     continue;
 
-                if (enemyAI is MouthDogAI) // Can't collide with them.
+                if (enemyAI.isEnemyDead)
                     continue;
 
+                // if (enemyAI is MouthDogAI) // Can't collide with them.
+                //     continue;
+
                 enemy = enemyAI;
+                DebugLog($"Found enemy {enemy.name} to target!");
                 return true;
             }
 

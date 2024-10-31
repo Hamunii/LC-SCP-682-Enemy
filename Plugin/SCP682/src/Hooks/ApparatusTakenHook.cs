@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using SCP682.SCPEnemy;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
@@ -26,7 +27,7 @@ static class ApparatusTakenHook
             SpawnSCP682(false);
     }
 
-    private static void SpawnSCP682(bool outside)
+    internal static void SpawnSCP682(bool outside)
     {
         if (!NetworkManager.Singleton.IsHost)
             return;
@@ -57,6 +58,14 @@ static class ApparatusTakenHook
 
         position = roundManager.PositionWithDenialPointsChecked(position, spawnPoints, Plugin.SCP682ET);
 
-        roundManager.SpawnEnemyGameObject(position, 0, 1, Plugin.SCP682ET);
+        var enemyNetObj = roundManager.SpawnEnemyGameObject(position, 0, 1, Plugin.SCP682ET);
+        if (!enemyNetObj.TryGet(out var netObj))
+        {
+            Plugin.Logger.LogError("Couldn't get network object for spawned enemy!");
+            return;
+        }
+
+        var ai = netObj.GetComponent<SCP682AI>();
+        ai.enemyType.isOutsideEnemy = outside;
     }
 }

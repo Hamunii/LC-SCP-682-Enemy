@@ -90,6 +90,10 @@ public class Plugin : BaseUnityPlugin
                     new Vector3(-5, 0, -5),
                     GameNetworkManager.Instance.localPlayerController.transform.forward
                 );
+            SCP682ET.isOutsideEnemy = !GameNetworkManager
+                .Instance
+                .localPlayerController
+                .isInsideFactory;
             RoundManager.Instance.SpawnEnemyGameObject(spawnPosition, 0f, -1, SCP682ET);
         }
 #endif

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using GameNetcodeStuff;
 using SCP682.Hooks;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -955,7 +956,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             if (self.activeState is AttackPlayerState)
                 return false;
 
-            if (self.CheckLineOfSightForPlayer(45, 60, 10))
+            if (self.CheckLineOfSightForPlayer(45, 60, 15))
                 return true;
             return false;
         }
@@ -1072,23 +1073,28 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         }
         roarAttackInProgress = true;
 
-        agent.speed = 0;
+        agent.isStopped = true;
         self.SetAnimTriggerOnServerRpc(Anim.doRoar);
         yield return new WaitForSeconds(1f);
 
-        foreach (PlayerControllerB player in self.AllPlayers())
-        {
-            if (self.PlayerWithinRange(player, 10))
-            {
-                player.DamagePlayer(10, true, true, CauseOfDeath.Blast);
-            }
-        }
+        DealDamageFromShockwaveClientRpc();
         yield return new WaitForSeconds(1.1f);
 
-        SetAgentSpeedAndAnimations(speedAfterAttack);
+        agent.isStopped = false;
         yield return new WaitForSeconds(4f);
 
         roarAttackInProgress = false;
+    }
+
+    [ClientRpc]
+    private void DealDamageFromShockwaveClientRpc()
+    {
+        PlayerControllerB player = GameNetworkManager.Instance.localPlayerController;
+        if (self.PlayerWithinRange(player, 10))
+        {
+            player.DamagePlayer(5, true, true, CauseOfDeath.Blast);
+            HUDManager.Instance.ShakeCamera(ScreenShakeType.Big);
+        }
     }
 
     internal void AttackCollideWithPlayer(Collider other)

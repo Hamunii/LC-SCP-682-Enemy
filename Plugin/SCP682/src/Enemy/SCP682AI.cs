@@ -75,6 +75,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
     private int _defaultHealth;
 
+    internal AudioSource globalAudio = null!;
+
     /// <summary>Used for https://docs.unity3d.com/ScriptReference/Physics.OverlapSphereNonAlloc.html</summary>
     internal static Collider[] tempCollisionArr = new Collider[20];
 
@@ -126,6 +128,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         turnCompass = transform.Find("TurnCompass").GetComponent<Transform>();
         crocodileModel = transform.Find("ModelRoot");
 
+        globalAudio = GetComponent<AudioSource>();
+
         var scale = 1f;
         crocodileModel.localScale = new(scale, scale, scale);
 
@@ -149,7 +153,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         // agent.radius = 0.5f;
         base.Start();
 
-        creatureSFX.PlayOneShot(SFX.spawn.FromRandom(enemyRandom));
+        globalAudio.PlayOneShot(SFX.spawn.FromRandom(enemyRandom));
 
         DebugLog($"Am I an outside enemy? {enemyType.isOutsideEnemy}");
     }
@@ -761,7 +765,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             CreatureAnimator.Rebind();
             CreatureAnimator.Update(0f);
 
-            CreatureSFX.PlayOneShot(SFX.spawn.FromRandom(EnemyRandom));
+            self.globalAudio.PlayOneShot(SFX.spawn.FromRandom(EnemyRandom));
             self.PlayVoice(SFX.Voice.FullRant_UponRevival);
 
             self.SetAgentSpeedAndAnimations(Speed.Walking);

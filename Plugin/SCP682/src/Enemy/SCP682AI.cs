@@ -190,7 +190,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             {
                 playersAttackedSelf.Add(playerWhoHit);
                 creatureVoice.PlayOneShot(SFX.Voice.Pathetic_HitByPlayerFirstTime);
-                return;
             }
             else if (!playersAttackedSelf.Contains(playerWhoHit))
             {

@@ -1002,7 +1002,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
         public override bool CanTransitionBeTaken()
         {
-            PlayerControllerB playerInSight = self.CheckLineOfSightForPlayer(45, 20, 6);
+            PlayerControllerB playerInSight = self.CheckLineOfSightForPlayer(45, 20, 15);
             if (playerInSight != null)
             {
                 playerLostTimer = defaultPlayerLostTimer;

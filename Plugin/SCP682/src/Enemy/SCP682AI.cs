@@ -1098,7 +1098,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     private void DealDamageFromShockwaveClientRpc()
     {
         PlayerControllerB player = GameNetworkManager.Instance.localPlayerController;
-        if (self.PlayerWithinRange(player, 10))
+        if (self.PlayerWithinRange(player, 10, false))
         {
             player.DamagePlayer(5, true, true, CauseOfDeath.Blast);
             HUDManager.Instance.ShakeCamera(ScreenShakeType.Big);

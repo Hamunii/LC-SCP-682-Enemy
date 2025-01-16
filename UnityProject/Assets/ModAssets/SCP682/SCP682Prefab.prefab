@@ -48,7 +48,7 @@ MonoBehaviour:
   maxRange: 15
   minRange: 1
   requiresLineOfSight: 1
-  headerText: SCP-862
+  headerText: SCP-682
   subText: 
   scrapValue: 0
   creatureScanID: 0

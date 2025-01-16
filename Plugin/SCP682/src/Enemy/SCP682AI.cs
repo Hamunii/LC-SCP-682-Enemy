@@ -142,10 +142,16 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             PLog.LogWarning("Hamunii.ModMenuAPI not installed, debug UI can't be shown!");
 #endif
 
-        if (enemyType.isOutsideEnemy)
-            changeScaleCoroutine = StartCoroutine(ChangeEnemyScaleTo(EnemyScale.Big));
-        else
-            changeScaleCoroutine = StartCoroutine(ChangeEnemyScaleTo(EnemyScale.Small));
+        /// The enemy can spawn either inside or outside in <see cref="ApparatusTakenHook.SpawnSCP682(bool)"/>.
+        /// The `isOutsideEnemy` variable isn't networked which will lead to initial size desync half of the time,
+        /// so we RPC this here on Start.
+        if (IsHost)
+        {
+            if (enemyType.isOutsideEnemy)
+                SyncScaleOnSpawnClientRPC(EnemyScale.Big);
+            else
+                SyncScaleOnSpawnClientRPC(EnemyScale.Small);
+        }
 
         // creatureSFX.clip = SFX.walk.FromRandom(enemyRandom);
         // creatureSFX.loop = true;
@@ -157,6 +163,10 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
         DebugLog($"Am I an outside enemy? {enemyType.isOutsideEnemy}");
     }
+
+    [ClientRpc]
+    private void SyncScaleOnSpawnClientRPC(EnemyScale scale) =>
+        changeScaleCoroutine = StartCoroutine(ChangeEnemyScaleTo(EnemyScale.Big));
 
     public override void Update()
     {

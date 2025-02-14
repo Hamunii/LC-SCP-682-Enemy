@@ -1093,7 +1093,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
         agent.isStopped = true;
         self.SetAnimTriggerOnServerRpc(Anim.doRoar);
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0.6f);
 
         DealDamageFromShockwaveClientRpc();
         yield return new WaitForSeconds(1.1f);

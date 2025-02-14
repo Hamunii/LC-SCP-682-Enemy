@@ -226,7 +226,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             return;
         }
 
-        if (activeState is not AttackPlayerState)
+        if (playerWhoHit != null && activeState is not AttackPlayerState)
             OverrideState(new AttackPlayerState());
     }
 

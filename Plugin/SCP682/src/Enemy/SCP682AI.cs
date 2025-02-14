@@ -1107,12 +1107,28 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     [ClientRpc]
     private void DealDamageFromShockwaveClientRpc()
     {
-        PlayerControllerB player = GameNetworkManager.Instance.localPlayerController;
-        if (self.PlayerWithinRange(player, 10, false))
+        PlayerControllerB localPlayer = GameNetworkManager.Instance.localPlayerController;
+        if (self.PlayerWithinRange(localPlayer, 10, false))
         {
-            player.DamagePlayer(5, true, true, CauseOfDeath.Blast);
+            localPlayer.DamagePlayer(5, true, true, CauseOfDeath.Blast);
             HUDManager.Instance.ShakeCamera(ScreenShakeType.Big);
+
+            Vector3 force = localPlayer.transform.position - gameObject.transform.position;
+            StartCoroutine(AddForceToPlayer(localPlayer, force.normalized * 10));
         }
+    }
+
+    IEnumerator AddForceToPlayer(PlayerControllerB player, Vector3 force)
+    {
+        Rigidbody rb = player.playerRigidbody;
+        rb.isKinematic = false;
+        rb.velocity = Vector3.zero;
+        player.externalForceAutoFade += force;
+
+        yield return new WaitForSeconds(0.5f);
+        yield return new WaitUntil(() => player.thisController.isGrounded || player.isInHangarShipRoom);
+
+        rb.isKinematic = true;
     }
 
     internal void AttackCollideWithPlayer(Collider other)

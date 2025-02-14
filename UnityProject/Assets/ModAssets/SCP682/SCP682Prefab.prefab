@@ -68,7 +68,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -583,7 +583,7 @@ NavMeshAgent:
   m_GameObject: {fileID: 7115615282760060981}
   m_Enabled: 1
   m_AgentTypeID: 0
-  m_Radius: 1.2
+  m_Radius: 0.9
   m_Speed: 3.5
   m_Acceleration: 9
   avoidancePriority: 50
@@ -594,7 +594,7 @@ NavMeshAgent:
   m_AutoRepath: 1
   m_Height: 1.7
   m_BaseOffset: 0
-  m_WalkableMask: 4294967295
+  m_WalkableMask: 5
   m_ObstacleAvoidanceType: 1
 --- !u!65 &5440164233999705584
 BoxCollider:
@@ -615,8 +615,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2, y: 2, z: 2}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 2, y: 2, z: 4}
+  m_Center: {x: 0, y: 1, z: 0}
 --- !u!82 &6917297579593420487
 AudioSource:
   m_ObjectHideFlags: 0

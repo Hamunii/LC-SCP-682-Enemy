@@ -1059,7 +1059,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         if (targetPlayer == null)
             return;
 
-        if (!self.roarAttackInProgress && self.PlayerWithinRange(targetPlayer, 10))
+        if (!self.roarAttackInProgress && self.PlayerWithinRange(targetPlayer, 10, false))
             self.StartCoroutine(self.RoarShockwaveAttack(speedAfterAttack));
     }
 

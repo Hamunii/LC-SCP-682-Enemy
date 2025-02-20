@@ -33,11 +33,12 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     {
         // do: trigger
         // is: boolean
-        internal const string doKillEnemy = "KillEnemy"; // base game thing, gets called automatically
         internal const string isMoving = "isMoving";
         internal const string isMovingInverted = "isMovingInverted";
         internal const string isRunning = "isRunning";
         internal const string isOnShip = "isOnShip";
+        internal const string doKillEnemy = "KillEnemy"; // base game thing, gets called automatically
+        internal const string doRevive = "doRevive";
         internal const string doBite = "doBite";
         internal const string doRoar = "doRoar";
     }
@@ -191,7 +192,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     )
     {
         // We don't want the enemy to wake up instantly if it's already 'dead'.
-        if (enemyHP == 0 && activeState is DeadTemporarilyState)
+        if (enemyHP <= 0 && activeState is DeadTemporarilyState)
             return;
 
         if (playerWhoHit != null)
@@ -210,17 +211,15 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
 
         base.HitEnemy(force, playerWhoHit, playHitSFX, hitID);
-        if (isEnemyDead)
-            return;
 
         if (enemyHP > 0)
             creatureSFX.PlayOneShot(SFX.hit.FromRandom(enemyRandom));
 
         enemyHP -= force;
-        if (enemyHP <= 0 && !isEnemyDead)
+        if (enemyHP <= 0 && activeState is not DeadTemporarilyState)
         {
             // This enemy never dies for real.
-            // KillEnemyOnOwnerClient();
+            // Therefore we never call KillEnemyOnOwnerClient();
 
             OverrideState(new DeadTemporarilyState());
             return;
@@ -265,7 +264,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
         public override IEnumerator OnStateEntered()
         {
-            CreatureAnimator.SetBool(Anim.isMoving, true);
+            self.AnimatorSetBool(Anim.isMoving, true);
             yield break;
         }
 
@@ -284,8 +283,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
         public override IEnumerator OnStateEntered()
         {
-            CreatureAnimator.SetBool(Anim.isMoving, false);
-            CreatureAnimator.SetBool(Anim.isOnShip, true);
+            self.AnimatorSetBool(Anim.isMoving, false);
+            self.AnimatorSetBool(Anim.isOnShip, true);
 
             // Make sure we aren't still pathfinding anywhere else
             // this probably doesn't even work, but it's for testing anyways
@@ -316,8 +315,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
         public override IEnumerator OnStateExit()
         {
-            CreatureAnimator.SetBool(Anim.isMoving, true);
-            CreatureAnimator.SetBool(Anim.isOnShip, false);
+            self.AnimatorSetBool(Anim.isMoving, true);
+            self.AnimatorSetBool(Anim.isOnShip, false);
 
             Agent.enabled = true;
 
@@ -542,7 +541,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
         public override IEnumerator OnStateEntered()
         {
-            CreatureAnimator.SetBool(Anim.isMoving, true);
+            self.AnimatorSetBool(Anim.isMoving, true);
 
             facilityEntrance = RoundManager.FindMainEntranceScript(self.isOutside);
             Transitions.Add(new EnterEntranceTransition());
@@ -613,7 +612,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
         public override IEnumerator OnStateEntered()
         {
-            CreatureAnimator.SetBool(Anim.isMoving, true);
+            self.AnimatorSetBool(Anim.isMoving, true);
 
             self.StartSearch(self.transform.position);
             yield break;
@@ -675,7 +674,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             }
             targetJester = jester;
 
-            CreatureAnimator.SetBool(Anim.isMoving, true);
+            self.AnimatorSetBool(Anim.isMoving, true);
             self.SetAgentSpeedAndAnimations(Speed.Running);
             yield break;
         }
@@ -758,7 +757,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             CreatureVoice.PlayOneShot(SFX.defeated.FromRandom(EnemyRandom));
 
             Agent.isStopped = true;
-            CreatureAnimator.SetTrigger(Anim.doKillEnemy);
+            self.AnimatorSetTrigger(Anim.doKillEnemy);
             yield break;
         }
 
@@ -768,9 +767,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
             Agent.isStopped = false;
 
-            // Reset the animator
-            CreatureAnimator.Rebind();
-            CreatureAnimator.Update(0f);
+            self.AnimatorSetTrigger(Anim.doRevive);
 
             self.globalAudio.PlayOneShot(SFX.spawn.FromRandom(EnemyRandom));
             self.PlayVoice(SFX.Voice.FullRant_UponRevival);
@@ -905,7 +902,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
         public override IEnumerator OnStateEntered()
         {
-            CreatureAnimator.SetBool(Anim.isMoving, true);
+            self.AnimatorSetBool(Anim.isMoving, true);
             yield break;
         }
 
@@ -1270,6 +1267,41 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             yield return collided;
         }
     }
+
+    // I could have used NetworkAnimator, but thought I might as well just do this
+    // because I know this should work.
+
+    public void AnimatorSetBool(string name, bool value)
+    {
+        if (!IsOwner)
+            return;
+
+        AnimatorSetBoolServerRpc(name, value);
+    }
+
+    [ServerRpc]
+    public void AnimatorSetBoolServerRpc(string name, bool value) =>
+        AnimatorSetBoolClientRpc(name, value);
+
+    [ClientRpc]
+    private void AnimatorSetBoolClientRpc(string name, bool value) =>
+        creatureAnimator.SetBool(name, value);
+
+    public void AnimatorSetTrigger(string name)
+    {
+        if (!IsOwner)
+            return;
+
+        AnimatorSetTriggerServerRpc(name);
+    }
+
+    [ServerRpc]
+    public void AnimatorSetTriggerServerRpc(string name) =>
+        AnimatorSetTriggerClientRpc(name);
+
+    [ClientRpc]
+    private void AnimatorSetTriggerClientRpc(string name) =>
+        creatureAnimator.SetTrigger(name);
 
     #endregion
     #region Debug Stuff

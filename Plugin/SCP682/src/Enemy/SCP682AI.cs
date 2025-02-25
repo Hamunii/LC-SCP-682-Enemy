@@ -342,13 +342,14 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         {
             public override bool CanTransitionBeTaken()
             {
-                TargetPlayer = self.PlayerHeardFromNoise;
-
-                // Assign target player anyways so the enemy visually looks towards the closest player
-                TargetPlayer ??= self.FindNearestPlayer();
-
-                if (self.PlayerHeardFromNoise == null)
+                if (self.PlayerHeardFromNoise != null)
+                    TargetPlayer = self.PlayerHeardFromNoise;
+                else
+                {
+                    // Assign target player anyways so the enemy visually looks towards the closest player
+                    TargetPlayer = self.FindNearestPlayer();
                     return false;
+                }
 
                 if (!self.PlayerWithinRange(TargetPlayer, 12))
                     return false;

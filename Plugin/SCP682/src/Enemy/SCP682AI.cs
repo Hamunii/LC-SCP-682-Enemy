@@ -717,7 +717,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
                 for (int i = 0; i < JesterListHook.jesterEnemies.Count; i++)
                 {
                     var jester = JesterListHook.jesterEnemies[i];
-                    if (jester is null)
+                    if (jester == null)
                     {
                         JesterListHook.jesterEnemies.RemoveAt(i);
                         i--;

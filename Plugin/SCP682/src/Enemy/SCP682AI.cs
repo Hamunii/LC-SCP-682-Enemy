@@ -579,7 +579,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             public override bool CanTransitionBeTaken()
             {
                 _et ??= RoundManager.FindMainEntranceScript(self.isOutside);
-                if (Vector3.Distance(_et.entrancePoint.position, self.gameObject.transform.position) < 3)
+                if (Vector3.Distance(_et.entrancePoint.position, self.gameObject.transform.position) < 4.5f)
                 {
                     self.TeleportSelfToOtherEntranceClientRpc(self.isOutside);
                     return true;

@@ -25,7 +25,6 @@ public static class SFX
                 case "wakeUp": wakeUp.Add(clip); break;
                 case "spawn": spawn.Add(clip); break;
                 default: InitializeVoiceLine(clip); break;
-                // Plugin.Logger.LogError($"AudioClip with name '{clip.name}' was not identified!"); break;
             }
         }
     }
@@ -47,6 +46,17 @@ public static class SFX
             case "Disgusting_SCP682": Voice.Disgusting_KilledPlayer = clip; break;
             case "Useless_SCP682": Voice.Useless_ChasingPlayerForSomeTime = clip; break;
             case "Cowards_SCP682": Voice.Cowards_LostPlayer = clip; break;
+            default: InitializeDoorBash(clip); break;
+        }
+    }
+
+    private static void InitializeDoorBash(AudioClip clip)
+    {
+        switch (clip.name.Split("SFX")[0])
+        {
+            case "bash": DoorBash.BashSFX.Add(clip); break;
+            case "metalDoorSmash": DoorBash.MetalDoorSmashSFX.Add(clip); break;
+            case "doorWoosh": DoorBash.DoorWooshSFX.Add(clip); break;
             default: Plugin.Logger.LogError($"AudioClip with name '{clip.name}' was not identified!"); break;
         }
     }
@@ -79,6 +89,13 @@ public static class SFX
         public static AudioClip Disgusting_KilledPlayer = null!;
         public static AudioClip Useless_ChasingPlayerForSomeTime = null!;
         public static AudioClip Cowards_LostPlayer = null!;
+    }
+
+    public static class DoorBash
+    {
+        public static List<AudioClip> BashSFX { get; private set; } = [];
+        public static List<AudioClip> MetalDoorSmashSFX { get; private set; } = [];
+        public static List<AudioClip> DoorWooshSFX { get; private set; } = [];
     }
 
     public static AudioClip FromRandom(this List<AudioClip> clips, System.Random random)

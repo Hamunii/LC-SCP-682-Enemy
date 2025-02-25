@@ -1,4 +1,5 @@
 ﻿using SCP682.SCPEnemy;
+using SCP682.SCPEnemy.DoorBreak;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -29,7 +30,10 @@ static class AddEnemyScript
         ai.enemyHP = 18;
 
         // Other
-        pref.GetComponentInChildren<EnemyAICollisionDetect>().mainScript = ai;
+        var collisionDetect = pref.GetComponentInChildren<EnemyAICollisionDetect>();
+        collisionDetect.mainScript = ai;
+        var doorDestroyer = collisionDetect.gameObject.AddComponent<DoorDestroyerCollider>();
+        doorDestroyer.AI = ai;
     }
 
     internal static void RemoveComponent<T>(this GameObject gameObject)

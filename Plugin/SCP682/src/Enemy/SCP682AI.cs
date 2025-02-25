@@ -176,6 +176,12 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         base.Update();
     }
 
+    public override void KillEnemy(bool destroy = false)
+    {
+        // We want all enemies to attack 682 so `enemyType.canDie` is `true`,
+        // therefore we need to prevent 682 from forcefully dying like this.
+    }
+
 #if DEBUG
     public override void DoAIInterval()
     {
@@ -183,6 +189,22 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         StartCoroutine(DrawPath(lineRenderer, agent));
     }
 #endif
+
+    /// <param name="bashDoor">Delegate to do the actual door bashing.</param>
+    public IEnumerator BashDoorAnimation(Action bashDoor)
+    {
+        // What we want is:
+        // - If 682 is walking, perform bite animation
+        // - If 682 is running, run through the door
+
+        if (activeState is InvestigatePlayerState)
+        {
+            AnimatorSetTrigger(Anim.doBite);
+            yield return new WaitForSeconds(0.2f);
+        }
+
+        bashDoor();
+    }
 
     public override void HitEnemy(
         int force = 1,
@@ -795,7 +817,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         }
     }
 
-    private class AttackEnemyState : AIBehaviorState
+    internal class AttackEnemyState : AIBehaviorState
     {
         public override List<AIStateTransition> Transitions { get; set; } =
             [new EnemyKilledTransition()];
@@ -896,7 +918,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     #endregion
     #region Player States
 
-    private class InvestigatePlayerState : AIBehaviorState
+    internal class InvestigatePlayerState : AIBehaviorState
     {
         public override List<AIStateTransition> Transitions { get; set; } =
             [new AttackPlayerTransition(), new LostPlayerTransition()];
@@ -927,7 +949,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         }
     }
 
-    private class AttackPlayerState : AIBehaviorState
+    internal class AttackPlayerState : AIBehaviorState
     {
         public override List<AIStateTransition> Transitions { get; set; } =
             [new LostPlayerTransition()];

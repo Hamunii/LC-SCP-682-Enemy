@@ -15,7 +15,7 @@ static class AddEnemyScript
         ai.enemyType = enemyType;
 
         ai.creatureAnimator = pref.GetComponentInChildren<Animator>();
-        ai.creatureVoice = pref.transform.Find("CreatureVoice").GetComponent<AudioSource>();
+        ai.creatureVoice = pref.transform.Find("ModelRoot/CrocodileModel/CG/Pelvis/CreatureVoice").GetComponent<AudioSource>();
         ai.creatureSFX = pref.transform.Find("CreatureSFX").GetComponent<AudioSource>();
         ai.eye = pref.transform.Find("Eye");
         ai.dieSFX = assets.LoadAsset<AudioClip>("SkibidiDeath");

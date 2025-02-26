@@ -68,6 +68,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
     internal Transform turnCompass = null!;
     internal Transform crocodileModel = null!;
+    internal Transform reversedMouthPosition = null!;
     const float defaultAttackCooldown = 5f;
     float attackCooldown = defaultAttackCooldown;
     Coroutine? changeScaleCoroutine;
@@ -128,6 +129,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
         turnCompass = transform.Find("TurnCompass").GetComponent<Transform>();
         crocodileModel = transform.Find("ModelRoot");
+        reversedMouthPosition = crocodileModel.Find("CrocodileModel/ReversedMouthPosition");
 
         globalAudio = GetComponent<AudioSource>();
 
@@ -373,7 +375,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
                     return false;
                 }
 
-                if (!self.PlayerWithinRange(TargetPlayer, 12))
+                if (!self.PlayerWithinRange(TargetPlayer, 30f))
                     return false;
 
                 return true;
@@ -437,7 +439,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             Vector3 positionInBetweenInAir = (positionBehindPlayer + positionBehindPlayer) / 2 + (Vector3.up * 10f);
             Vector3 originalPosition = self.transform.position;
 
-            self.SetAgentSpeedAndAnimations(Speed.Stopped);
+            // self.SetAgentSpeedAndAnimations(Speed.Stopped);
+            Agent.speed = (int)Speed.Stopped;
+            self.AnimatorSetBool(Anim.isRunning, true); // isMoving is current false, so we go directly to running.
             Agent.enabled = false;
 
             // Everything is now validated and set up, we can perform the jump animation.
@@ -460,6 +464,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             Agent.enabled = true;
             Agent.Warp(positionBehindPlayer);
 
+            self.AnimatorSetBool(Anim.isRunning, false); // Now we set running to false so we can go from walking to running again.
             self.StartCoroutine(self.RoarAndRunCoroutine());
             yield break;
         }
@@ -490,6 +495,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             [new DraggedPlayerEnoughTransition()];
 
         EntranceTeleport facilityEntrance = null!;
+        float realMouthOrStableReverseMouth = 0;
+
         public override IEnumerator OnStateEntered()
         {
             TargetPlayer = self.FindNearestPlayer();
@@ -508,7 +515,38 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
                 yield break;
             }
 
+            self.AnimatorSetBool(Anim.isMovingInverted, true);
             self.PlayVoice(SFX.Voice.TearYouApart_DraggingPlayer);
+
+            Agent.speed = (int)Speed.Stopped;
+
+            // This is kind of a mess, but there is no proper place for the mouth so we pick a position
+            // that is parented to 682's pelvis, and then change that to a static (relative) position behind 682.
+
+            realMouthOrStableReverseMouth = 0f;
+
+            float normalizedTimer = 0f;
+            while (normalizedTimer <= 4.2f)
+            {
+                normalizedTimer += Time.deltaTime;
+                Update();
+                yield return null;
+            }
+
+            Agent.speed = (int)Speed.Walking;
+            AIInterval();
+
+            normalizedTimer = 0f;
+            while (normalizedTimer < 1f)
+            {
+                normalizedTimer += Time.deltaTime;
+                realMouthOrStableReverseMouth = normalizedTimer;
+                Update();
+                yield return null;
+            }
+
+            realMouthOrStableReverseMouth = 1f;
+            Agent.speed = 7;
         }
 
         public override void AIInterval()
@@ -531,13 +569,18 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
                 return;
 
             self.inSpecialAnimationWithPlayer.transform.position =
-                CreatureVoice.transform.position + new Vector3(0, -1f, 0); // creatureVoice is positioned in the mouth
+            Vector3.Lerp(CreatureVoice.transform.position + new Vector3(0, -1f, 0),
+                self.reversedMouthPosition.position,
+                realMouthOrStableReverseMouth);
         }
 
         public override IEnumerator OnStateExit()
         {
+            Agent.speed = (int)Speed.Stopped;
+            self.AnimatorSetBool(Anim.isMovingInverted, false);
             self.CancelSpecialAnimationWithPlayer();
-            yield break;
+
+            yield return new WaitForSeconds(2f); // 3.2 seconds is about the duration of the direction change transition.
         }
 
         private class DraggedPlayerEnoughTransition : AIStateTransition
@@ -1065,16 +1108,16 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
         if (speed == Speed.Stopped)
         {
-            creatureAnimator.SetBool(Anim.isRunning, false);
-            creatureAnimator.SetBool(Anim.isMoving, false);
+            AnimatorSetBool(Anim.isRunning, false);
+            AnimatorSetBool(Anim.isMoving, false);
             return;
         }
 
-        creatureAnimator.SetBool(Anim.isMoving, true);
+        AnimatorSetBool(Anim.isMoving, true);
 
         bool newIsRunning = speed == Speed.Running;
         if (creatureAnimator.GetBool(Anim.isRunning) != newIsRunning)
-            creatureAnimator.SetBool(Anim.isRunning, newIsRunning);
+            AnimatorSetBool(Anim.isRunning, newIsRunning);
     }
 
     internal void DoRoarShockwaveAttackIfCan(Speed speedAfterAttack)
@@ -1090,8 +1133,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     {
         // self.SetAgentSpeedAndAnimations(Speed.Stopped); // We need Anim.isRunning to be enabled, but we must not move because of things our Animator does
         agent.speed = 0;
-        creatureAnimator.SetBool(Anim.isMoving, true);
-        creatureAnimator.SetBool(Anim.isRunning, true);
+        AnimatorSetBool(Anim.isMoving, true);
+        AnimatorSetBool(Anim.isRunning, true);
 
         yield return new WaitForSeconds(2.1f);
         // creatureSFX.PlayOneShot(SFX.roar.FromRandom(enemyRandom));
@@ -1166,7 +1209,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         creatureSFX.PlayOneShot(SFX.bite.FromRandom(enemyRandom));
         yield return new WaitForSeconds(0.8f);
 
-        creatureAnimator.SetTrigger(Anim.doBite);
+        AnimatorSetTrigger(Anim.doBite);
         yield return new WaitForSeconds(0.2f);
 
         // TODO: This check doesn't seem to work properly, at least the scale.

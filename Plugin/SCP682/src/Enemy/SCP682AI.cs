@@ -1034,16 +1034,19 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             if (self.activeState is AttackPlayerState)
                 return false;
 
-            var player = self.CheckLineOfSightForPlayer(45, 40, 15);
+            var player = self.CheckLineOfSightForPlayer(45, 30, 15);
             if (player == null)
-                return false;
-
-            if (player.isInHangarShipRoom)
+            {
+                player = self.PlayerHeardFromNoise;
+                if (player == null)
+                    return false;
+            }
+            else if (player.isInHangarShipRoom)
             {
                 // If player is in the ship, we don't want to sense them through proximity.
                 // This is because 682 climbs on top of the ship, and in the process would
                 // be so close to a player inside the ship that it senses them.
-                player = self.CheckLineOfSightForPlayer(45, 40, -1);
+                player = self.CheckLineOfSightForPlayer(45, 30, -1);
                 if (player == null)
                     return false;
             }

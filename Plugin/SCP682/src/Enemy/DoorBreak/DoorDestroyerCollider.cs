@@ -25,6 +25,11 @@ class DoorDestroyerCollider : MonoBehaviour
         if (doorLock == null || doorLock.isDoorOpened)
             return;
 
+        var steelDoorObj = doorLock.transform.parent.transform.parent.gameObject;
+        var doorMesh = steelDoorObj.transform.Find("DoorMesh")?.gameObject;
+        if (doorMesh == null)
+            return;
+
         timeInTrigger += Time.fixedDeltaTime;
 
         if (timeInTrigger <= 1f)
@@ -43,12 +48,20 @@ class DoorDestroyerCollider : MonoBehaviour
         // DoDamageToNearbyPlayers();
 
         if (doorLock == null)
+        {
+            AI.inSpecialAnimation = false;
             return;
+        }
 
         float doorBashForce = 35f;
 
         var steelDoorObj = doorLock.transform.parent.transform.parent.gameObject;
-        var doorMesh = steelDoorObj.transform.Find("DoorMesh").gameObject;
+        var doorMesh = steelDoorObj.transform.Find("DoorMesh")?.gameObject;
+        if (doorMesh == null)
+        {
+            AI.inSpecialAnimation = false;
+            return;
+        }
 
         GameObject flyingDoorPrefab = new GameObject("FlyingDoor");
         BoxCollider tempCollider = flyingDoorPrefab.AddComponent<BoxCollider>();

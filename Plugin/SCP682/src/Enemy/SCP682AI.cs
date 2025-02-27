@@ -81,6 +81,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
     /// <summary>Used for https://docs.unity3d.com/ScriptReference/Physics.OverlapSphereNonAlloc.html</summary>
     internal static Collider[] tempCollisionArr = new Collider[20];
+    internal NavMeshPath? tempPath = null!;
 
     // Unused in game?
     ThreatType IVisibleThreat.type => ThreatType.RadMech;
@@ -111,7 +112,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     // Unused in game.
     int IVisibleThreat.SendSpecialBehaviour(int id) => 0;
 
-    // Defined in BaboonBirdAI and RadMechAI
+    // Defined in BaboonBirdAI and RadMechAI, has Player and Enemies layers
     internal const int visibleThreatsMask = 524296;
 
     internal override SCP682AI GetThis() => this;
@@ -902,7 +903,12 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
                 return;
 
             if (!self.SetDestinationToPosition(self.targetEnemy.transform.position, true))
+            {
                 PLog.LogWarning("Can't pathfind to target enemy!");
+
+                if (self.path1.status == NavMeshPathStatus.PathPartial)
+                    self.SetDestinationToPosition(self.path1.corners[^1]);
+            }
         }
 
         public override void OnCollideWithEnemy(Collider other, EnemyAI? collidedEnemy)
@@ -918,7 +924,20 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
             self.SetAnimTriggerOnServerRpc(Anim.doBite);
 
-            collidedEnemy.HitEnemyServerRpc(force: 5, -1, true);
+            if (collidedEnemy is CaveDwellerAI caveDweller)
+            {
+
+                if (self.IsHost)
+                {
+                    // Meet requirements for it being able to die for real.
+                    if (caveDweller.currentBehaviourStateIndex == 0)
+                        caveDweller.TransformIntoAdult();
+                    else
+                        caveDweller.KillEnemyClientRpc(true);
+                }
+            }
+            else
+                collidedEnemy.HitEnemyServerRpc(force: 5, -1, true);
 
             self.attackCooldown = SCP682AI.defaultAttackCooldown;
         }
@@ -1326,30 +1345,32 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         {
             if (enemyCollider.TryGetComponent<EnemyAI>(out var enemyAI))
             {
+                DebugLog($"Found enemy {enemyAI.name}");
                 if (!enemyAI.enemyType.canDie)
                     continue;
 
                 if (enemyAI.isEnemyDead)
                     continue;
-
-                // if (enemyAI is MouthDogAI) // Can't collide with them.
-                //     continue;
+                
+                if (!agent.CalculatePath(enemyAI.agent.transform.position, tempPath))
+                    continue;
 
                 enemy = enemyAI;
                 DebugLog($"Found enemy {enemy.name} to target!");
                 return true;
             }
-
-            // I'm relying on the enemy being able to be killed, and I don't know if the enemy is killable.
-            // if (enemyCollider.TryGetComponent<IVisibleThreat>(out var visibleThreat))
-            // {
-            //     // We already handle code for targeting a player, so we'll ignore this.
-            //     if (visibleThreat.type == ThreatType.Player)
-            //         continue;
-
-            //     continue;
-            // }
         }
+
+        foreach (CaveDwellerAI caveDweller in GetBabyCaveDwellersInProximity())
+        {
+            if (!agent.CalculatePath(caveDweller.agent.transform.position, tempPath))
+                continue;
+
+            DebugLog($"Found cave dweller to target!");
+            enemy = caveDweller;
+            return true;
+        }
+
         enemy = null;
         return false;
     }
@@ -1365,6 +1386,18 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
                 continue;
 
             yield return collided;
+        }
+    }
+
+    /// <summary>
+    /// CaveDwellers can't be detected by the overlap sphere check, hence this exists.
+    /// </summary>
+    internal IEnumerable<CaveDwellerAI> GetBabyCaveDwellersInProximity()
+    {
+        foreach (CaveDwellerAI caveDweller in CaveDwellerList.GetBabyCaveDwellers())
+        {
+            if (Vector3.Distance(eye.position, caveDweller.transform.position) <= 40f)
+                yield return caveDweller;
         }
     }
 

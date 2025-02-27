@@ -1228,6 +1228,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         else
             damageToDeal = player.health - 30; // Set health to 30.
         player.DamagePlayer(damageToDeal);
+        Vector3 force = player.transform.position - gameObject.transform.position;
+        StartCoroutine(AddForceToPlayer(player, force.normalized * 10));
+
 
         if (player.health <= 0)
             creatureVoice.PlayOneShot(SFX.Voice.Disgusting_KilledPlayer);

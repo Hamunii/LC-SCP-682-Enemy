@@ -695,6 +695,21 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
             public override bool CanTransitionBeTaken()
             {
+                if (!self.isOutside)
+                {
+                    // It's possible we are outside as a failsafe for not being able to pathfind to facility door.
+                    foreach (JesterAI jester in JesterListHook.GetJesters())
+                    {
+                        if (jester.currentBehaviourStateIndex != 2) // Hunting state.
+                            continue;
+
+                        self.DebugLog(
+                            $"[{nameof(BoredOfFacilityTransition)}] Holy hell, a jester is going wild! I'm going to leave the facility."
+                        );
+                        return true;
+                    }
+                }
+
                 self.boredOfWanderingFacilityTimer -= Time.deltaTime;
                 if (debugMSGTimer - self.boredOfWanderingFacilityTimer > 10)
                 {
@@ -703,7 +718,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
                         $"[{nameof(BoredOfFacilityTransition)}] Time until bored: {self.boredOfWanderingFacilityTimer}"
                     );
                 }
-                if (self.boredOfWanderingFacilityTimer <= 0)
+                if (self.boredOfWanderingFacilityTimer <= 0f)
                 {
                     return true;
                 }
@@ -779,19 +794,11 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
                 if (self.isOutside)
                     return false;
 
-                for (int i = 0; i < JesterListHook.jesterEnemies.Count; i++)
+                foreach (JesterAI jester in JesterListHook.GetJesters())
                 {
-                    var jester = JesterListHook.jesterEnemies[i];
-                    if (jester == null)
-                    {
-                        JesterListHook.jesterEnemies.RemoveAt(i);
-                        i--;
-                        continue;
-                    }
                     if (jester.farAudio.isPlaying)
                     {
                         self.targetEnemy = jester;
-                        JesterListHook.jesterEnemies.RemoveAt(i);
                         return true;
                     }
                 }

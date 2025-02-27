@@ -16,4 +16,19 @@ static class JesterListHook
         orig(self);
         jesterEnemies.Add(self);
     }
+
+    public static IEnumerable<JesterAI> GetJesters()
+    {
+        for (int i = 0; i < JesterListHook.jesterEnemies.Count; i++)
+        {
+            var jester = JesterListHook.jesterEnemies[i];
+            if (jester == null)
+            {
+                JesterListHook.jesterEnemies.RemoveAt(i);
+                i--;
+                continue;
+            }
+            yield return jester;
+        }
+    }
 }

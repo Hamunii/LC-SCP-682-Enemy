@@ -76,7 +76,7 @@ public class Plugin : BaseUnityPlugin
 #endif
             Enemies.RegisterEnemy(
                 SCP682ET,
-                5,
+                20,
                 Levels.LevelTypes.All,
                 SCP682TN
             );

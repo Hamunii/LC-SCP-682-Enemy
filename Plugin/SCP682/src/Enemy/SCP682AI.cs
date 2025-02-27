@@ -976,7 +976,12 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             TargetPlayer = self.FindNearestPlayer();
 
             if (!self.SetDestinationToPosition(TargetPlayer.transform.position, true))
+            {
+                if (self.path1.status == NavMeshPathStatus.PathPartial)
+                    self.SetDestinationToPosition(self.path1.corners[^1]);
+
                 self.DoRoarShockwaveAttackIfCan(Speed.Walking);
+            }
         }
 
         public override void OnCollideWithPlayer(Collider other) =>
@@ -1007,7 +1012,12 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             TargetPlayer = self.FindNearestPlayer();
 
             if (!self.SetDestinationToPosition(TargetPlayer.transform.position, true))
+            {
+                if (self.path1.status == NavMeshPathStatus.PathPartial)
+                    self.SetDestinationToPosition(self.path1.corners[^1]);
+
                 self.DoRoarShockwaveAttackIfCan(Speed.Running);
+            }
         }
 
         public override void OnCollideWithPlayer(Collider other) =>
@@ -1188,7 +1198,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             localPlayer.DamagePlayer(5, true, true, CauseOfDeath.Blast);
             HUDManager.Instance.ShakeCamera(ScreenShakeType.Big);
 
-            Vector3 force = localPlayer.transform.position - gameObject.transform.position;
+            Vector3 force = localPlayer.transform.position - agent.transform.position;
             StartCoroutine(AddForceToPlayer(localPlayer, force.normalized * 10));
         }
     }
@@ -1242,7 +1252,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         else
             damageToDeal = player.health - 30; // Set health to 30.
         player.DamagePlayer(damageToDeal);
-        Vector3 force = player.transform.position - gameObject.transform.position;
+        Vector3 force = player.transform.position - agent.transform.position;
         StartCoroutine(AddForceToPlayer(player, force.normalized * 10));
 
 

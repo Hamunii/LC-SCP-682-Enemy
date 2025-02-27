@@ -45,7 +45,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
     const float defaultBoredOfWanderingFacilityTimer = 120f;
     float boredOfWanderingFacilityTimer = defaultBoredOfWanderingFacilityTimer;
-    Vector3 posOnTopOfShip;
+    Vector3 PosOnTopOfShip { get => StartOfRound.Instance.insideShipPositions[0].position + new Vector3(-2, 5, 3); }
     MonoBehaviour? targetEnemy = null!;
 
     internal PlayerControllerB? PlayerHeardFromNoise
@@ -123,7 +123,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
         _defaultHealth = enemyHP;
 
-        posOnTopOfShip = StartOfRound.Instance.insideShipPositions[0].position + new Vector3(-2, 5, 3); // temporary
         lineRenderer = gameObject.AddComponent<LineRenderer>();
         mainCollider = gameObject.GetComponentInChildren<BoxCollider>();
 
@@ -294,7 +293,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
         public override void AIInterval()
         {
-            self.SetDestinationToPosition(self.posOnTopOfShip);
+            self.SetDestinationToPosition(self.PosOnTopOfShip);
         }
 
         public override IEnumerator OnStateExit() { yield break; }
@@ -317,7 +316,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
             Agent.enabled = false;
 
-            self.gameObject.transform.position = self.posOnTopOfShip;
+            self.gameObject.transform.position = self.PosOnTopOfShip;
 
             if (self.changeScaleCoroutine != null)
                 self.StopCoroutine(self.changeScaleCoroutine);
@@ -354,7 +353,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         {
             public override bool CanTransitionBeTaken()
             {
-                if (Vector3.Distance(self.posOnTopOfShip, self.gameObject.transform.position) < 2)
+                if (Vector3.Distance(self.PosOnTopOfShip, self.gameObject.transform.position) < 2)
                     return true;
                 return false;
             }
@@ -1035,9 +1034,21 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             if (self.activeState is AttackPlayerState)
                 return false;
 
-            if (self.CheckLineOfSightForPlayer(45, 60, 15))
-                return true;
-            return false;
+            var player = self.CheckLineOfSightForPlayer(45, 40, 15);
+            if (player == null)
+                return false;
+
+            if (player.isInHangarShipRoom)
+            {
+                // If player is in the ship, we don't want to sense them through proximity.
+                // This is because 682 climbs on top of the ship, and in the process would
+                // be so close to a player inside the ship that it senses them.
+                player = self.CheckLineOfSightForPlayer(45, 40, -1);
+                if (player == null)
+                    return false;
+            }
+
+            return true;
         }
 
         public override AIBehaviorState NextState() => new InvestigatePlayerState();

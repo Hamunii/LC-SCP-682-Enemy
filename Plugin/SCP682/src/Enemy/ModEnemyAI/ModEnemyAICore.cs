@@ -245,16 +245,19 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
         base.Update();
         AITimer += Time.deltaTime;
 
-        if (_transitionCoroutineInProgress is not null)
-            return;
-
-        foreach (AIStateTransition TransitionToCheck in GetAllTransitions())
+        if (IsOwner)
         {
-            if (TransitionToCheck.CanTransitionBeTaken() && base.IsOwner)
-            {
-                nextTransition = TransitionToCheck;
-                TransitionStateServerRpc(nextTransition.ToString(), enemyRandom.Next());
+            if (_transitionCoroutineInProgress is not null)
                 return;
+
+            foreach (AIStateTransition TransitionToCheck in GetAllTransitions())
+            {
+                if (TransitionToCheck.CanTransitionBeTaken() && base.IsOwner)
+                {
+                    nextTransition = TransitionToCheck;
+                    TransitionStateServerRpc(nextTransition.ToString(), enemyRandom.Next());
+                    return;
+                }
             }
         }
 

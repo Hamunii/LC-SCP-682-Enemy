@@ -326,7 +326,7 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
     {
         player = MeetsStandardPlayerCollisionConditions(other);
 
-        if (player is not null)
+        if (player != null)
             return true;
 
         return false;

@@ -1,4 +1,5 @@
 
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -89,6 +90,41 @@ public static class SFX
         public static AudioClip Disgusting_KilledPlayer = null!;
         public static AudioClip Useless_ChasingPlayerForSomeTime = null!;
         public static AudioClip Cowards_LostPlayer = null!;
+
+        public static AudioClip GetClip(VoiceCode clip) => clip switch
+        {
+            VoiceCode.Worms_EngageIndoorEnemies => Worms_EngageIndoorEnemies,
+            VoiceCode.Bothersome_EngageBaboonHawk => Bothersome_EngageBaboonHawk,
+            VoiceCode.Silence_ChargeJester => Silence_ChargeJester,
+            VoiceCode.Abomination_EngageForestGiant => Abomination_EngageForestGiant,
+            VoiceCode.Disgrace_EngageEyelessDog => Disgrace_EngageEyelessDog,
+            VoiceCode.Pathetic_HitByPlayerFirstTime => Pathetic_HitByPlayerFirstTime,
+            VoiceCode.LoathsomeParasites_MultiplePlayersAttacking => LoathsomeParasites_MultiplePlayersAttacking,
+            VoiceCode.FullRant_UponRevival => FullRant_UponRevival,
+            VoiceCode.PerversionOfExistence_Flamingos => PerversionOfExistence_Flamingos,
+            VoiceCode.TearYouApart_DraggingPlayer => TearYouApart_DraggingPlayer,
+            VoiceCode.Disgusting_KilledPlayer => Disgusting_KilledPlayer,
+            VoiceCode.Useless_ChasingPlayerForSomeTime => Useless_ChasingPlayerForSomeTime,
+            VoiceCode.Cowards_LostPlayer => Cowards_LostPlayer,
+            _ => throw new InvalidOperationException($"A voice clip with code {clip} doesn't exist.")
+        };
+    }
+
+    public enum VoiceCode
+    {
+        Worms_EngageIndoorEnemies,
+        Bothersome_EngageBaboonHawk,
+        Silence_ChargeJester,
+        Abomination_EngageForestGiant,
+        Disgrace_EngageEyelessDog,
+        Pathetic_HitByPlayerFirstTime,
+        LoathsomeParasites_MultiplePlayersAttacking,
+        FullRant_UponRevival,
+        PerversionOfExistence_Flamingos,
+        TearYouApart_DraggingPlayer,
+        Disgusting_KilledPlayer,
+        Useless_ChasingPlayerForSomeTime,
+        Cowards_LostPlayer,
     }
 
     public static class DoorBash

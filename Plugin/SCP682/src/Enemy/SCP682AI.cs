@@ -81,7 +81,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
     /// <summary>Used for https://docs.unity3d.com/ScriptReference/Physics.OverlapSphereNonAlloc.html</summary>
     internal static Collider[] tempCollisionArr = new Collider[20];
-    internal NavMeshPath? tempPath = null!;
+    internal NavMeshPath? tempPath = new();
 
     // Unused in game?
     ThreatType IVisibleThreat.type => ThreatType.RadMech;
@@ -136,14 +136,18 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         var scale = 1f;
         crocodileModel.localScale = new(scale, scale, scale);
 
-#if DEBUG
+#if DEBUG || true
         printDebugs = true;
+#endif
 
         if (ModMenuAPICompatibility.Enabled)
             ModMenuAPICompatibility.InitDebug(this);
         else
+        {
+#if DEBUG
             PLog.LogWarning("Hamunii.ModMenuAPI not installed, debug UI can't be shown!");
 #endif
+        }
 
         /// The enemy can spawn either inside or outside in <see cref="ApparatusTakenHook.SpawnSCP682(bool)"/>.
         /// The `isOutsideEnemy` variable isn't networked which will lead to initial size desync half of the time,
@@ -168,8 +172,15 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     }
 
     [ClientRpc]
-    private void SyncScaleOnSpawnClientRPC(EnemyScale scale) =>
+    private void SyncScaleOnSpawnClientRPC(EnemyScale scale)
+    {
+        if (scale is EnemyScale.Big)
+            SetEnemyOutside(true);
+        else
+            SetEnemyOutside(false);
+
         changeScaleCoroutine = StartCoroutine(ChangeEnemyScaleTo(EnemyScale.Big));
+    }
 
     public override void Update()
     {
@@ -354,7 +365,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         {
             public override bool CanTransitionBeTaken()
             {
-                if (Vector3.Distance(self.PosOnTopOfShip, self.gameObject.transform.position) < 2)
+                if (Vector3.Distance(self.PosOnTopOfShip, self.gameObject.transform.position) < 3f)
                     return true;
                 return false;
             }
@@ -516,7 +527,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             }
 
             self.AnimatorSetBool(Anim.isMovingInverted, true);
-            self.PlayVoice(SFX.Voice.TearYouApart_DraggingPlayer);
+            self.PlayVoice(SFX.VoiceCode.TearYouApart_DraggingPlayer);
 
             Agent.speed = (int)Speed.Stopped;
 
@@ -843,7 +854,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             self.AnimatorSetTrigger(Anim.doRevive);
 
             self.globalAudio.PlayOneShot(SFX.spawn.FromRandom(EnemyRandom));
-            self.PlayVoice(SFX.Voice.FullRant_UponRevival);
+            self.PlayVoice(SFX.VoiceCode.FullRant_UponRevival);
 
             self.SetAgentSpeedAndAnimations(Speed.Walking);
             yield break;
@@ -874,24 +885,24 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
         public override IEnumerator OnStateEntered()
         {
-            if (self.targetEnemy == null)
+            if (self.IsOwner && self.targetEnemy == null)
                 yield break;
 
             yield return self.StartCoroutine(self.RoarAndRunCoroutine());
 
-            void PlayVoice(AudioClip clip)
-                => self.StartCoroutine(self.PlayVoiceInSeconds(clip, 3f));
+            void PlayVoice(SFX.VoiceCode clipCode)
+                => self.StartCoroutine(self.PlayVoiceInSeconds(clipCode, 3f));
 
             switch (self.targetEnemy)
             {
-                case BaboonBirdAI _: PlayVoice(SFX.Voice.Bothersome_EngageBaboonHawk); break;
-                case ForestGiantAI _: PlayVoice(SFX.Voice.Abomination_EngageForestGiant); break;
-                case MouthDogAI _: PlayVoice(SFX.Voice.Disgrace_EngageEyelessDog); break;
+                case BaboonBirdAI _: PlayVoice(SFX.VoiceCode.Bothersome_EngageBaboonHawk); break;
+                case ForestGiantAI _: PlayVoice(SFX.VoiceCode.Abomination_EngageForestGiant); break;
+                case MouthDogAI _: PlayVoice(SFX.VoiceCode.Disgrace_EngageEyelessDog); break;
                 default:
                     if (self.targetEnemy is EnemyAI enemyAI)
                     {
                         if (!enemyAI.isOutside)
-                            PlayVoice(SFX.Voice.Worms_EngageIndoorEnemies);
+                            PlayVoice(SFX.VoiceCode.Worms_EngageIndoorEnemies);
                     }
                     break;
             }
@@ -1108,7 +1119,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             if (playerInSight == null)
                 return false;
 
-            self.PlayVoice(SFX.Voice.Useless_ChasingPlayerForSomeTime);
+            self.PlayVoice(SFX.VoiceCode.Useless_ChasingPlayerForSomeTime);
 
             return true;
         }
@@ -1133,7 +1144,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             playerLostTimer -= Time.deltaTime;
             if (playerLostTimer <= 0)
             {
-                self.PlayVoice(SFX.Voice.Cowards_LostPlayer);
+                self.PlayVoice(SFX.VoiceCode.Cowards_LostPlayer);
                 return true;
             }
 
@@ -1259,7 +1270,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         creatureSFX.PlayOneShot(SFX.bite.FromRandom(enemyRandom));
         yield return new WaitForSeconds(0.8f);
 
-        AnimatorSetTrigger(Anim.doBite);
+        AnimatorSetTrigger(Anim.doBite, true);
         yield return new WaitForSeconds(0.2f);
 
         // TODO: This check doesn't seem to work properly, at least the scale.
@@ -1286,21 +1297,36 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             creatureVoice.PlayOneShot(SFX.Voice.Disgusting_KilledPlayer);
     }
 
-    internal void PlayVoice(AudioClip clip)
+    internal void PlayVoice(SFX.VoiceCode clipCode)
+    {
+        if (!IsOwner)
+            return;
+
+        PlayVoiceServerRpc(clipCode);
+    }
+
+    [ServerRpc]
+    void PlayVoiceServerRpc(SFX.VoiceCode clipCode) =>
+        PlayVoiceClientRpc(clipCode);
+
+    [ClientRpc]
+    void PlayVoiceClientRpc(SFX.VoiceCode clipCode)
     {
         if (!Plugin.BoundConfig.doSpeaking.Value)
             return;
 
-        creatureVoice.PlayOneShot(clip);
+        AudioClip audioClip = SFX.Voice.GetClip(clipCode);
+        creatureVoice.PlayOneShot(audioClip);
     }
 
-    internal IEnumerator PlayVoiceInSeconds(AudioClip clip, float seconds)
+
+    internal IEnumerator PlayVoiceInSeconds(SFX.VoiceCode clipCode, float seconds)
     {
         if (!Plugin.BoundConfig.doSpeaking.Value)
             yield break;
 
         yield return new WaitForSeconds(seconds);
-        creatureVoice.PlayOneShot(clip);
+        PlayVoice(clipCode);
     }
 
     internal IEnumerator ChangeEnemyScaleTo(EnemyScale enemyScale)
@@ -1346,14 +1372,24 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             if (enemyCollider.TryGetComponent<EnemyAI>(out var enemyAI))
             {
                 DebugLog($"Found enemy {enemyAI.name}");
+
                 if (!enemyAI.enemyType.canDie)
+                {
+                    DebugLog("... but the enemy can't die!");
                     continue;
+                }
 
                 if (enemyAI.isEnemyDead)
+                {
+                    DebugLog("... but the enemy is already dead!");
                     continue;
-                
+                }
+
                 if (!agent.CalculatePath(enemyAI.agent.transform.position, tempPath))
+                {
+                    DebugLog("... but can't pathfind to the enemy!");
                     continue;
+                }
 
                 enemy = enemyAI;
                 DebugLog($"Found enemy {enemy.name} to target!");
@@ -1420,9 +1456,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     private void AnimatorSetBoolClientRpc(string name, bool value) =>
         creatureAnimator.SetBool(name, value);
 
-    public void AnimatorSetTrigger(string name)
+    public void AnimatorSetTrigger(string name, bool allowFromNonOwner = false)
     {
-        if (!IsOwner)
+        if (!allowFromNonOwner && !IsOwner)
             return;
 
         AnimatorSetTriggerServerRpc(name);

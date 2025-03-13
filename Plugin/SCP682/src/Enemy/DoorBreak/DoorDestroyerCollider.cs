@@ -1,3 +1,5 @@
+// From https://github.com/snowlance7/HeavyItemSCPs
+
 using UnityEngine;
 
 namespace SCP682.SCPEnemy.DoorBreak;
@@ -130,7 +132,7 @@ class DoorDestroyerCollider : MonoBehaviour
         AI.inSpecialAnimation = false;
 
         bool despawnDoorAfterBash = true;
-        float despawnDoorAfterBashTime = 10f;
+        float despawnDoorAfterBashTime = 5f;
 
         if (despawnDoorAfterBash)
         {

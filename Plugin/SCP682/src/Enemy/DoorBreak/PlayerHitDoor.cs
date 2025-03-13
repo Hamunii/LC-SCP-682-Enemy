@@ -1,3 +1,5 @@
+// From https://github.com/snowlance7/HeavyItemSCPs
+
 using System.Collections;
 using GameNetcodeStuff;
 using UnityEngine;

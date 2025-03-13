@@ -12,8 +12,8 @@ namespace SCP682.Configuration
         public PluginConfig(ConfigFile cfg)
         {
             doSpeaking = cfg.Bind(
-                "General",
-                "Voice clips",
+                "Voice Lines",
+                "Enable",
                 true,
                 "Should SCP-682 have the ability to speak in certain situations?"
             );

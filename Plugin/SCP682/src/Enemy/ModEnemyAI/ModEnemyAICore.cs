@@ -175,7 +175,7 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
     {
         get
         {
-            if (IsOwner && base.targetPlayer != _lastSyncedTargetPlayer)
+            if (IsOwner && base.targetPlayer && (base.targetPlayer != _lastSyncedTargetPlayer))
             {
                 if (base.targetPlayer is not null)
                     SetTargetServerRpc((int)base.targetPlayer.actualClientId);

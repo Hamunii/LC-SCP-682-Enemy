@@ -47,6 +47,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     float boredOfWanderingFacilityTimer = defaultBoredOfWanderingFacilityTimer;
     Vector3 PosOnTopOfShip { get => StartOfRound.Instance.insideShipPositions[0].position + new Vector3(-2, 5, 3); }
     MonoBehaviour? targetEnemy = null!;
+    internal List<MonoBehaviour?> blacklistedEnemies = [];
 
     internal PlayerControllerB? PlayerHeardFromNoise
     {
@@ -74,6 +75,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     Coroutine? changeScaleCoroutine;
 
     private List<PlayerControllerB> playersAttackedSelf = [];
+    
 
     private int _defaultHealth;
 
@@ -659,6 +661,10 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
                 if (Vector3.Distance(_et.entrancePoint.position, self.gameObject.transform.position) < 4.5f)
                 {
                     self.TeleportSelfToOtherEntranceClientRpc(self.isOutside);
+
+                    // When we go through the facility door, let's forget blacklisted enemies
+                    // so that we can potentially target them again if we can pathfind to them.
+                    self.blacklistedEnemies.Clear();
                     return true;
                 }
                 return false;
@@ -883,6 +889,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         public override List<AIStateTransition> Transitions { get; set; } =
             [new EnemyKilledTransition()];
 
+        int cantPathfindToEnemyCountdown = 10;
+
         public override IEnumerator OnStateEntered()
         {
             if (self.IsOwner && self.targetEnemy == null)
@@ -916,9 +924,17 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             if (!self.SetDestinationToPosition(self.targetEnemy.transform.position, true))
             {
                 PLog.LogWarning("Can't pathfind to target enemy!");
+                cantPathfindToEnemyCountdown -= 1;
+
+                if (cantPathfindToEnemyCountdown <= 0)
+                {
+                    PLog.LogWarning("Giving up on target enemy because couldn't reach it.");
+                    self.blacklistedEnemies.Add(self.targetEnemy);
+                    self.targetEnemy = null;
+                }
 
                 if (self.path1.status == NavMeshPathStatus.PathPartial)
-                    self.SetDestinationToPosition(self.path1.corners[^1]);
+                        self.SetDestinationToPosition(self.path1.corners[^1]);
             }
         }
 
@@ -948,7 +964,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
                 }
             }
             else
-                collidedEnemy.HitEnemyServerRpc(force: 5, -1, true);
+                collidedEnemy.HitEnemyServerRpc(force: 10, -1, true);
 
             self.attackCooldown = SCP682AI.defaultAttackCooldown;
         }
@@ -1115,7 +1131,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             if (aggressionTimer > 0)
                 return false;
 
-            PlayerControllerB playerInSight = self.CheckLineOfSightForPlayer(45, 60, 10);
+            PlayerControllerB playerInSight = self.CheckLineOfSightForPlayer(45, 30, 15);
             if (playerInSight == null)
                 return false;
 
@@ -1134,7 +1150,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
         public override bool CanTransitionBeTaken()
         {
-            PlayerControllerB playerInSight = self.CheckLineOfSightForPlayer(45, 20, 15);
+            PlayerControllerB playerInSight = self.CheckLineOfSightForPlayer(45, 30, 15);
             if (playerInSight != null)
             {
                 playerLostTimer = defaultPlayerLostTimer;
@@ -1236,7 +1252,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             HUDManager.Instance.ShakeCamera(ScreenShakeType.Big);
 
             Vector3 force = localPlayer.transform.position - agent.transform.position;
-            StartCoroutine(AddForceToPlayer(localPlayer, force.normalized * 30));
+            StartCoroutine(AddForceToPlayer(localPlayer, force.normalized * 15));
         }
     }
 
@@ -1375,21 +1391,24 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
                 if (!enemyAI.enemyType.canDie)
                 {
-                    DebugLog("... but the enemy can't die!");
+                    // DebugLog("... but the enemy can't die!");
                     continue;
                 }
 
                 if (enemyAI.isEnemyDead)
                 {
-                    DebugLog("... but the enemy is already dead!");
+                    // DebugLog("... but the enemy is already dead!");
                     continue;
                 }
 
                 if (!agent.CalculatePath(enemyAI.agent.transform.position, tempPath))
                 {
-                    DebugLog("... but can't pathfind to the enemy!");
+                    // DebugLog("... but can't pathfind to the enemy!");
                     continue;
                 }
+
+                if (BlackListedEnemiesContains(enemyAI))
+                    continue;
 
                 enemy = enemyAI;
                 DebugLog($"Found enemy {enemy.name} to target!");
@@ -1401,6 +1420,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         {
             if (!agent.CalculatePath(caveDweller.agent.transform.position, tempPath))
                 continue;
+
+            if (BlackListedEnemiesContains(caveDweller))
+                    continue;
 
             DebugLog($"Found cave dweller to target!");
             enemy = caveDweller;
@@ -1437,6 +1459,25 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         }
     }
 
+    bool BlackListedEnemiesContains(MonoBehaviour enemy)
+    {
+        for (int i = 0; i < blacklistedEnemies.Count; i++)
+        {
+            var blacklistedEnemy = blacklistedEnemies[i];
+            if (blacklistedEnemy == null)
+            {
+                blacklistedEnemies.RemoveAt(i);
+                i--;
+                continue;
+            }
+
+            if (blacklistedEnemy == enemy)
+                return true;
+        }
+
+        return false;
+    }
+
     // I could have used NetworkAnimator, but thought I might as well just do this
     // because I know this should work.
 
@@ -1464,7 +1505,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         AnimatorSetTriggerServerRpc(name);
     }
 
-    [ServerRpc]
+    [ServerRpc(RequireOwnership = false)]
     public void AnimatorSetTriggerServerRpc(string name) =>
         AnimatorSetTriggerClientRpc(name);
 

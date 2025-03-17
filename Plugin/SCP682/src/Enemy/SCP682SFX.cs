@@ -47,6 +47,7 @@ public static class SFX
             case "Disgusting_SCP682": Voice.Disgusting_KilledPlayer = clip; break;
             case "Useless_SCP682": Voice.Useless_ChasingPlayerForSomeTime = clip; break;
             case "Cowards_SCP682": Voice.Cowards_LostPlayer = clip; break;
+            case "GrowlyPurr_SCP682": /* TODO: Unused clip. Where should it be used? */ break;
             default: InitializeDoorBash(clip); break;
         }
     }

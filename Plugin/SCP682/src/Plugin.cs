@@ -16,6 +16,7 @@ namespace SCP682;
 
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
 [BepInDependency(LethalLib.Plugin.ModGUID)]
+[BepInDependency("ProjectSCP.SCP682.UnityRef")]
 public class Plugin : BaseUnityPlugin
 {
     internal static new ManualLogSource Logger = null!;
@@ -74,12 +75,12 @@ public class Plugin : BaseUnityPlugin
 #else
         if (!Enemies.spawnableEnemies.Any(enemy => enemy.enemy.enemyName.Equals("SCP682")))
 #endif
-            Enemies.RegisterEnemy(
-                SCP682ET,
-                20,
-                Levels.LevelTypes.All,
-                SCP682TN
-            );
+        Enemies.RegisterEnemy(
+            SCP682ET,
+            20,
+            Levels.LevelTypes.All,
+            SCP682TN
+        );
 #if DEBUG
         // We probably want the enemy to instantly spawn in front of us if possible
         if (StartOfRound.Instance is not null)
@@ -129,12 +130,12 @@ public class Plugin : BaseUnityPlugin
         Type[] types;
         try
         {
-			types = Assembly.GetExecutingAssembly().GetTypes();
-		}
-        catch(ReflectionTypeLoadException ex)
+            types = Assembly.GetExecutingAssembly().GetTypes();
+        }
+        catch (ReflectionTypeLoadException ex)
         {
-			types = ex.Types.Where(t => t != null).ToArray();
-		}
+            types = ex.Types.Where(t => t != null).ToArray();
+        }
         foreach (var type in types)
         {
             var methods = type.GetMethods(

@@ -319,17 +319,30 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
     }
 
     /// <summary>
-    /// A TryGet wrapper for <see cref="EnemyAI.MeetsStandardPlayerCollisionConditions(Collider, bool, bool)"/>
+    /// A slightly modified version of <see cref="EnemyAI.MeetsStandardPlayerCollisionConditions(Collider, bool, bool)"/>
     /// </summary>
     /// <returns><see langword="true"/> if "other" is a valid player, otherwise <see langword="false"/>.</returns>
-    internal bool TryGetValidPlayerFromCollision(Collider other, [NotNullWhen(returnValue: true)] out PlayerControllerB? player)
+    internal bool TryGetValidPlayerFromCollision(Collider other, [NotNullWhen(returnValue: true)] out PlayerControllerB? player, bool allowNonLocalPlayer = false)
     {
-        player = MeetsStandardPlayerCollisionConditions(other);
+        player = null;
 
-        if (player != null)
-            return true;
+        if (isEnemyDead)
+            return false;
 
-        return false;
+        if (!ventAnimationFinished)
+            return false;
+
+        if (stunNormalizedTimer >= 0f)
+            return false;
+
+        player = other.gameObject.GetComponent<PlayerControllerB>();
+        if (player == null || (!allowNonLocalPlayer && player != GameNetworkManager.Instance.localPlayerController))
+            return false;
+
+        if (!PlayerIsTargetable(player, cannotBeInShip: false, overrideInsideFactoryCheck: false))
+            return false;
+
+        return true;
     }
 
     internal bool IsPlayerInsideCollider(PlayerControllerB? player, Collider collider, float colliderScale = 1f)
@@ -350,7 +363,7 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
             if (!collided.CompareTag("Player"))
                 continue;
 
-            if (!TryGetValidPlayerFromCollision(collided, out var collidedPlayer))
+            if (!TryGetValidPlayerFromCollision(collided, out var collidedPlayer, allowNonLocalPlayer: true))
                 continue;
 
             if (collidedPlayer == player)

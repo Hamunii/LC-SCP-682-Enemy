@@ -33,8 +33,17 @@
         <PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))=./</PathMap>
     </PropertyGroup>
 
+    <!-- Set NuGet Sources -->
+    <PropertyGroup>
+        <RestoreAdditionalProjectSources>
+        https://api.nuget.org/v3/index.json;
+        https://nuget.bepinex.dev/v3/index.json
+        </RestoreAdditionalProjectSources>
+    </PropertyGroup>
+
     <ItemGroup>
         <PackageReference Include="UnityEngine.Modules" Version="2022.3.9" IncludeAssets="compile" />
+        <PackageReference Include="BepInEx.Core" Version="5.*" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">

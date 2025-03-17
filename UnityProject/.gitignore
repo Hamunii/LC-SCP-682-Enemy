@@ -77,6 +77,9 @@ crashlytics-build.properties
 # Assemblies
 *.dll*
 
+/[Aa]ssets/Plugins/
+
+
 # We allow these dll files because we have the right to redistribute them
 !/[Aa]ssets/Plugins/LethalLib.dll*
 

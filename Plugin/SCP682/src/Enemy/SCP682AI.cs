@@ -949,7 +949,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             if (!collidedEnemy.enemyType.canDie || collidedEnemy.isEnemyDead)
                 return;
 
-            self.SetAnimTriggerOnServerRpc(Anim.doBite);
+            self.AnimatorSetTriggerServerRpc(Anim.doBite);
 
             if (collidedEnemy is CaveDwellerAI caveDweller)
             {
@@ -1230,7 +1230,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         roarAttackInProgress = true;
 
         agent.isStopped = true;
-        self.SetAnimTriggerOnServerRpc(Anim.doRoar);
+        self.AnimatorSetTriggerServerRpc(Anim.doRoar);
         yield return new WaitForSeconds(0.6f);
 
         DealDamageFromShockwaveClientRpc();

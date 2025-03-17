@@ -515,17 +515,20 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             TargetPlayer = self.FindNearestPlayer();
             self.EnterSpecialAnimationWithPlayer(TargetPlayer, stopMovementCalculations: false);
 
-            facilityEntrance = RoundManager.FindMainEntranceScript(self.isOutside);
-            if (facilityEntrance == null)
+            if (self.IsOwner)
             {
-                PLog.LogError("Can't pathfind to entrance because it doesn't exist.");
-                yield break;
-            }
+                facilityEntrance = RoundManager.FindMainEntranceScript(self.isOutside);
+                if (facilityEntrance == null)
+                {
+                    PLog.LogError("Can't pathfind to entrance because it doesn't exist.");
+                    yield break;
+                }
 
-            if (!self.SetDestinationToPosition(facilityEntrance.entrancePoint.position, true))
-            {
-                PLog.LogError("Facility door is unreachable!");
-                yield break;
+                if (!self.SetDestinationToPosition(facilityEntrance.entrancePoint.position, true))
+                {
+                    PLog.LogError("Facility door is unreachable!");
+                    yield break;
+                }
             }
 
             self.AnimatorSetBool(Anim.isMovingInverted, true);
@@ -547,7 +550,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             }
 
             Agent.speed = (int)Speed.Walking;
-            AIInterval();
+
+            if (self.IsOwner)
+                AIInterval();
 
             normalizedTimer = 0f;
             while (normalizedTimer < 1f)
@@ -564,22 +569,35 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
         public override void AIInterval()
         {
-            if (!self.SetDestinationToPosition(facilityEntrance.entrancePoint.position, true))
+            if (self.IsOwner && !self.SetDestinationToPosition(facilityEntrance.entrancePoint.position, true))
                 PLog.LogError("Facility door is unreachable!");
         }
 
         // Works better than LateUpdate, that one fucks up the helmet overlay thingy position
         public override void Update()
         {
+            if (self.inSpecialAnimationWithPlayer == null)
+            {
+                Plugin.Logger.LogWarning("Somehow `inSpecialAnimationWithPlayer` is null while dragging, setting it anyways.");
+                self.CancelSpecialAnimationWithPlayer();
+                if (TargetPlayer == null)
+                {
+                    Plugin.Logger.LogError("Nvm, target player is somehow also null.");
+                    return;
+                }
+                self.EnterSpecialAnimationWithPlayer(TargetPlayer, stopMovementCalculations: false);
+                if (self.inSpecialAnimationWithPlayer == null)
+                {
+                    Plugin.Logger.LogError("Uhh, `inSpecialAnimationWithPlayer` is still null even after setting it? (This should never happen.)");
+                    return;
+                }
+            }
             if (self.inSpecialAnimationWithPlayer.inAnimationWithEnemy != self)
             {
                 Plugin.Logger.LogWarning("Player is no longer in special animation with this enemy!");
                 self.OverrideState(new AttackPlayerState());
                 return;
             }
-
-            if (self.inSpecialAnimationWithPlayer != GameNetworkManager.Instance.localPlayerController)
-                return;
 
             self.inSpecialAnimationWithPlayer.transform.position =
             Vector3.Lerp(CreatureVoice.transform.position + new Vector3(0, -1f, 0),

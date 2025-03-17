@@ -24,6 +24,8 @@ internal class PlayerHitDoorCollider : MonoBehaviour
         if (isActive && !hitPlayer && other.CompareTag("Player"))
         {
             PlayerControllerB player = other.GetComponent<PlayerControllerB>();
+            if (player != GameNetworkManager.Instance.localPlayerController)
+                return;
             // logger.LogDebug("Door hit player " + player.playerUsername);
             player.DamagePlayer(damage, true, true, CauseOfDeath.Inertia, 0, false, force);
             StartCoroutine(AddForceToPlayer(player));

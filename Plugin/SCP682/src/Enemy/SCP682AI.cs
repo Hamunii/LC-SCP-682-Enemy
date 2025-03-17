@@ -1401,14 +1401,17 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
                     continue;
                 }
 
+                if (enemyAI is SCP682AI)
+                    continue;
+
+                if (BlackListedEnemiesContains(enemyAI))
+                    continue;
+
                 if (!agent.CalculatePath(enemyAI.agent.transform.position, tempPath))
                 {
                     // DebugLog("... but can't pathfind to the enemy!");
                     continue;
                 }
-
-                if (BlackListedEnemiesContains(enemyAI))
-                    continue;
 
                 enemy = enemyAI;
                 DebugLog($"Found enemy {enemy.name} to target!");

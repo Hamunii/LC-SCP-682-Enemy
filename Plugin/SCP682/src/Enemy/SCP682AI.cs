@@ -510,6 +510,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         EntranceTeleport facilityEntrance = null!;
         float realMouthOrStableReverseMouth = 0;
 
+        bool exitingThisState = false;
+
         public override IEnumerator OnStateEntered()
         {
             TargetPlayer = self.FindNearestPlayer();
@@ -578,6 +580,11 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         {
             if (self.inSpecialAnimationWithPlayer == null)
             {
+                // If we are exiting the state, we must not set special animation with player
+                // or the player will get stuck.
+                if (exitingThisState)
+                    return;
+
                 Plugin.Logger.LogWarning("Somehow `inSpecialAnimationWithPlayer` is null while dragging, setting it anyways.");
                 self.CancelSpecialAnimationWithPlayer();
                 if (TargetPlayer == null)
@@ -607,6 +614,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
         public override IEnumerator OnStateExit()
         {
+            exitingThisState = true;
             Agent.speed = (int)Speed.Stopped;
             self.AnimatorSetBool(Anim.isMovingInverted, false);
             self.CancelSpecialAnimationWithPlayer();

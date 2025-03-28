@@ -1332,7 +1332,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             damageToDeal = player.health - 30; // Set health to 30.
         player.DamagePlayer(damageToDeal);
         Vector3 force = player.transform.position - agent.transform.position;
-        StartCoroutine(AddForceToPlayer(player, force.normalized * 30));
+        StartCoroutine(AddForceToPlayer(player, force.normalized * 15));
 
 
         if (player.health <= 0)

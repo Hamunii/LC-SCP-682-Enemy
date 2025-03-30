@@ -1,12 +1,11 @@
-# SCP-682 — The Hard to Destroy Reptile [BETA]
-
-> This is a beta release, so there can be bugs!  
-> If you find any, you can report them on [GitHub](https://github.com/Hamunii/LC-SCP-682-Enemy/issues).
+# SCP-682 — The Hard to Destroy Reptile
 
 Adds SCP-682 as an enemy to Lethal Company.
 
 - [Project SCP Discord server](https://discord.gg/upSmhnvM2t)
 - [Source code on GitHub](https://github.com/Hamunii/LC-SCP-682-Enemy)
+
+If you find any bugs, you can report them on [GitHub](https://github.com/Hamunii/LC-SCP-682-Enemy/issues).
 
 ## SCP File
 

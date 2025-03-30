@@ -1278,7 +1278,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             HUDManager.Instance.ShakeCamera(ScreenShakeType.Big);
 
             Vector3 force = localPlayer.transform.position - agent.transform.position;
-            StartCoroutine(AddForceToPlayer(localPlayer, force.normalized * 15));
+            StartCoroutine(AddForceToPlayer(localPlayer, force.normalized * 10));
         }
     }
 
@@ -1332,7 +1332,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             damageToDeal = player.health - 30; // Set health to 30.
         player.DamagePlayer(damageToDeal);
         Vector3 force = player.transform.position - agent.transform.position;
-        StartCoroutine(AddForceToPlayer(player, force.normalized * 15));
+        StartCoroutine(AddForceToPlayer(player, force.normalized * 10));
 
 
         if (player.health <= 0)

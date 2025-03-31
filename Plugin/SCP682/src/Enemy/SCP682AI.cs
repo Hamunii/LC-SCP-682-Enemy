@@ -37,8 +37,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         internal const string isMovingInverted = "isMovingInverted";
         internal const string isRunning = "isRunning";
         internal const string isOnShip = "isOnShip";
-        internal const string isFakeDead = "isFakeDead"; // We use our own bool to ensure it stays in dead state.
         internal const string doKillEnemy = "KillEnemy"; // base game thing, gets called automatically
+        internal const string doRevive = "doRevive";
         internal const string doBite = "doBite";
         internal const string doRoar = "doRoar";
     }
@@ -873,7 +873,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             CreatureVoice.PlayOneShot(SFX.defeated.FromRandom(EnemyRandom));
 
             Agent.isStopped = true;
-            self.AnimatorSetBool(Anim.isFakeDead, true);
+            self.AnimatorSetTrigger(Anim.doKillEnemy);
             yield break;
         }
 
@@ -883,7 +883,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
             Agent.isStopped = false;
 
-            self.AnimatorSetBool(Anim.isFakeDead, false);
+            self.AnimatorSetTrigger(Anim.doRevive);
 
             self.globalAudio.PlayOneShot(SFX.spawn.FromRandom(EnemyRandom));
             self.PlayVoice(SFX.VoiceCode.FullRant_UponRevival);

@@ -877,6 +877,17 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             yield break;
         }
 
+        public override void AIInterval()
+        {
+            var currentAnimationClip = CreatureAnimator.GetCurrentAnimatorClipInfo(0)[0].clip;
+            if (currentAnimationClip.name != "CG_death")
+            {
+                self.DebugLog("Should be dead, but current animation clip isn't dead clip. Setting clip to dead.");
+                self.DebugLog("Animation clip was: " + currentAnimationClip.name);
+                self.AnimatorSetTrigger(Anim.doKillEnemy);
+            }
+        }
+
         public override IEnumerator OnStateExit()
         {
             self.enemyHP = self._defaultHealth;

@@ -40,7 +40,7 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
         public abstract IEnumerator OnStateEntered();
 
         /// <summary>
-        /// Runs every frame, but never before OnStateEntered not after OnStateExit.
+        /// Runs every frame, but never before OnStateEntered nor after OnStateExit.
         /// </summary>
         public virtual void Update() { }
 

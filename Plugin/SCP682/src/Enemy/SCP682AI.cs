@@ -1288,8 +1288,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             localPlayer.DamagePlayer(5, true, true, CauseOfDeath.Blast);
             HUDManager.Instance.ShakeCamera(ScreenShakeType.Big);
 
-            Vector3 force = localPlayer.transform.position - agent.transform.position;
-            StartCoroutine(AddForceToPlayer(localPlayer, force.normalized * 10));
+            Vector3 force = (localPlayer.transform.position - agent.transform.position).normalized;
+            force.y = 1f;
+            StartCoroutine(AddForceToPlayer(localPlayer, force * 10));
         }
     }
 

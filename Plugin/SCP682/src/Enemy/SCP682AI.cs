@@ -75,7 +75,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     Coroutine? changeScaleCoroutine;
 
     private List<PlayerControllerB> playersAttackedSelf = [];
-    
+
 
     private int _defaultHealth;
 
@@ -138,18 +138,16 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         var scale = 1f;
         crocodileModel.localScale = new(scale, scale, scale);
 
-#if DEBUG || true
+#if DEBUG
         printDebugs = true;
-#endif
 
         if (ModMenuAPICompatibility.Enabled)
             ModMenuAPICompatibility.InitDebug(this);
         else
         {
-#if DEBUG
             PLog.LogWarning("Hamunii.ModMenuAPI not installed, debug UI can't be shown!");
-#endif
         }
+#endif
 
         /// The enemy can spawn either inside or outside in <see cref="ApparatusTakenHook.SpawnSCP682(bool)"/>.
         /// The `isOutsideEnemy` variable isn't networked which will lead to initial size desync half of the time,

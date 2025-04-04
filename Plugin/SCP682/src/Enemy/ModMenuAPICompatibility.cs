@@ -1,4 +1,4 @@
-#if DEBUG || true
+#if DEBUG
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using ModMenuAPI.ModMenuItems;

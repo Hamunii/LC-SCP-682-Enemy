@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using MonoMod.Cil;
 using SCP682.SCPEnemy;
 using Unity.Netcode;
 using UnityEngine;
@@ -12,6 +13,16 @@ static class ApparatusTakenHook
     internal static void Init()
     {
         On.LungProp.DisconnectFromMachinery += LungProp_DisconnectFromMachinery;
+
+        // This method calls DisconnectFromMachinery, but it might get inlined
+        // if another mod hooks this method, so we force a recompilation for this method
+        // so it will reference our hook we just applied.
+        IL.LungProp.EquipItem += LungProp_EquipItem;
+    }
+
+    private static void LungProp_EquipItem(ILContext il)
+    {
+        return;
     }
 
     private static IEnumerator LungProp_DisconnectFromMachinery(On.LungProp.orig_DisconnectFromMachinery orig, LungProp self)

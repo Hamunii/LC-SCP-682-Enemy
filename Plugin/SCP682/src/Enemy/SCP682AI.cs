@@ -114,6 +114,10 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     // Unused in game.
     int IVisibleThreat.SendSpecialBehaviour(int id) => 0;
 
+    public GrabbableObject? GetHeldObject() => null;
+
+    public bool IsThreatDead() => activeState is DeadTemporarilyState;
+
     // Defined in BaboonBirdAI and RadMechAI, has Player and Enemies layers
     internal const int visibleThreatsMask = 524296;
 

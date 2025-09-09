@@ -63,8 +63,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     private PlayerControllerB? _playerHeardFromNoise;
     private float _playerHeardFromNoiseTimer = 0f;
     internal bool roarAttackInProgress = false;
-
+#if DEBUG
     LineRenderer lineRenderer = null!;
+#endif
     BoxCollider mainCollider = null!;
 
     internal Transform turnCompass = null!;
@@ -130,7 +131,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
         _defaultHealth = enemyHP;
 
-        lineRenderer = gameObject.AddComponent<LineRenderer>();
         mainCollider = gameObject.GetComponentInChildren<BoxCollider>();
 
         turnCompass = transform.Find("TurnCompass").GetComponent<Transform>();
@@ -143,6 +143,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         crocodileModel.localScale = new(scale, scale, scale);
 
 #if DEBUG
+        lineRenderer = gameObject.AddComponent<LineRenderer>();
         printDebugs = true;
 
         if (ModMenuAPICompatibility.Enabled)
@@ -183,7 +184,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         else
             SetEnemyOutside(false);
 
-        changeScaleCoroutine = StartCoroutine(ChangeEnemyScaleTo(EnemyScale.Big));
+        changeScaleCoroutine = StartCoroutine(ChangeEnemyScaleTo(scale));
     }
 
     public override void Update()

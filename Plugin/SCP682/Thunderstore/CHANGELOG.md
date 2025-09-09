@@ -1,3 +1,10 @@
+## 1.0.3
+
+### Fixed
+
+- purple cube near the ship is no more
+- enemy size should now always be correct when spawning inside
+
 ## 1.0.1
 
 ### Fixed

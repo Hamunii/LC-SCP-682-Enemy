@@ -1,3 +1,9 @@
+## 1.0.4
+
+### Fixed
+
+- Recompiled and patched with new Unity Netcode Patcher version so it works for v73
+
 ## 1.0.3
 
 ### Fixed

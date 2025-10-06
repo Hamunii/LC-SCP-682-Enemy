@@ -7,7 +7,7 @@
         <!-- This is the name of your mod. This will be used by tcli when building our Thunderstore package. -->
         <Product>SCP682</Product>
         <!-- Change to whatever version you're currently on. This will be used by tcli when building our Thunderstore package. -->
-        <Version>1.0.3</Version>
+        <Version>1.0.4</Version>
     </PropertyGroup>
 
     <!-- Thunderstore CLI stuff -->
@@ -102,7 +102,7 @@
     </ItemGroup>
     -->
     <Target Name="NetcodePatch" AfterTargets="PostBuildEvent" Condition="$(Configuration) == 'Release'">
-        <Exec Command="dotnet netcode-patch &quot;$(TargetPath)&quot; @(ReferencePathWithRefAssemblies->'&quot;%(Identity)&quot;', ' ')" />
+        <Exec Command="dotnet netcode-patch -uv 2022.3.62 -nv 1.12.0 -tv 1.0.0 &quot;$(TargetPath)&quot; @(ReferencePathWithRefAssemblies->'&quot;%(Identity)&quot;', ' ')" />
     </Target>
 
     <!-- Build our Thunderstore package when making a release build. This does not publish our package. -->

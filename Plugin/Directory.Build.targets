@@ -81,14 +81,14 @@
   <!-- Copy mod files defined in projects to the target BepInEx directory -->
   <Target
     Name="DeployFiles"
-    AfterTargets="Build"
+    AfterTargets="Build;NetcodePatch"
     Condition="'$(DeployThunderstoreFiles)' == 'true'"
   >
     <PropertyGroup>
       <_TargetDir>$([MSBuild]::NormalizeDirectory($(LethalCompanyBepInExDir)))</_TargetDir>
     </PropertyGroup>
     <Message
-      Text="Deploy → @(ThunderstoreFile -> '%(Destination)%(FileName)%(Extension)')"
+      Text="Deploy → @(ThunderstoreFile -> '%(Destination)%(FileName)%(Extension)', '; ')"
       Importance="High"
     />
     <Error

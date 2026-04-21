@@ -42,7 +42,7 @@
     />
     <!-- Make sure you have built the asset bundle at least once! -->
     <ThunderstoreFile
-      Include="$(SolutionRoot)../UnityProject/AssetBundles/scp682assets"
+      Include="$(SolutionRoot)../UnityProject/AssetBundles/StandaloneWindows/scp682assets"
       Destination="scripts/plugins/SCP682Assets/"
     />
     <ThunderstoreFile

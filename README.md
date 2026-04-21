@@ -2,7 +2,7 @@
 
 > [!NOTE]  
 > This readme is for developers.  
-> See the readme for players [here](./Plugin/Thunderstore/README.md).
+> See the readme for players [here](./Plugin/README.md).
 
 An enemy mod for Lethal Company.
 

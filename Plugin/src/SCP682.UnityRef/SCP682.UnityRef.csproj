@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- This is the most appropriate target framework for the game's Unity version. -->
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <!-- This is the global identifier for your mod. This should not be changed after release. -->
+    <AssemblyName>ProjectSCP.SCP682.UnityRef</AssemblyName>
+    <!-- This is the display name of your mod. -->
+    <AssemblyTitle>SCP682.UnityRef</AssemblyTitle>
+    <!-- Whether or not this project should build a Thunderstore package. -->
+    <IsThunderstorePackable>false</IsThunderstorePackable>
+  </PropertyGroup>
+</Project>

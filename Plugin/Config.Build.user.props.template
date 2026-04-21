@@ -1,0 +1,21 @@
+<!--
+  INSTRUCTIONS: Copy this template file and name it 'Config.Build.user.props'!
+                Otherwise the values aren't read.
+                Do not remove this file from git; this exists for everyone else
+                to use as a template for their user-specific configuration.
+                The copy 'Config.Build.user.props' is gitignored and should not
+                be tracked by git.
+-->
+<Project>
+  <!-- User properties -->
+  <PropertyGroup>
+    <!-- Set if the default steam game install directory doesn't work. -->
+    <!-- <LethalCompanyGameRootDir></LethalCompanyGameRootDir> -->
+
+    <!-- Set if your BepInEx/ directory isn't in the game files. -->
+    <!-- <LethalCompanyBepInExDir></LethalCompanyBepInExDir> -->
+
+    <!-- Enable/disable deploying mod files to BepInEx directory. -->
+    <DeployThunderstoreFiles>true</DeployThunderstoreFiles>
+  </PropertyGroup>
+</Project>

@@ -1,3 +1,10 @@
+## 1.0.5
+
+### Fixed
+
+- Updated for V81.
+- Fixed PlayerTargetting not dealing damage.
+
 ## 1.0.4
 
 ### Fixed

@@ -5,7 +5,7 @@ Adds SCP-682 as an enemy to Lethal Company.
 - [Project SCP Discord server](https://discord.gg/upSmhnvM2t)
 - [Source code on GitHub](https://github.com/Hamunii/LC-SCP-682-Enemy)
 
-![Dark and noisy image of SCP-682](https://github.com/Hamunii/LC-SCP-682-Enemy/raw/main/Plugin/SCP682/Thunderstore/682-noisy.webp)
+![Dark and noisy image of SCP-682](https://raw.githubusercontent.com/Hamunii/LC-SCP-682-Enemy/6b4600bbb8ae734fb00d42a2a394d1dbf9335e39/Plugin/SCP682/Thunderstore/682-noisy.webp)
 
 ## SCP File
 

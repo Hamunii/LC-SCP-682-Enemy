@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SCP682.UnityRef/SCP682.UnityRef.csproj" />
+    <Project Path="src/SCP682/SCP682.csproj" />
+  </Folder>
+</Solution>

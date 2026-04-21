@@ -2,15 +2,8 @@
   "version": 1,
   "isRoot": true,
   "tools": {
-    "tcli": {
-      "version": "0.2.4",
-      "commands": [
-        "tcli"
-      ],
-      "rollForward": false
-    },
     "evaisa.netcodepatcher.cli": {
-      "version": "4.4.2",
+      "version": "4.5.0",
       "commands": [
         "netcode-patch"
       ],

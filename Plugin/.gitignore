@@ -1,55 +1,34 @@
-*.swp
-*.*~
-project.lock.json
-.DS_Store
-*.pyc
-nupkg/
+# Ignore everything on root level
+/*
 
-# Visual Studio Code
-.vscode
+# Ignore always
+*.csproj.user
+*.user.props
+bin/
+obj/
 
-# Rider
-.idea
+# Add source files
+!/src/
+!/tests/
 
-# User-specific files
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
+# Config files
+!/.config/
+/.config/*
+!/.config/dotnet-tools.json
 
-# Build results
-[Dd]ebug/
-[Dd]ebugPublic/
-[Rr]elease/
-[Rr]eleases/
-x64/
-x86/
-build/
-bld/
-[Bb]in/
-[Oo]bj/
-[Oo]ut/
-msbuild.log
-msbuild.err
-msbuild.wrn
+!/.github/
 
-# Visual Studio
-.vs/
-Backup/
-
-# Assemblies
-*.dll
-
-# Other
-/Properties
-UpgradeLog.htm
-
-# Blender backups
-*.blend1
-
-# Thunderstore Packages
-SCP682/Thunderstore/Packages/
-
-# Exclude stuff
-!Thunderstore/Packages/*.txt
-!*template.props.user
+# Add root level files
+!/.csharpierignore
+!/.editorconfig
+!/.gitignore
+!/CHANGELOG.md
+!/Config.Build.user.props.template
+!/CONTRIBUTING.md
+!/Directory.Build.props
+!/Directory.Build.targets
+!/global.json
+!/icon.png
+!/LICENSE*
+!/README.md
+!/Plugin.slnx

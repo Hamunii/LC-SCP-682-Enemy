@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -14,12 +14,19 @@ using UnityEngine;
 
 namespace SCP682;
 
-[BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
+// The BepInAutoPlugin attribute comes from the Hamunii.BepInEx.AutoPlugin
+// NuGet package, and it will generate the BepInPlugin attribute for you!
+// For more info, see https://github.com/Hamunii/BepInEx.AutoPlugin
+
+/// <summary>
+/// The BepInEx plugin class of SCP682.
+/// </summary>
+[BepInAutoPlugin]
 [BepInDependency(LethalLib.Plugin.ModGUID)]
 [BepInDependency("ProjectSCP.SCP682.UnityRef")]
-public class Plugin : BaseUnityPlugin
+public partial class Plugin : BaseUnityPlugin
 {
-    internal static new ManualLogSource Logger = null!;
+    internal static new ManualLogSource Logger { get; private set; } = null!;
     internal static PluginConfig BoundConfig { get; private set; } = null!;
     public static AssetBundle? modAssets;
     internal static EnemyType SCP682ET = null!;
@@ -28,7 +35,7 @@ public class Plugin : BaseUnityPlugin
     {
         Logger = base.Logger;
         var watch = Stopwatch.StartNew();
-        Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} {PluginInfo.PLUGIN_VERSION} started loading...");
+        Logger.LogInfo($"Plugin {Id} {Version} started loading...");
 
         // If you don't want your mod to use a configuration file, you can remove this line, Configuration.cs, and other references.
         BoundConfig = new PluginConfig(base.Config);
@@ -103,7 +110,7 @@ public class Plugin : BaseUnityPlugin
         CaveDwellerList.Init();
 
         watch.Stop();
-        Logger.LogInfo($"{PluginInfo.PLUGIN_GUID} loaded in {watch.ElapsedMilliseconds}ms!");
+        Logger.LogInfo($"{Id} loaded in {watch.ElapsedMilliseconds}ms!");
     }
 
 #if DEBUG

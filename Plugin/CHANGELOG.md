@@ -1,3 +1,9 @@
+## 1.0.6
+
+### Fixed
+
+- Updated Netcode Patcher and applied it to the dll so networking should work again for V81
+
 ## 1.0.5
 
 ### Fixed

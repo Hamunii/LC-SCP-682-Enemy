@@ -72,10 +72,11 @@
     <PackageReference Include="Evaisa.LethalLib" Version="1.2.0" />
     <PackageReference Include="MonoDetour" Version="[*,2.0)" />
     <PackageReference Include="MonoDetour.HookGen" Version="0.7.13" />
+    <PackageReference Include="Hamunii.ModMenuAPI" Version="0.3-dev" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="$(SolutionRoot)SCP682.UnityRef/SCP682.UnityRef.csproj" />
+    <ProjectReference Include="../SCP682.UnityRef/SCP682.UnityRef.csproj" />
   </ItemGroup>
 
   <!--

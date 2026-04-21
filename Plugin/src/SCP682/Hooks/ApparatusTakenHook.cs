@@ -1,10 +1,14 @@
 using System;
 using System.Collections;
+using MonoDetour.HookGen;
+using MonoDetour.Reflection.Unspeakable;
 using MonoMod.Cil;
 using SCP682.SCPEnemy;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
+
+[assembly: MonoDetourTargets(typeof(LungProp), Members = ["DisconnectFromMachinery"])]
 
 namespace SCP682.Hooks;
 
@@ -12,33 +16,23 @@ static class ApparatusTakenHook
 {
     internal static void Init()
     {
-        On.LungProp.DisconnectFromMachinery += LungProp_DisconnectFromMachinery;
-
-        // This method calls DisconnectFromMachinery, but it might get inlined
-        // if another mod hooks this method, so we force a recompilation for this method
-        // so it will reference our hook we just applied.
-        IL.LungProp.EquipItem += LungProp_EquipItem;
+        Md.LungProp.DisconnectFromMachinery.PostfixMoveNext(
+            Postfix_LungProp_DisconnectFromMachinery_MoveNext
+        );
     }
 
-    private static void LungProp_EquipItem(ILContext il)
-    {
-        return;
-    }
-
-    private static IEnumerator LungProp_DisconnectFromMachinery(
-        On.LungProp.orig_DisconnectFromMachinery orig,
-        LungProp self
+    private static void Postfix_LungProp_DisconnectFromMachinery_MoveNext(
+        SpeakableEnumerator<object, LungProp> self,
+        ref bool continueEnumeration
     )
     {
-        var origIEnumerator = orig(self);
-
-        while (origIEnumerator.MoveNext())
-            yield return origIEnumerator.Current;
+        if (continueEnumeration)
+            return;
 
         if (UnityEngine.Random.Range(0, 2) == 0)
-            SpawnSCP682(true);
+            SpawnSCP682(outside: true);
         else
-            SpawnSCP682(false);
+            SpawnSCP682(outside: false);
     }
 
     internal static void SpawnSCP682(bool outside)

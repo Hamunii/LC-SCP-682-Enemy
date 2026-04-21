@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using MonoDetour.HookGen;
+
+[assembly: MonoDetourTargets(typeof(CaveDwellerAI), Members = ["Start"])]
 
 namespace SCP682.Hooks;
 
@@ -9,12 +12,11 @@ static class CaveDwellerList
 
     internal static void Init()
     {
-        On.CaveDwellerAI.Start += CaveDwellerAI_Start;
+        Md.CaveDwellerAI.Start.Postfix(Postfix_CaveDwellerAI_Start);
     }
 
-    private static void CaveDwellerAI_Start(On.CaveDwellerAI.orig_Start orig, CaveDwellerAI self)
+    private static void Postfix_CaveDwellerAI_Start(CaveDwellerAI self)
     {
-        orig(self);
         caveDwellerEnemies.Add(self);
     }
 

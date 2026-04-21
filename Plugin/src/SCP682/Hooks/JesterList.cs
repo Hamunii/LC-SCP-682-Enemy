@@ -1,4 +1,8 @@
+using System;
 using System.Collections.Generic;
+using MonoDetour.HookGen;
+
+[assembly: MonoDetourTargets(typeof(JesterAI), Members = ["Start"])]
 
 namespace SCP682.Hooks;
 
@@ -8,12 +12,11 @@ static class JesterListHook
 
     internal static void Init()
     {
-        On.JesterAI.Start += JesterAI_Start;
+        Md.JesterAI.Start.Postfix(Postfix_JesterAI_Start);
     }
 
-    private static void JesterAI_Start(On.JesterAI.orig_Start orig, JesterAI self)
+    private static void Postfix_JesterAI_Start(JesterAI self)
     {
-        orig(self);
         jesterEnemies.Add(self);
     }
 

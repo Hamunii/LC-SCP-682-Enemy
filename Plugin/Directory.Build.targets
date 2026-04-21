@@ -105,4 +105,10 @@
   >
     <Error Text="Release configuration must be used when publishing Thunderstore package." />
   </Target>
+
+  <Target Name="SetThunderstoreVersion" AfterTargets="MinVer">
+    <PropertyGroup>
+      <ThunderstoreVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch)</ThunderstoreVersion>
+    </PropertyGroup>
+  </Target>
 </Project>

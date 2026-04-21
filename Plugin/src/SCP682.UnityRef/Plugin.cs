@@ -1,6 +1,4 @@
 using BepInEx;
 
 [BepInAutoPlugin]
-public partial class Plugin : BaseUnityPlugin
-{
-}
+public partial class Plugin : BaseUnityPlugin { }

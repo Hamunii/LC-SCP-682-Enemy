@@ -25,7 +25,10 @@ static class ApparatusTakenHook
         return;
     }
 
-    private static IEnumerator LungProp_DisconnectFromMachinery(On.LungProp.orig_DisconnectFromMachinery orig, LungProp self)
+    private static IEnumerator LungProp_DisconnectFromMachinery(
+        On.LungProp.orig_DisconnectFromMachinery orig,
+        LungProp self
+    )
     {
         var origIEnumerator = orig(self);
 
@@ -48,7 +51,7 @@ static class ApparatusTakenHook
 
         var roundManager = RoundManager.Instance;
         GameObject[] spawnPoints;
-        
+
         if (outside)
         {
             spawnPoints = GameObject.FindGameObjectsWithTag("OutsideAINode");
@@ -61,13 +64,23 @@ static class ApparatusTakenHook
         }
         Plugin.SCP682ET.numberSpawned++;
 
-        Vector3 position = spawnPoints[roundManager.AnomalyRandom.Next(0, spawnPoints.Length)].transform.position;
+        Vector3 position = spawnPoints[roundManager.AnomalyRandom.Next(0, spawnPoints.Length)]
+            .transform
+            .position;
 
         position = roundManager.GetRandomNavMeshPositionInBoxPredictable(
-            position, 10f, default, roundManager.AnomalyRandom,
-            roundManager.GetLayermaskForEnemySizeLimit(Plugin.SCP682ET));
+            position,
+            10f,
+            default,
+            roundManager.AnomalyRandom,
+            roundManager.GetLayermaskForEnemySizeLimit(Plugin.SCP682ET)
+        );
 
-        position = roundManager.PositionWithDenialPointsChecked(position, spawnPoints, Plugin.SCP682ET);
+        position = roundManager.PositionWithDenialPointsChecked(
+            position,
+            spawnPoints,
+            Plugin.SCP682ET
+        );
 
         var enemyNetObj = roundManager.SpawnEnemyGameObject(position, 0, 1, Plugin.SCP682ET);
         if (!enemyNetObj.TryGet(out var netObj))

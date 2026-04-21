@@ -79,9 +79,12 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
     }
 
     public PlayerControllerB? IsAnyPlayerWithinLOS(
-        int range = 45, float width = 60,
-        int proximityAwareness = -1, bool DoLinecast = true,
-        bool PrintResults = false, bool SortByDistance = false
+        int range = 45,
+        float width = 60,
+        int proximityAwareness = -1,
+        bool DoLinecast = true,
+        bool PrintResults = false,
+        bool SortByDistance = false
     )
     {
         float ShortestDistance = range;
@@ -93,7 +96,16 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
             {
                 continue;
             }
-            if (IsTargetPlayerWithinLOS(Player, range, width, proximityAwareness, DoLinecast, PrintResults))
+            if (
+                IsTargetPlayerWithinLOS(
+                    Player,
+                    range,
+                    width,
+                    proximityAwareness,
+                    DoLinecast,
+                    PrintResults
+                )
+            )
             {
                 if (!SortByDistance)
                 {
@@ -111,11 +123,18 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
     }
 
     public bool IsTargetPlayerWithinLOS(
-        PlayerControllerB player, int range = 45, float width = 60,
-        int proximityAwareness = -1, bool DoLinecast = true, bool PrintResults = false
+        PlayerControllerB player,
+        int range = 45,
+        float width = 60,
+        int proximityAwareness = -1,
+        bool DoLinecast = true,
+        bool PrintResults = false
     )
     {
-        float DistanceToTarget = Vector3.Distance(transform.position, player.gameplayCamera.transform.position);
+        float DistanceToTarget = Vector3.Distance(
+            transform.position,
+            player.gameplayCamera.transform.position
+        );
         bool TargetInDistance = DistanceToTarget < range;
         float AngleToTarget = Vector3.Angle(
             eye.transform.forward,
@@ -123,9 +142,13 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
         );
         bool TargetWithinViewCone = AngleToTarget < width;
         bool TargetWithinProxAwareness = DistanceToTarget < proximityAwareness;
-        bool LOSBlocked = DoLinecast && Physics.Linecast(
-                eye.transform.position, player.transform.position,
-                StartOfRound.Instance.collidersRoomDefaultAndFoliage, QueryTriggerInteraction.Ignore
+        bool LOSBlocked =
+            DoLinecast
+            && Physics.Linecast(
+                eye.transform.position,
+                player.transform.position,
+                StartOfRound.Instance.collidersRoomDefaultAndFoliage,
+                QueryTriggerInteraction.Ignore
             );
         if (PrintResults)
         {
@@ -140,21 +163,28 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
     }
 
     public bool IsTargetPlayerWithinLOS(
-        int range = 45, float width = 60,
-        int proximityAwareness = -1, bool DoLinecast = true, bool PrintResults = false
+        int range = 45,
+        float width = 60,
+        int proximityAwareness = -1,
+        bool DoLinecast = true,
+        bool PrintResults = false
     )
     {
         if (targetPlayer == null)
         {
             DebugLog(
                 $"{this.__getTypeName()} called Target Player LOS check called with"
-                + " null target player; returning false!"
+                    + " null target player; returning false!"
             );
             return false;
         }
         return IsTargetPlayerWithinLOS(
-            targetPlayer, range, width,
-            proximityAwareness, DoLinecast, PrintResults
+            targetPlayer,
+            range,
+            width,
+            proximityAwareness,
+            DoLinecast,
+            PrintResults
         );
     }
 
@@ -244,7 +274,9 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
     {
         if (targetPlayer == null)
         {
-            PLog.LogError($"{this} attempted DistanceFromTargetPlayer with null target; returning -1!");
+            PLog.LogError(
+                $"{this} attempted DistanceFromTargetPlayer with null target; returning -1!"
+            );
             return -1f;
         }
         return DistanceFromPlayer(targetPlayer, IncludeYAxis);
@@ -256,7 +288,10 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
         {
             return Vector3.Distance(player.transform.position, this.transform.position);
         }
-        Vector2 PlayerFlatLocation = new Vector2(player.transform.position.x, player.transform.position.z);
+        Vector2 PlayerFlatLocation = new Vector2(
+            player.transform.position.x,
+            player.transform.position.z
+        );
         Vector2 EnemyFlatLocation = new Vector2(transform.position.x, transform.position.z);
         return Vector2.Distance(PlayerFlatLocation, EnemyFlatLocation);
     }
@@ -305,7 +340,10 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
         WalkieTalkie.TransmitOneShotAudio(entrance.entrancePointAudio, entrance.doorAudios[0]);
     }
 
-    internal void EnterSpecialAnimationWithPlayer(PlayerControllerB player, bool stopMovementCalculations = true)
+    internal void EnterSpecialAnimationWithPlayer(
+        PlayerControllerB player,
+        bool stopMovementCalculations = true
+    )
     {
         if (player.inSpecialInteractAnimation && player.currentTriggerInAnimationWith != null)
             player.currentTriggerInAnimationWith.CancelAnimationExternally();
@@ -322,7 +360,11 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
     /// A slightly modified version of <see cref="EnemyAI.MeetsStandardPlayerCollisionConditions(Collider, bool, bool)"/>
     /// </summary>
     /// <returns><see langword="true"/> if "other" is a valid player, otherwise <see langword="false"/>.</returns>
-    internal bool TryGetValidPlayerFromCollision(Collider other, [NotNullWhen(returnValue: true)] out PlayerControllerB? player, bool allowNonLocalPlayer = false)
+    internal bool TryGetValidPlayerFromCollision(
+        Collider other,
+        [NotNullWhen(returnValue: true)] out PlayerControllerB? player,
+        bool allowNonLocalPlayer = false
+    )
     {
         player = null;
 
@@ -336,7 +378,10 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
             return false;
 
         player = other.gameObject.GetComponent<PlayerControllerB>();
-        if (player == null || (!allowNonLocalPlayer && player != GameNetworkManager.Instance.localPlayerController))
+        if (
+            player == null
+            || (!allowNonLocalPlayer && player != GameNetworkManager.Instance.localPlayerController)
+        )
             return false;
 
         if (!PlayerIsTargetable(player, cannotBeInShip: false, overrideInsideFactoryCheck: false))
@@ -345,25 +390,35 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
         return true;
     }
 
-    internal bool IsPlayerInsideCollider(PlayerControllerB? player, Collider collider, float colliderScale = 1f)
+    internal bool IsPlayerInsideCollider(
+        PlayerControllerB? player,
+        Collider collider,
+        float colliderScale = 1f
+    )
     {
         if (player == null)
             return false;
 
         int playerLayer = 1 << 3; // The player layer is the 3rd layer in the game, can be checked from Asset Ripper output.
-        Collider[] colliders =
-            Physics.OverlapBox(
-                collider.bounds.center,
-                collider.bounds.extents / 2 * colliderScale,
-                Quaternion.identity,
-                playerLayer);
+        Collider[] colliders = Physics.OverlapBox(
+            collider.bounds.center,
+            collider.bounds.extents / 2 * colliderScale,
+            Quaternion.identity,
+            playerLayer
+        );
 
         foreach (Collider collided in colliders)
         {
             if (!collided.CompareTag("Player"))
                 continue;
 
-            if (!TryGetValidPlayerFromCollision(collided, out var collidedPlayer, allowNonLocalPlayer: true))
+            if (
+                !TryGetValidPlayerFromCollision(
+                    collided,
+                    out var collidedPlayer,
+                    allowNonLocalPlayer: true
+                )
+            )
                 continue;
 
             if (collidedPlayer == player)

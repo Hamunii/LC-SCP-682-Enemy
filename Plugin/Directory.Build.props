@@ -48,10 +48,18 @@
       Default values for paths. Do not modify,
       instead configure your Config.Build.user.props file.
     -->
-    <PathBeforeSteam Condition="$([MSBuild]::IsOSPlatform('Linux'))">$(HOME)/.local/share/</PathBeforeSteam>
-    <PathBeforeSteam Condition="$([MSBuild]::IsOSPlatform('Windows'))">$(MSBuildProgramFiles32)/</PathBeforeSteam>
-    <LethalCompanyGameRootDir Condition="$(LethalCompanyGameRootDir) == ''">$(PathBeforeSteam)Steam/steamapps/common/Lethal Company/</LethalCompanyGameRootDir>
-    <LethalCompanyBepInExDir Condition="$(LethalCompanyBepInExDir) == ''">$(LethalCompanyGameRootDir)/BepInEx/</LethalCompanyBepInExDir>
+    <PathBeforeSteam Condition="$([MSBuild]::IsOSPlatform('Linux'))"
+      >$(HOME)/.local/share/</PathBeforeSteam
+    >
+    <PathBeforeSteam Condition="$([MSBuild]::IsOSPlatform('Windows'))"
+      >$(MSBuildProgramFiles32)/</PathBeforeSteam
+    >
+    <LethalCompanyGameRootDir Condition="$(LethalCompanyGameRootDir) == ''"
+      >$(PathBeforeSteam)Steam/steamapps/common/Lethal Company/</LethalCompanyGameRootDir
+    >
+    <LethalCompanyBepInExDir Condition="$(LethalCompanyBepInExDir) == ''"
+      >$(LethalCompanyGameRootDir)/BepInEx/</LethalCompanyBepInExDir
+    >
     <ManagedDir>$(LethalCompanyGameRootDir)/Lethal Company_Data/Managed/</ManagedDir>
   </PropertyGroup>
 </Project>

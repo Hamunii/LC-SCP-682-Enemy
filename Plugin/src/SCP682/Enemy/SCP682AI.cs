@@ -20,7 +20,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     {
         Stopped = 0,
         Walking = 3,
-        Running = 10
+        Running = 10,
     }
 
     public enum EnemyScale
@@ -45,7 +45,10 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
     const float defaultBoredOfWanderingFacilityTimer = 120f;
     float boredOfWanderingFacilityTimer = defaultBoredOfWanderingFacilityTimer;
-    Vector3 PosOnTopOfShip { get => StartOfRound.Instance.insideShipPositions[0].position + new Vector3(-2, 5, 3); }
+    Vector3 PosOnTopOfShip
+    {
+        get => StartOfRound.Instance.insideShipPositions[0].position + new Vector3(-2, 5, 3);
+    }
     MonoBehaviour? targetEnemy = null!;
     internal List<MonoBehaviour?> blacklistedEnemies = [];
 
@@ -76,7 +79,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     Coroutine? changeScaleCoroutine;
 
     private List<PlayerControllerB> playersAttackedSelf = [];
-
 
     private int _defaultHealth;
 
@@ -123,6 +125,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     internal const int visibleThreatsMask = 524296;
 
     internal override SCP682AI GetThis() => this;
+
     internal override AIBehaviorState GetInitialState() => new WanderThroughEntranceState();
 
     public override void Start()
@@ -249,7 +252,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             }
         }
 
-
         base.HitEnemy(force, playerWhoHit, playHitSFX, hitID);
 
         if (enemyHP > 0)
@@ -269,7 +271,12 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             OverrideState(new AttackPlayerState());
     }
 
-    public override void DetectNoise(Vector3 noisePosition, float noiseLoudness, int timesPlayedInOneSpot = 0, int noiseID = 0)
+    public override void DetectNoise(
+        Vector3 noisePosition,
+        float noiseLoudness,
+        int timesPlayedInOneSpot = 0,
+        int noiseID = 0
+    )
     {
         base.DetectNoise(noisePosition, noiseLoudness, timesPlayedInOneSpot, noiseID);
 
@@ -296,11 +303,11 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     private class WanderToShipState : AIBehaviorState
     {
         public override List<AIStateTransition> Transitions { get; set; } =
-            [
-                new OnShipAmbushState.ArrivedAtShipTransition(),
-                new InvestigatePlayerTransition(),
-                new AttackEnemyState.TargetEnemyTransition()
-            ];
+        [
+            new OnShipAmbushState.ArrivedAtShipTransition(),
+            new InvestigatePlayerTransition(),
+            new AttackEnemyState.TargetEnemyTransition(),
+        ];
 
         public override IEnumerator OnStateEntered()
         {
@@ -313,13 +320,16 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             self.SetDestinationToPosition(self.PosOnTopOfShip);
         }
 
-        public override IEnumerator OnStateExit() { yield break; }
+        public override IEnumerator OnStateExit()
+        {
+            yield break;
+        }
     }
 
     private class OnShipAmbushState : AIBehaviorState
     {
         public override List<AIStateTransition> Transitions { get; set; } =
-            [new AmbushPlayerFromShipTransition(), new BoredOfAmbushTransition()];
+        [new AmbushPlayerFromShipTransition(), new BoredOfAmbushTransition()];
 
         public override IEnumerator OnStateEntered()
         {
@@ -350,7 +360,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             self.transform.rotation = Quaternion.Lerp(
                 self.transform.rotation,
                 Quaternion.Euler(new Vector3(0f, self.turnCompass.eulerAngles.y, 0f)),
-                1f * Time.deltaTime);
+                1f * Time.deltaTime
+            );
         }
 
         public override IEnumerator OnStateExit()
@@ -419,13 +430,15 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     private class FromAmbushJumpPlayerState : AIBehaviorState
     {
         public override List<AIStateTransition> Transitions { get; set; } =
-            [new TouchTargetPlayerAndStartDraggingTransition(), new LostPlayerTransition()];
+        [new TouchTargetPlayerAndStartDraggingTransition(), new LostPlayerTransition()];
 
         public override IEnumerator OnStateEntered()
         {
             if (TargetPlayer == null)
             {
-                Plugin.Logger.LogError("Trying to ambush player, but targetPlayer is null! Not jumping.");
+                Plugin.Logger.LogError(
+                    "Trying to ambush player, but targetPlayer is null! Not jumping."
+                );
                 self.StartCoroutine(self.RoarAndRunCoroutine());
                 yield break;
             }
@@ -440,11 +453,22 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             Vector3 positionBehindPlayer;
 
             {
-                Vector3 targetPositionBehindPlayer = TargetPlayer.transform.position - Vector3.Scale(new Vector3(10, 0, 10), TargetPlayer.transform.forward);
+                Vector3 targetPositionBehindPlayer =
+                    TargetPlayer.transform.position
+                    - Vector3.Scale(new Vector3(10, 0, 10), TargetPlayer.transform.forward);
 
-                if (!NavMesh.SamplePosition(targetPositionBehindPlayer, out NavMeshHit navHit, maxDistance: 10f, NavMesh.AllAreas))
+                if (
+                    !NavMesh.SamplePosition(
+                        targetPositionBehindPlayer,
+                        out NavMeshHit navHit,
+                        maxDistance: 10f,
+                        NavMesh.AllAreas
+                    )
+                )
                 {
-                    Plugin.Logger.LogWarning("Trying to ambush player, but didn't find NavMesh near target player! Not jumping.");
+                    Plugin.Logger.LogWarning(
+                        "Trying to ambush player, but didn't find NavMesh near target player! Not jumping."
+                    );
                     self.StartCoroutine(self.RoarAndRunCoroutine());
                     yield break;
                 }
@@ -452,7 +476,8 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
                 positionBehindPlayer = navHit.position;
             }
 
-            Vector3 positionInBetweenInAir = (positionBehindPlayer + positionBehindPlayer) / 2 + (Vector3.up * 10f);
+            Vector3 positionInBetweenInAir =
+                (positionBehindPlayer + positionBehindPlayer) / 2 + (Vector3.up * 10f);
             Vector3 originalPosition = self.transform.position;
 
             // self.SetAgentSpeedAndAnimations(Speed.Stopped);
@@ -468,8 +493,16 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
                 normalizedTimer += scaledDeltaTime;
 
                 // This is a Bezier curve.
-                Vector3 m1 = Vector3.Lerp(originalPosition, positionInBetweenInAir, normalizedTimer);
-                Vector3 m2 = Vector3.Lerp(positionInBetweenInAir, positionBehindPlayer, normalizedTimer);
+                Vector3 m1 = Vector3.Lerp(
+                    originalPosition,
+                    positionInBetweenInAir,
+                    normalizedTimer
+                );
+                Vector3 m2 = Vector3.Lerp(
+                    positionInBetweenInAir,
+                    positionBehindPlayer,
+                    normalizedTimer
+                );
                 self.transform.position = Vector3.Lerp(m1, m2, normalizedTimer);
 
                 // self.transform.Rotate(0, 180 / scaledDeltaTime, 0, Space.World);
@@ -500,7 +533,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         private class TouchTargetPlayerAndStartDraggingTransition : AIStateTransition
         {
             // I dunno how bad this is for performance
-            public override bool CanTransitionBeTaken() => self.IsPlayerInsideCollider(TargetPlayer, self.mainCollider);
+            public override bool CanTransitionBeTaken() =>
+                self.IsPlayerInsideCollider(TargetPlayer, self.mainCollider);
+
             public override AIBehaviorState NextState() => new DragPlayerState();
         }
     }
@@ -508,7 +543,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     private class DragPlayerState : AIBehaviorState
     {
         public override List<AIStateTransition> Transitions { get; set; } =
-            [new DraggedPlayerEnoughTransition()];
+        [new DraggedPlayerEnoughTransition()];
 
         EntranceTeleport facilityEntrance = null!;
         float realMouthOrStableReverseMouth = 0;
@@ -574,7 +609,10 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
         public override void AIInterval()
         {
-            if (self.IsOwner && !self.SetDestinationToPosition(facilityEntrance.entrancePoint.position, true))
+            if (
+                self.IsOwner
+                && !self.SetDestinationToPosition(facilityEntrance.entrancePoint.position, true)
+            )
                 PLog.LogError("Facility door is unreachable!");
         }
 
@@ -588,7 +626,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
                 if (exitingThisState)
                     return;
 
-                Plugin.Logger.LogWarning("Somehow `inSpecialAnimationWithPlayer` is null while dragging, setting it anyways.");
+                Plugin.Logger.LogWarning(
+                    "Somehow `inSpecialAnimationWithPlayer` is null while dragging, setting it anyways."
+                );
                 self.CancelSpecialAnimationWithPlayer();
                 if (TargetPlayer == null)
                 {
@@ -598,21 +638,26 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
                 self.EnterSpecialAnimationWithPlayer(TargetPlayer, stopMovementCalculations: false);
                 if (self.inSpecialAnimationWithPlayer == null)
                 {
-                    Plugin.Logger.LogError("Uhh, `inSpecialAnimationWithPlayer` is still null even after setting it? (This should never happen.)");
+                    Plugin.Logger.LogError(
+                        "Uhh, `inSpecialAnimationWithPlayer` is still null even after setting it? (This should never happen.)"
+                    );
                     return;
                 }
             }
             if (self.inSpecialAnimationWithPlayer.inAnimationWithEnemy != self)
             {
-                Plugin.Logger.LogWarning("Player is no longer in special animation with this enemy!");
+                Plugin.Logger.LogWarning(
+                    "Player is no longer in special animation with this enemy!"
+                );
                 self.OverrideState(new AttackPlayerState());
                 return;
             }
 
-            self.inSpecialAnimationWithPlayer.transform.position =
-            Vector3.Lerp(CreatureVoice.transform.position + new Vector3(0, -1f, 0),
+            self.inSpecialAnimationWithPlayer.transform.position = Vector3.Lerp(
+                CreatureVoice.transform.position + new Vector3(0, -1f, 0),
                 self.reversedMouthPosition.position,
-                realMouthOrStableReverseMouth);
+                realMouthOrStableReverseMouth
+            );
         }
 
         public override IEnumerator OnStateExit()
@@ -628,6 +673,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         private class DraggedPlayerEnoughTransition : AIStateTransition
         {
             float draggedPlayerTimer = 0;
+
             public override bool CanTransitionBeTaken()
             {
                 draggedPlayerTimer += Time.deltaTime;
@@ -644,7 +690,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     {
         // Note: We add one more transition to this afterwards!
         public override List<AIStateTransition> Transitions { get; set; } =
-            [new InvestigatePlayerTransition(), new AttackEnemyState.TargetEnemyTransition()];
+        [new InvestigatePlayerTransition(), new AttackEnemyState.TargetEnemyTransition()];
         EntranceTeleport facilityEntrance = null!;
 
         public override IEnumerator OnStateEntered()
@@ -664,7 +710,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
                 PLog.LogWarning("Facility door is unreachable! Wandering instead.");
                 self.OverrideState(new AtFacilityWanderingState());
             }
-
         }
 
         public override IEnumerator OnStateExit()
@@ -687,7 +732,10 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             public override bool CanTransitionBeTaken()
             {
                 _et ??= RoundManager.FindMainEntranceScript(self.isOutside);
-                if (Vector3.Distance(_et.entrancePoint.position, self.gameObject.transform.position) < 4.5f)
+                if (
+                    Vector3.Distance(_et.entrancePoint.position, self.gameObject.transform.position)
+                    < 4.5f
+                )
                 {
                     self.TeleportSelfToOtherEntranceClientRpc(self.isOutside);
 
@@ -715,12 +763,12 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     private class AtFacilityWanderingState : AIBehaviorState
     {
         public override List<AIStateTransition> Transitions { get; set; } =
-            [
-                new BoredOfFacilityTransition(),
-                new AtFacilityEatNoisyJesterState.FindNoisyJesterTransition(),
-                new InvestigatePlayerTransition(),
-                new AttackEnemyState.TargetEnemyTransition()
-            ];
+        [
+            new BoredOfFacilityTransition(),
+            new AtFacilityEatNoisyJesterState.FindNoisyJesterTransition(),
+            new InvestigatePlayerTransition(),
+            new AttackEnemyState.TargetEnemyTransition(),
+        ];
 
         public override IEnumerator OnStateEntered()
         {
@@ -787,7 +835,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     private class AtFacilityEatNoisyJesterState : AIBehaviorState
     {
         public override List<AIStateTransition> Transitions { get; set; } =
-            [new NoisyJesterEatenTransition()];
+        [new NoisyJesterEatenTransition()];
 
         JesterAI targetJester = null!;
         bool voiceClipPlayed = false;
@@ -869,7 +917,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     private class DeadTemporarilyState : AIBehaviorState
     {
         public override List<AIStateTransition> Transitions { get; set; } =
-            [new DeadTemporarilyUntilAwakeTransition()];
+        [new DeadTemporarilyUntilAwakeTransition()];
 
         public override IEnumerator OnStateEntered()
         {
@@ -885,7 +933,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
             var currentAnimationClip = CreatureAnimator.GetCurrentAnimatorClipInfo(0)[0].clip;
             if (currentAnimationClip.name != "CG_death")
             {
-                self.DebugLog("Should be dead, but current animation clip isn't dead clip. Setting clip to dead.");
+                self.DebugLog(
+                    "Should be dead, but current animation clip isn't dead clip. Setting clip to dead."
+                );
                 self.DebugLog("Animation clip was: " + currentAnimationClip.name);
                 self.AnimatorSetTrigger(Anim.doKillEnemy);
             }
@@ -927,7 +977,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     internal class AttackEnemyState : AIBehaviorState
     {
         public override List<AIStateTransition> Transitions { get; set; } =
-            [new EnemyKilledTransition()];
+        [new EnemyKilledTransition()];
 
         int cantPathfindToEnemyCountdown = 10;
 
@@ -938,14 +988,20 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
             yield return self.StartCoroutine(self.RoarAndRunCoroutine());
 
-            void PlayVoice(SFX.VoiceCode clipCode)
-                => self.StartCoroutine(self.PlayVoiceInSeconds(clipCode, 3f));
+            void PlayVoice(SFX.VoiceCode clipCode) =>
+                self.StartCoroutine(self.PlayVoiceInSeconds(clipCode, 3f));
 
             switch (self.targetEnemy)
             {
-                case BaboonBirdAI _: PlayVoice(SFX.VoiceCode.Bothersome_EngageBaboonHawk); break;
-                case ForestGiantAI _: PlayVoice(SFX.VoiceCode.Abomination_EngageForestGiant); break;
-                case MouthDogAI _: PlayVoice(SFX.VoiceCode.Disgrace_EngageEyelessDog); break;
+                case BaboonBirdAI _:
+                    PlayVoice(SFX.VoiceCode.Bothersome_EngageBaboonHawk);
+                    break;
+                case ForestGiantAI _:
+                    PlayVoice(SFX.VoiceCode.Abomination_EngageForestGiant);
+                    break;
+                case MouthDogAI _:
+                    PlayVoice(SFX.VoiceCode.Disgrace_EngageEyelessDog);
+                    break;
                 default:
                     if (self.targetEnemy is EnemyAI enemyAI)
                     {
@@ -974,7 +1030,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
                 }
 
                 if (self.path1.status == NavMeshPathStatus.PathPartial)
-                        self.SetDestinationToPosition(self.path1.corners[^1]);
+                    self.SetDestinationToPosition(self.path1.corners[^1]);
             }
         }
 
@@ -993,7 +1049,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
             if (collidedEnemy is CaveDwellerAI caveDweller)
             {
-
                 if (self.IsHost)
                 {
                     // Meet requirements for it being able to die for real.
@@ -1056,7 +1111,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     internal class InvestigatePlayerState : AIBehaviorState
     {
         public override List<AIStateTransition> Transitions { get; set; } =
-            [new AttackPlayerTransition(), new LostPlayerTransition()];
+        [new AttackPlayerTransition(), new LostPlayerTransition()];
 
         public override IEnumerator OnStateEntered()
         {
@@ -1092,7 +1147,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     internal class AttackPlayerState : AIBehaviorState
     {
         public override List<AIStateTransition> Transitions { get; set; } =
-            [new LostPlayerTransition()];
+        [new LostPlayerTransition()];
 
         public override IEnumerator OnStateEntered()
         {
@@ -1264,7 +1319,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     {
         if (roarAttackInProgress)
         {
-            PLog.LogWarning($"Called {nameof(RoarShockwaveAttack)} even when a roar attack was in progress!");
+            PLog.LogWarning(
+                $"Called {nameof(RoarShockwaveAttack)} even when a roar attack was in progress!"
+            );
             yield break;
         }
         roarAttackInProgress = true;
@@ -1305,7 +1362,9 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         player.externalForceAutoFade += force;
 
         yield return new WaitForSeconds(0.5f);
-        yield return new WaitUntil(() => player.thisController.isGrounded || player.isInHangarShipRoom);
+        yield return new WaitUntil(() =>
+            player.thisController.isGrounded || player.isInHangarShipRoom
+        );
 
         rb.isKinematic = true;
     }
@@ -1349,7 +1408,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         Vector3 force = player.transform.position - agent.transform.position;
         StartCoroutine(AddForceToPlayer(player, force.normalized * 10));
 
-
         if (player.health <= 0)
             creatureVoice.PlayOneShot(SFX.Voice.Disgusting_KilledPlayer);
     }
@@ -1363,8 +1421,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     }
 
     [ServerRpc]
-    void PlayVoiceServerRpc(SFX.VoiceCode clipCode) =>
-        PlayVoiceClientRpc(clipCode);
+    void PlayVoiceServerRpc(SFX.VoiceCode clipCode) => PlayVoiceClientRpc(clipCode);
 
     [ClientRpc]
     void PlayVoiceClientRpc(SFX.VoiceCode clipCode)
@@ -1375,7 +1432,6 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         AudioClip audioClip = SFX.Voice.GetClip(clipCode);
         creatureVoice.PlayOneShot(audioClip);
     }
-
 
     internal IEnumerator PlayVoiceInSeconds(SFX.VoiceCode clipCode, float seconds)
     {
@@ -1414,15 +1470,18 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
         }
     }
 
-    private static float GetTargetScale(EnemyScale enemyScale) => enemyScale switch
-    {
-        // This is stupid code.
-        EnemyScale.Small => 2.3f,
-        EnemyScale.Big => 4f,
-        _ => throw new ArgumentOutOfRangeException("invalid scale value")
-    };
+    private static float GetTargetScale(EnemyScale enemyScale) =>
+        enemyScale switch
+        {
+            // This is stupid code.
+            EnemyScale.Small => 2.3f,
+            EnemyScale.Big => 4f,
+            _ => throw new ArgumentOutOfRangeException("invalid scale value"),
+        };
 
-    internal bool TryTargetEnemyInProximity([NotNullWhen(returnValue: true)] out MonoBehaviour? enemy)
+    internal bool TryTargetEnemyInProximity(
+        [NotNullWhen(returnValue: true)] out MonoBehaviour? enemy
+    )
     {
         foreach (Collider enemyCollider in GetEnemiesInProximity())
         {
@@ -1466,7 +1525,7 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
                 continue;
 
             if (BlackListedEnemiesContains(caveDweller))
-                    continue;
+                continue;
 
             DebugLog($"Found cave dweller to target!");
             enemy = caveDweller;
@@ -1479,7 +1538,13 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
 
     internal IEnumerable<Collider> GetEnemiesInProximity()
     {
-        int collisionsAmount = Physics.OverlapSphereNonAlloc(eye.position, 40f, SCP682AI.tempCollisionArr, SCP682AI.visibleThreatsMask, QueryTriggerInteraction.Collide);
+        int collisionsAmount = Physics.OverlapSphereNonAlloc(
+            eye.position,
+            40f,
+            SCP682AI.tempCollisionArr,
+            SCP682AI.visibleThreatsMask,
+            QueryTriggerInteraction.Collide
+        );
         for (int i = 0; i < collisionsAmount; i++)
         {
             Collider collided = SCP682AI.tempCollisionArr[i];
@@ -1550,12 +1615,10 @@ class SCP682AI : ModEnemyAI<SCP682AI>, IVisibleThreat
     }
 
     [ServerRpc(RequireOwnership = false)]
-    public void AnimatorSetTriggerServerRpc(string name) =>
-        AnimatorSetTriggerClientRpc(name);
+    public void AnimatorSetTriggerServerRpc(string name) => AnimatorSetTriggerClientRpc(name);
 
     [ClientRpc]
-    private void AnimatorSetTriggerClientRpc(string name) =>
-        creatureAnimator.SetTrigger(name);
+    private void AnimatorSetTriggerClientRpc(string name) => creatureAnimator.SetTrigger(name);
 
     #endregion
     #region Debug Stuff

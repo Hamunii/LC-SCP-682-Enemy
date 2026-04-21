@@ -121,7 +121,11 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
         public NavMeshAgent Agent => self.agent;
 
         /// <inheritdoc cref="ModEnemyAI{T}.targetPlayer"/>
-        public PlayerControllerB? TargetPlayer { get => self.targetPlayer; set => self.targetPlayer = value; }
+        public PlayerControllerB? TargetPlayer
+        {
+            get => self.targetPlayer;
+            set => self.targetPlayer = value;
+        }
 
         /// <inheritdoc cref="ModEnemyAI{T}.enemyRandom"/>
         public System.Random EnemyRandom => self.enemyRandom;
@@ -136,14 +140,17 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
         internal readonly bool isTransition = isTransition;
     }
 
-    private static readonly Dictionary<(string, Type), TransitionType> _typeNameAndInstanceTypeToTransitionType = [];
+    private static readonly Dictionary<
+        (string, Type),
+        TransitionType
+    > _typeNameAndInstanceTypeToTransitionType = [];
 
     public enum PlayerState
     {
         Dead,
         Outside,
         Inside,
-        Ship
+        Ship,
     }
 
     internal AIBehaviorState activeState = null!;
@@ -158,6 +165,7 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
     internal PlayerState myValidState = PlayerState.Inside;
     internal AIStateTransition nextTransition = null!;
     internal List<AIStateTransition> globalTransitions = [];
+
     /// <summary>
     /// The instance of this enemy.
     /// </summary>
@@ -233,7 +241,9 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
             KillEnemyOnOwnerClient();
         }
 
-        _transitionCoroutineInProgress = StartCoroutine(InitializeAndEnterState(activeState, self, enemyRandom));
+        _transitionCoroutineInProgress = StartCoroutine(
+            InitializeAndEnterState(activeState, self, enemyRandom)
+        );
     }
 
     public override void Update()
@@ -320,7 +330,11 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
         }
     }
 
-    private IEnumerator InitializeAndEnterState(AIBehaviorState activeState, T self, System.Random enemyRandom)
+    private IEnumerator InitializeAndEnterState(
+        AIBehaviorState activeState,
+        T self,
+        System.Random enemyRandom
+    )
     {
         activeState.self = self;
         yield return StartCoroutine(activeState.OnStateEntered());
@@ -348,12 +362,18 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
     {
         AIStateTransition? localNextTransition = null;
 
-        if (!_typeNameAndInstanceTypeToTransitionType.TryGetValue((stateOrTransitionName, self.GetType()), out TransitionType? transitionOrBehavior))
+        if (
+            !_typeNameAndInstanceTypeToTransitionType.TryGetValue(
+                (stateOrTransitionName, self.GetType()),
+                out TransitionType? transitionOrBehavior
+            )
+        )
             ValidateAndCacheTransitionType(stateOrTransitionName, ref transitionOrBehavior);
 
         if (transitionOrBehavior.isTransition)
         {
-            localNextTransition = (AIStateTransition)Activator.CreateInstance(transitionOrBehavior.type);
+            localNextTransition = (AIStateTransition)
+                Activator.CreateInstance(transitionOrBehavior.type);
             InitializeStateTransition(localNextTransition, self);
             if (localNextTransition.NextState().GetType() == activeState.GetType())
                 yield break;
@@ -367,12 +387,16 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
 
         if (localNextTransition is not null)
         {
-            DebugLog($"{__getTypeName()} #{self.thisEnemyIndex} is Transitioning via:  {localNextTransition}");
+            DebugLog(
+                $"{__getTypeName()} #{self.thisEnemyIndex} is Transitioning via:  {localNextTransition}"
+            );
             activeState = localNextTransition.NextState();
         }
         else
         {
-            DebugLog($"{__getTypeName()} #{self.thisEnemyIndex} is Transitioning via: State Override");
+            DebugLog(
+                $"{__getTypeName()} #{self.thisEnemyIndex} is Transitioning via: State Override"
+            );
             activeState = (AIBehaviorState)Activator.CreateInstance(transitionOrBehavior.type);
         }
 
@@ -392,28 +416,41 @@ public abstract partial class ModEnemyAI<T> : ModEnemyAINetworkLayer
     }
 
     /// <exception cref="ArgumentException"/>
-    private void ValidateAndCacheTransitionType(string stateOrTransitionName, [NotNull] ref TransitionType? transitionOrBehavior)
+    private void ValidateAndCacheTransitionType(
+        string stateOrTransitionName,
+        [NotNull] ref TransitionType? transitionOrBehavior
+    )
     {
-        Type newType = Type.GetType(stateOrTransitionName)
-            ?? throw new ArgumentException($"'{stateOrTransitionName}' wasn't found as a type!",
-                nameof(stateOrTransitionName));
+        Type newType =
+            Type.GetType(stateOrTransitionName)
+            ?? throw new ArgumentException(
+                $"'{stateOrTransitionName}' wasn't found as a type!",
+                nameof(stateOrTransitionName)
+            );
 
         if (newType.IsSubclassOf(typeof(AIStateTransition)))
         {
             transitionOrBehavior = new TransitionType(newType, isTransition: true);
-            _typeNameAndInstanceTypeToTransitionType.Add((stateOrTransitionName, self.GetType()), transitionOrBehavior);
+            _typeNameAndInstanceTypeToTransitionType.Add(
+                (stateOrTransitionName, self.GetType()),
+                transitionOrBehavior
+            );
             return;
         }
         else if (newType.IsSubclassOf(typeof(AIBehaviorState)))
         {
             transitionOrBehavior = new TransitionType(newType, isTransition: false);
-            _typeNameAndInstanceTypeToTransitionType.Add((stateOrTransitionName, self.GetType()), transitionOrBehavior);
+            _typeNameAndInstanceTypeToTransitionType.Add(
+                (stateOrTransitionName, self.GetType()),
+                transitionOrBehavior
+            );
             return;
         }
 
         throw new ArgumentException(
             $"'{stateOrTransitionName}' is neither an {nameof(AIStateTransition)} nor an {nameof(AIBehaviorState)}!",
-            nameof(stateOrTransitionName));
+            nameof(stateOrTransitionName)
+        );
     }
 
     protected override void SetTarget(int PlayerID)

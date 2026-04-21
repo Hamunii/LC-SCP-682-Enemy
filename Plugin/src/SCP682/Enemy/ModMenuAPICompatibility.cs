@@ -9,7 +9,8 @@ using UnityEngine;
 
 static class ModMenuAPICompatibility
 {
-    internal static bool Enabled => BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("Hamunii.ModMenuAPI");
+    internal static bool Enabled =>
+        BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("Hamunii.ModMenuAPI");
 
     [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
     public static void InitDebug(SCP682AI instance)
@@ -24,18 +25,25 @@ static class ModMenuAPICompatibility
             .RegisterItem(mmMenu2)
             .RegisterItem(new Kill682Action());
 
-        mmMenu.MenuItems.Add(new DebugOverrideState(instance, "SCP682.SCPEnemy.SCP682AI+WanderToShipState"));
-        mmMenu.MenuItems.Add(new DebugOverrideState(instance, "SCP682.SCPEnemy.SCP682AI+OnShipAmbushState"));
-        mmMenu.MenuItems.Add(new DebugOverrideState(instance, "SCP682.SCPEnemy.SCP682AI+WanderThroughEntranceState"));
-        mmMenu.MenuItems.Add(new DebugOverrideState(instance, "SCP682.SCPEnemy.SCP682AI+AtFacilityWanderingState"));
+        mmMenu.MenuItems.Add(
+            new DebugOverrideState(instance, "SCP682.SCPEnemy.SCP682AI+WanderToShipState")
+        );
+        mmMenu.MenuItems.Add(
+            new DebugOverrideState(instance, "SCP682.SCPEnemy.SCP682AI+OnShipAmbushState")
+        );
+        mmMenu.MenuItems.Add(
+            new DebugOverrideState(instance, "SCP682.SCPEnemy.SCP682AI+WanderThroughEntranceState")
+        );
+        mmMenu.MenuItems.Add(
+            new DebugOverrideState(instance, "SCP682.SCPEnemy.SCP682AI+AtFacilityWanderingState")
+        );
 
         mmMenu2.MenuItems.Add(new SpawnSCP682Action(true));
         mmMenu2.MenuItems.Add(new SpawnSCP682Action(false));
     }
 
     [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-    public static void ClearMenus() =>
-        ModMenu.RemoveAllOwnedBy(Assembly.GetExecutingAssembly());
+    public static void ClearMenus() => ModMenu.RemoveAllOwnedBy(Assembly.GetExecutingAssembly());
 
     class DebugPrintInfoAction(SCP682AI self) : MMButtonAction("Print Info")
     {
@@ -54,12 +62,14 @@ static class ModMenuAPICompatibility
     {
         protected override void OnClick()
         {
-            if (self.isEnemyDead) return;
+            if (self.isEnemyDead)
+                return;
             self.TransitionStateServerRpc(state, new System.Random().Next());
         }
     }
 
-    class SpawnSCP682Action(bool outside) : MMButtonAction($"Spawn " + (outside ? "outside" : "inside"))
+    class SpawnSCP682Action(bool outside)
+        : MMButtonAction($"Spawn " + (outside ? "outside" : "inside"))
     {
         protected override void OnClick()
         {

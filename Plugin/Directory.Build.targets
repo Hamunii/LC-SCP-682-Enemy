@@ -36,7 +36,11 @@
       code analyzers, source generators, or other build-only packages.
     -->
     <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
-    <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3" PrivateAssets="all" />
+    <PackageReference
+      Include="BepInEx.AssemblyPublicizer.MSBuild"
+      Version="0.4.3"
+      PrivateAssets="all"
+    />
     <PackageReference Include="Hamunii.BepInEx.AutoPlugin" Version="2.1.*" PrivateAssets="all" />
     <!-- Source-only polyfills for C# language features https://github.com/Sergio0694/PolySharp -->
     <PackageReference Include="PolySharp" Version="1.15.0" PrivateAssets="all" />
@@ -75,7 +79,11 @@
   </ItemGroup>
 
   <!-- Copy mod files defined in projects to the target BepInEx directory -->
-  <Target Name="DeployFiles" AfterTargets="Build" Condition="'$(DeployThunderstoreFiles)' == 'true'">
+  <Target
+    Name="DeployFiles"
+    AfterTargets="Build"
+    Condition="'$(DeployThunderstoreFiles)' == 'true'"
+  >
     <PropertyGroup>
       <_TargetDir>$([MSBuild]::NormalizeDirectory($(LethalCompanyBepInExDir)))</_TargetDir>
     </PropertyGroup>

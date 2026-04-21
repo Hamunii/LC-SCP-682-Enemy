@@ -41,7 +41,9 @@ internal class PlayerHitDoorCollider : MonoBehaviour
         player.externalForceAutoFade += force;
 
         yield return new WaitForSeconds(0.5f);
-        yield return new WaitUntil(() => player.thisController.isGrounded || player.isInHangarShipRoom);
+        yield return new WaitUntil(() =>
+            player.thisController.isGrounded || player.isInHangarShipRoom
+        );
 
         rb.isKinematic = true;
     }

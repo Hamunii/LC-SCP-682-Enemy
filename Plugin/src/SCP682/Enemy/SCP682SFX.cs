@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -15,17 +14,39 @@ public static class SFX
         {
             switch (clip.name.Split("SFX")[0])
             {
-                case "bite": bite.Add(clip); break;
-                case "hit": hit.Add(clip); break;
-                case "run": run.Add(clip); break;
-                case "roar": roar.Add(clip); break;
-                case "walk": walk.Add(clip); break;
-                case "defeated": defeated.Add(clip); break;
-                case "jumpAttack": jumpAttack.Add(clip); break;
-                case "swimDown": swimDown.Add(clip); break;
-                case "wakeUp": wakeUp.Add(clip); break;
-                case "spawn": spawn.Add(clip); break;
-                default: InitializeVoiceLine(clip); break;
+                case "bite":
+                    bite.Add(clip);
+                    break;
+                case "hit":
+                    hit.Add(clip);
+                    break;
+                case "run":
+                    run.Add(clip);
+                    break;
+                case "roar":
+                    roar.Add(clip);
+                    break;
+                case "walk":
+                    walk.Add(clip);
+                    break;
+                case "defeated":
+                    defeated.Add(clip);
+                    break;
+                case "jumpAttack":
+                    jumpAttack.Add(clip);
+                    break;
+                case "swimDown":
+                    swimDown.Add(clip);
+                    break;
+                case "wakeUp":
+                    wakeUp.Add(clip);
+                    break;
+                case "spawn":
+                    spawn.Add(clip);
+                    break;
+                default:
+                    InitializeVoiceLine(clip);
+                    break;
             }
         }
     }
@@ -34,21 +55,48 @@ public static class SFX
     {
         switch (clip.name)
         {
-            case "Worms_SCP682": Voice.Worms_EngageIndoorEnemies = clip; break;
-            case "Bothersome_SPC682": Voice.Bothersome_EngageBaboonHawk = clip; break;
-            case "Silence_SCP682": Voice.Silence_ChargeJester = clip; break;
-            case "Abomination_SCP682": Voice.Abomination_EngageForestGiant = clip; break;
-            case "Disgrace_SCP682": Voice.Disgrace_EngageEyelessDog = clip; break;
-            case "Pathetic_SCP682": Voice.Pathetic_HitByPlayerFirstTime = clip; break;
-            case "LoathsomeParasites_SCP682": Voice.LoathsomeParasites_MultiplePlayersAttacking = clip; break;
+            case "Worms_SCP682":
+                Voice.Worms_EngageIndoorEnemies = clip;
+                break;
+            case "Bothersome_SPC682":
+                Voice.Bothersome_EngageBaboonHawk = clip;
+                break;
+            case "Silence_SCP682":
+                Voice.Silence_ChargeJester = clip;
+                break;
+            case "Abomination_SCP682":
+                Voice.Abomination_EngageForestGiant = clip;
+                break;
+            case "Disgrace_SCP682":
+                Voice.Disgrace_EngageEyelessDog = clip;
+                break;
+            case "Pathetic_SCP682":
+                Voice.Pathetic_HitByPlayerFirstTime = clip;
+                break;
+            case "LoathsomeParasites_SCP682":
+                Voice.LoathsomeParasites_MultiplePlayersAttacking = clip;
+                break;
             // case "Worms_SCP682": Voice.FullRant_UponRevival = clip; break; // Didn't find clip
-            case "PerversionOfExistence_SCP682": Voice.PerversionOfExistence_Flamingos = clip; break;
-            case "TearYouApart_SCP682": Voice.TearYouApart_DraggingPlayer = clip; break;
-            case "Disgusting_SCP682": Voice.Disgusting_KilledPlayer = clip; break;
-            case "Useless_SCP682": Voice.Useless_ChasingPlayerForSomeTime = clip; break;
-            case "Cowards_SCP682": Voice.Cowards_LostPlayer = clip; break;
-            case "GrowlyPurr_SCP682": /* TODO: Unused clip. Where should it be used? */ break;
-            default: InitializeDoorBash(clip); break;
+            case "PerversionOfExistence_SCP682":
+                Voice.PerversionOfExistence_Flamingos = clip;
+                break;
+            case "TearYouApart_SCP682":
+                Voice.TearYouApart_DraggingPlayer = clip;
+                break;
+            case "Disgusting_SCP682":
+                Voice.Disgusting_KilledPlayer = clip;
+                break;
+            case "Useless_SCP682":
+                Voice.Useless_ChasingPlayerForSomeTime = clip;
+                break;
+            case "Cowards_SCP682":
+                Voice.Cowards_LostPlayer = clip;
+                break;
+            case "GrowlyPurr_SCP682": /* TODO: Unused clip. Where should it be used? */
+                break;
+            default:
+                InitializeDoorBash(clip);
+                break;
         }
     }
 
@@ -56,10 +104,18 @@ public static class SFX
     {
         switch (clip.name.Split("SFX")[0])
         {
-            case "bash": DoorBash.BashSFX.Add(clip); break;
-            case "metalDoorSmash": DoorBash.MetalDoorSmashSFX.Add(clip); break;
-            case "doorWoosh": DoorBash.DoorWooshSFX.Add(clip); break;
-            default: Plugin.Logger.LogError($"AudioClip with name '{clip.name}' was not identified!"); break;
+            case "bash":
+                DoorBash.BashSFX.Add(clip);
+                break;
+            case "metalDoorSmash":
+                DoorBash.MetalDoorSmashSFX.Add(clip);
+                break;
+            case "doorWoosh":
+                DoorBash.DoorWooshSFX.Add(clip);
+                break;
+            default:
+                Plugin.Logger.LogError($"AudioClip with name '{clip.name}' was not identified!");
+                break;
         }
     }
 
@@ -92,23 +148,27 @@ public static class SFX
         public static AudioClip Useless_ChasingPlayerForSomeTime = null!;
         public static AudioClip Cowards_LostPlayer = null!;
 
-        public static AudioClip GetClip(VoiceCode clip) => clip switch
-        {
-            VoiceCode.Worms_EngageIndoorEnemies => Worms_EngageIndoorEnemies,
-            VoiceCode.Bothersome_EngageBaboonHawk => Bothersome_EngageBaboonHawk,
-            VoiceCode.Silence_ChargeJester => Silence_ChargeJester,
-            VoiceCode.Abomination_EngageForestGiant => Abomination_EngageForestGiant,
-            VoiceCode.Disgrace_EngageEyelessDog => Disgrace_EngageEyelessDog,
-            VoiceCode.Pathetic_HitByPlayerFirstTime => Pathetic_HitByPlayerFirstTime,
-            VoiceCode.LoathsomeParasites_MultiplePlayersAttacking => LoathsomeParasites_MultiplePlayersAttacking,
-            VoiceCode.FullRant_UponRevival => FullRant_UponRevival,
-            VoiceCode.PerversionOfExistence_Flamingos => PerversionOfExistence_Flamingos,
-            VoiceCode.TearYouApart_DraggingPlayer => TearYouApart_DraggingPlayer,
-            VoiceCode.Disgusting_KilledPlayer => Disgusting_KilledPlayer,
-            VoiceCode.Useless_ChasingPlayerForSomeTime => Useless_ChasingPlayerForSomeTime,
-            VoiceCode.Cowards_LostPlayer => Cowards_LostPlayer,
-            _ => throw new InvalidOperationException($"A voice clip with code {clip} doesn't exist.")
-        };
+        public static AudioClip GetClip(VoiceCode clip) =>
+            clip switch
+            {
+                VoiceCode.Worms_EngageIndoorEnemies => Worms_EngageIndoorEnemies,
+                VoiceCode.Bothersome_EngageBaboonHawk => Bothersome_EngageBaboonHawk,
+                VoiceCode.Silence_ChargeJester => Silence_ChargeJester,
+                VoiceCode.Abomination_EngageForestGiant => Abomination_EngageForestGiant,
+                VoiceCode.Disgrace_EngageEyelessDog => Disgrace_EngageEyelessDog,
+                VoiceCode.Pathetic_HitByPlayerFirstTime => Pathetic_HitByPlayerFirstTime,
+                VoiceCode.LoathsomeParasites_MultiplePlayersAttacking =>
+                    LoathsomeParasites_MultiplePlayersAttacking,
+                VoiceCode.FullRant_UponRevival => FullRant_UponRevival,
+                VoiceCode.PerversionOfExistence_Flamingos => PerversionOfExistence_Flamingos,
+                VoiceCode.TearYouApart_DraggingPlayer => TearYouApart_DraggingPlayer,
+                VoiceCode.Disgusting_KilledPlayer => Disgusting_KilledPlayer,
+                VoiceCode.Useless_ChasingPlayerForSomeTime => Useless_ChasingPlayerForSomeTime,
+                VoiceCode.Cowards_LostPlayer => Cowards_LostPlayer,
+                _ => throw new InvalidOperationException(
+                    $"A voice clip with code {clip} doesn't exist."
+                ),
+            };
     }
 
     public enum VoiceCode
@@ -135,6 +195,6 @@ public static class SFX
         public static List<AudioClip> DoorWooshSFX { get; private set; } = [];
     }
 
-    public static AudioClip FromRandom(this List<AudioClip> clips, System.Random random)
-        => clips[random.Next(clips.Count)];
+    public static AudioClip FromRandom(this List<AudioClip> clips, System.Random random) =>
+        clips[random.Next(clips.Count)];
 }

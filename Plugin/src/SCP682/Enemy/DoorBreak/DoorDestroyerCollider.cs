@@ -14,10 +14,12 @@ class DoorDestroyerCollider : MonoBehaviour
 
     void OnTriggerStay(Collider other)
     {
-        if (AI.activeState
+        if (
+            AI.activeState
             is not SCP682AI.InvestigatePlayerState
-            and not SCP682AI.AttackPlayerState
-            and not SCP682AI.AttackEnemyState)
+                and not SCP682AI.AttackPlayerState
+                and not SCP682AI.AttackEnemyState
+        )
             return;
 
         if (triggering || !other.CompareTag("InteractTrigger"))
@@ -78,7 +80,11 @@ class DoorDestroyerCollider : MonoBehaviour
         tempAS.rolloffMode = AudioRolloffMode.Linear;
         tempAS.volume = 1f;
 
-        var flyingDoor = UnityEngine.Object.Instantiate(flyingDoorPrefab, doorLock.transform.position, doorLock.transform.rotation);
+        var flyingDoor = UnityEngine.Object.Instantiate(
+            flyingDoorPrefab,
+            doorLock.transform.position,
+            doorLock.transform.rotation
+        );
         doorMesh.transform.SetParent(flyingDoor.transform);
 
         GameObject.Destroy(flyingDoorPrefab);
@@ -93,17 +99,22 @@ class DoorDestroyerCollider : MonoBehaviour
         Vector3 doorBackward = flyingDoor.transform.position - flyingDoor.transform.right * 2f;
         Vector3 direction;
 
-        if (Vector3.Distance(doorForward, transform.position) < Vector3.Distance(doorBackward, transform.position))
+        if (
+            Vector3.Distance(doorForward, transform.position)
+            < Vector3.Distance(doorBackward, transform.position)
+        )
         {
             // Wendigo is at front of door
             direction = (doorBackward - doorForward).normalized;
-            flyingDoor.transform.position = flyingDoor.transform.position - flyingDoor.transform.right;
+            flyingDoor.transform.position =
+                flyingDoor.transform.position - flyingDoor.transform.right;
         }
         else
         {
             // Wendigo is at back of door
             direction = (doorForward - doorBackward).normalized;
-            flyingDoor.transform.position = flyingDoor.transform.position + flyingDoor.transform.right;
+            flyingDoor.transform.position =
+                flyingDoor.transform.position + flyingDoor.transform.right;
         }
 
         Vector3 upDirection = transform.TransformDirection(Vector3.up).normalized * 0.1f;
@@ -120,7 +131,12 @@ class DoorDestroyerCollider : MonoBehaviour
         doorAudio.PlayOneShot(SFX.DoorBash.BashSFX.FromRandom(AI.enemyRandom), 1f);
 
         string flowType = RoundManager.Instance.dungeonGenerator.Generator.DungeonFlow.name;
-        if (flowType == "Level1Flow" || flowType == "Level1FlowExtraLarge" || flowType == "Level1Flow3Exits" || flowType == "Level3Flow")
+        if (
+            flowType == "Level1Flow"
+            || flowType == "Level1FlowExtraLarge"
+            || flowType == "Level1Flow3Exits"
+            || flowType == "Level3Flow"
+        )
         {
             doorAudio.PlayOneShot(SFX.DoorBash.MetalDoorSmashSFX.FromRandom(AI.enemyRandom), 0.8f);
         }

@@ -20,7 +20,12 @@
     <IsThunderstorePackable>true</IsThunderstorePackable>
   </PropertyGroup>
 
-  <Target Name="NetcodePatch" AfterTargets="Build" BeforeTargets="ThunderPipePack" Condition="$(Configuration) == 'Release'">
+  <Target
+    Name="NetcodePatch"
+    AfterTargets="Build"
+    BeforeTargets="ThunderPipePack"
+    Condition="$(Configuration) == 'Release'"
+  >
     <Exec Command="dotnet netcode-patch -uv 2022.3.62 -nv 1.12.2 -tv 1.0.0 &quot;$(TargetPath)&quot; @(ReferencePathWithRefAssemblies->'&quot;%(Identity)&quot;', ' ')" />
   </Target>
 
@@ -72,7 +77,6 @@
   <ItemGroup>
     <ProjectReference Include="$(SolutionRoot)SCP682.UnityRef/SCP682.UnityRef.csproj" />
   </ItemGroup>
-
 
   <!--
     To reference mod assemblies from Thunderstore packages via NuGet,

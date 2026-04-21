@@ -82,12 +82,7 @@ public partial class Plugin : BaseUnityPlugin
 #else
         if (!Enemies.spawnableEnemies.Any(enemy => enemy.enemy.enemyName.Equals("SCP682")))
 #endif
-        Enemies.RegisterEnemy(
-            SCP682ET,
-            20,
-            Levels.LevelTypes.All,
-            SCP682TN
-        );
+            Enemies.RegisterEnemy(SCP682ET, 20, Levels.LevelTypes.All, SCP682TN);
 #if DEBUG
         // We probably want the enemy to instantly spawn in front of us if possible
         if (StartOfRound.Instance is not null)

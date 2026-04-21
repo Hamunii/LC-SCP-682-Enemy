@@ -27,12 +27,10 @@ public abstract partial class ModEnemyAINetworkLayer : EnemyAI
     internal abstract IEnumerator TransitionState(string stateOrTransitionName, int randomSeed);
 
     [ServerRpc]
-    protected void SetTargetServerRpc(int PlayerID) =>
-        SetTargetClientRpc(PlayerID);
+    protected void SetTargetServerRpc(int PlayerID) => SetTargetClientRpc(PlayerID);
 
     [ClientRpc]
-    private void SetTargetClientRpc(int PlayerID) =>
-        SetTarget(PlayerID);
+    private void SetTargetClientRpc(int PlayerID) => SetTarget(PlayerID);
 
     protected abstract void SetTarget(int PlayerID);
 
